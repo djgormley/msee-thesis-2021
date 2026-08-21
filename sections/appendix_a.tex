@@ -1,0 +1,55 @@
+\newpage
+\addcontentsline{toc}{chapter}{\quad \:  A \quad \:  SOURCE CODE}
+
+\begin{center}
+  APPENDIX A\\
+  SOURCE CODE  
+\end{center}
+\bigskip
+
+\begin{scriptsize}
+\begin{lstlisting}
+
+%% RX RF Frontend
+norm_factor = modnorm(syms_noisy,'peakpow',1);
+agc = syms_noisy*norm_factor;
+
+%% Receiver:  SCA
+Ncapture = length(agc);
+
+% valid alpha range is [0 Fs/2]
+a_step = Rs; % only evaluate harmonics of Rs
+a_array = (Rs:a_step:Fs/2)';
+Na = length(a_array);
+
+% valid fc range is [-Fs/2 Fs/2]
+fc_step = fc; % only evaluate harmonics of fc
+fc_array = (-Fs/2:fc_step:Fs/2)';
+Nfc = length(fc_array);
+
+% two tap low-pass filter
+hlpf = [0.5,0.5];
+
+% allocate memory for results
+S = zeros(Na,Nfc);
+
+% search cycle freqs
+for idx_a = 1:Na
+  % search center freqs
+  for idx_fc = 1:Nfc
+    % channelizer
+    lo = exp(1j*2*pi*fc_array(idx_fc)/Fs*(1:Ncapture))';    
+    channelized = filter(hlpf,1,syms_pb(1:Ncapture).*lo);    
+
+    % symbol rate estimation
+    R = abs(channelized).^2;
+    S(idx_a,idx_fc) = goertzel(R,round(a_array(idx_a)/Fs*Ncapture)+1)/Ncapture;   
+  end
+end
+
+T = abs(S).^2;
+Pfa = 1e-3;
+sigma = Pfa*(sum(abs(agc).^2)/Ncapture)^2;
+threshold = ones(Na,Nfc)*sigma
+\end{lstlisting}
+\end{scriptsize}

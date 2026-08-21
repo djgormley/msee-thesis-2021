@@ -1,0 +1,270 @@
+\newpage
+\addcontentsline{toc}{chapter}{\quad \: IV \hspace{5pt} PERFORMANCE CHARACTERIZATION}
+
+\begin{center}
+  \vspace*{1.75in}
+  CHAPTER IV\\
+  PERFORMANCE CHARACTERIZATION
+\end{center}
+
+% background intro
+\bigskip
+This chapter will characterize the performance of the streaming SCA's ability to correctly sense and classify the CF and SR of signals in a monitored spectrum.  First, we generate a transmit M-QAM-SRRC waveform in software using python.  The waveform is then passed through a software channel and saved to a file in a fixed-point format using python.  The receiver is a VHDL testbench that reads the file, processes the in-phase and quadrature (IQ) samples using the streaming SCA, then saves CSD results to a new file.  We then plot the CSD in MATLAB, along with its corresponding threshold.  A detected SR is any spectral slice $v$ above the threshold.  A detected CF is a peak $k$ for a detected SR slice.  Finally, these bins are mapped to their true values $(R_{s},f_{c})$, respectively.
+
+%
+% 4.1
+%
+\bigskip
+\addcontentsline{toc}{subsection}{\quad 4.1 \quad Experiments}
+\noindent 4.1  \quad Experiments
+
+Characterization is performed by first establishing baseline parameters for the transmitter and receiver.  While baseline parameters provide results that are easy to be accurately detected, they may not reflect real-world constraints such as hardware restrictions or channel impairments.  Each subsequent experiment is a parametric analysis of the effect of modifying a given parameter.  The parameters evaluated are shown in Table \ref{tab:tx} and Table \ref{tab:rx}.
+
+\begin{table}[H]
+\begin{center}
+\caption[Python transmitter \& channel.]{Python transmitter \& channel \\
+\scriptsize Here, $f_{s}=1MHz$ for all experiments, and $r$ is rolloff.}
+\label{tab:tx}
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Expt.} & $\bm{M}$ & $\bm{r}$ & $\bm{R_{s} \: (MBd)}$ & $\bm{f_{c} \: (MHz)}$ & $\bm{\frac{E_{b}}{N_{0}} \: (dB)}$ \\
+\hline
+I    & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+II   & $16$       & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+III  & $4$        & $0.20$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+IV   & $4$        & $0.35$         & $0.01$         & $0.05$          & $14.00$ \\
+\hline
+V    & $4$        & $0.35$         & $0.10$         & $-0.05$         & $14.00$ \\
+\hline
+VI   & $4$        & $0.35$         & $0.10$         & $0.05$          & $9.00$  \\
+\hline
+VII  & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+VIII & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+IX   & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+X    & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+XI   & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
+\hline
+XII  & $4$; $16$  & $0.35$; $0.35$ & $0.10$; $0.25$ & $-0.20$; $0.20$ & $14.00$ \\
+\hline
+XIII & $4$; $16$  & $0.35$; $0.35$ & $0.10$; $0.25$ & $0.05$; $0.10$  & $14.00$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+%
+\begin{table}[H]
+\begin{center}
+\caption[VHDL receiver.]{VHDL receiver  \\
+\scriptsize Here, $BW$ is bit-width, $(v,k)$ are the search space.}
+\label{tab:rx}
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Expt.} & $\bm{f_{s} \: (MHz)}$ & $\bm{N}$ & $\bm{BW}$ & $\bm{v}$ & $\bm{k}$ \\
+\hline
+I    & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+II   & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+III  & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+IV   & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+V    & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+VI   & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+VII  & $10.00$ & $2^{16}$ & 16 & $[1MHz:1MHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:50kHz:\frac{F_{s}}{2}]$   \\
+\hline
+VIII & $1.00$  & $2^{12}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+IX   & $1.00$  & $2^{16}$ & 8  & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+\hline
+X    & $1.00$  & $2^{16}$ & 16 & $R_{s}$                         & $[-\frac{F_{s}}{2}:10kHz:\frac{F_{s}}{2}]$   \\
+\hline
+XI   & $1.00$  & $2^{16}$ & 16 & $[99.9kHz:1Hz:100.1kHz]$        & $f_{c}$                                      \\
+\hline
+XII  & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:50kHz:\frac{F_{s}}{2}]$    \\
+\hline
+XIII & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:50kHz:\frac{F_{s}}{2}]$    \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+% baseline
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.75]{characterization/exp1}
+\caption{CSD estimate plot for experiment I}
+\end{figure}
+
+
+% page 1 of expts
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp2}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp3}
+\end{subfigure}
+
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp4}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp5}
+\end{subfigure}
+
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp6}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp7}
+\end{subfigure}
+
+\caption{CSD estimate plots for experiments II-VII}
+\end{figure}
+
+\clearpage
+
+% page 2 of expts
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp8}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp9}
+\end{subfigure}
+
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp10}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp11}
+\end{subfigure}
+
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55]{characterization/exp12}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+    \centering
+    \includegraphics[scale=0.55 ]{characterization/exp13}
+\end{subfigure}
+
+\caption{CSD estimate plots for experiments VIII-XIII}
+\end{figure}
+
+\clearpage
+
+%
+% 4.2
+%
+\bigskip
+\addcontentsline{toc}{subsection}{\quad 4.2 \quad Results}
+\noindent 4.2  \quad Results
+
+From our experimentation, we were able to produce the results shown in Table \ref{tab:perf} and Table \ref{tab:ru}.  We find that every test surpasses the threshold and is successfully detected.
+
+\begin{table}[H]
+\begin{center}
+\caption[Performance results.]{Performance Results \\
+\scriptsize Here, $\beta=10^{-4}$. $(R_{s},f_{c})$ are detected waveforms.}
+\label{tab:perf}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Expt.} & $\bm{Delay \: (ns)}$ & $\bm{\sigma^{4}_{\eta}}$ & $\bm{R_{s} \: (MBd)}$ & $\bm{f_{c} \: (MHz)}$ \\
+\hline
+I    & $6881440500$  & $0.0390605536703082500 $ & $0.1$          & $0.05$        \\
+\hline
+II   & $6881440500$  & $0.0398833126975169200 $ & $0.1$          & $0.05$        \\
+\hline
+III  & $6881440500$  & $0.0298027449329316400 $ & $0.1$          & $0.05$        \\
+\hline
+IV   & $6881440500$  & $0.0117707270580887540 $ & $0.1$          & $0.05$        \\
+\hline
+V    & $6881440500$  & $0.0296904514781464350 $ & $0.1$          & $-0.05$       \\
+\hline
+VI   & $6881440500$  & $0.0230728422450306340 $ & $0.1$          & $0.05$        \\
+\hline
+VII  & $6881440500$  & $0.0394264003727182250 $ & $0.1$          & $0.05$        \\
+\hline
+VIII & $430240500$   & $0.0613674210127828100 $ & $0.1$          & $0.05$        \\
+\hline
+IX   & $6881440500$  & $0.0323822252535604900 $ & $0.1$          & $0.05$        \\
+\hline
+X    & $6619200500$  & $0.0390605536703082500 $ & $0.1$          & $0.04$        \\
+\hline
+XI   & $13243153500$ & $0.0390605536703082500 $ & $0.1$          & $0.05$        \\
+\hline
+XII  & $13762840500$ & $0.0353091800682484900 $ & $0.1$; $0.25$ & $-0.2$; $0.2$  \\
+\hline
+XIII & $13762840500$ & $0.034193338983871176 $ & $0.1$; $0.25$ & $0.05$; $0.25$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[H]
+\begin{center}
+\caption{Resource Utilization Results}
+\label{tab:ru}
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\textbf{Expt.} & $\bm{LUT}$ & $\bm{LUTRAM}$ & $\bm{FF}$ & $\bm{BRAM}$ & $\bm{DSP}$ & $\bm{IO}$ \\
+\hline
+I    & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+II   & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+III  & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+IV   & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+V    & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+VI   & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+VII  & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+VII  & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+IX   & $674$  & $3$ & $319$ & $15$ & $16$ & $100$       \\
+\hline
+X    & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+XI   & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+XII  & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+XIII & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\clearpage
+
+

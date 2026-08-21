@@ -1,0 +1,28 @@
+\newpage
+\addcontentsline{toc}{chapter}{\quad \: I \quad \:  INTRODUCTION}
+
+\begin{center}
+  \vspace*{1.75in}
+  CHAPTER I\\
+  INTRODUCTION    
+\end{center}
+\bigskip
+
+Modulated radio-frequency (RF) communication signals exhibit probabilistic parameters that vary periodically with time.  These statistical properties are known as \textit{cyclostationarity}.  This thesis is interested in estimating the cycle frequencies of second-order cyclostationary (SOC) signals.  In this work, we perform temporal analysis using the cyclic autocorrelation function (CAF).  Further, we perform spectral analysis using the cyclic spectral density function (CSD) \cite{spooner-92}.
+
+Some of the standard CSD estimation techniques are the frequency-smoothing method (FSM), time-smoothing method (TSM), strip spectral correlation analyzer (SSCA), and the fast Fourier transform (FFT) accumulation method (FAM) \cite{spooner-92}.  The realization of a CSD estimator is called a \textit{spectral correlation analyzer} (SCA) \cite{spooner-92}\cite{gardner-06}.  This paper investigates SCA techniques and evaluates their ability to be used with severely resource-constrained platforms, such as cube satellites (CubeSats).
+
+Terrestrial receivers have few constraints to consider with regard to size, weight, and power (SWaP).  High-SWaP systems such as multi-core central processing units (CPU), graphics processing units (GPU), and large-cell-count field-programmable gate arrays (FPGA) are deployed to perform complex digital signal processing (DSP) routines.
+
+For CubeSat cognitive radios (CR), however, resources are scarce.  These CRs are tasked to collect data, process signals, receive commands, report status, process overhead, and store data, among multiple other advanced functions.  All of this functionality must operate under severe SWaP constraints.  Hence, the utilization of low-SWaP devices such as low-cell-count FPGAs are deployed to meet these constraints.
+
+In the current state-of-the-art, SCA algorithms utilize large amounts of block random access memory (BRAM) due to the extensive use of the FFT.  This paper studies an SCA algorithm's design with a low reliance on BRAM by processing in the time domain.  The low-BRAM design operates entirely on a sample-by-sample ("streaming") basis, thus significantly reducing the BRAM required.  As a result of the decreased need for BRAM, a streaming-based SCA can be deployed onto CubeSat CRs.
+
+Chapter II begins by reviewing the basic notation and concepts of stochastic processes, also known as \textit{random signals}.  We then develop the intuition and mathematics behind cyclostationary signal processing (CSP).  Following, we discuss the challenges associated with calculating the power spectral density (PSD) of random signals.  PSD estimation techniques are discussed, followed by CSD estimation techniques for cyclostationary signals.  After this, we evaluate several SCAs and discuss their appropriateness for our low-BRAM objective.  Finally, we conclude with an overview of a technique that leverages CSP to intelligently reused spectral bands, known as \textit{spectrum sensing}.
+
+In Chapter III, we first provide commentary on the motivation for performing spectrum sensing in space.  Following, we discuss a set of assumptions necessary for the design of our low-BRAM SCA.  We model a previously studied SCA, which we will refer to as the CAF - discrete Fourier transform (DFT) (CAF-DFT) algorithm, in matrix laboratory (MATLAB) to validate its use on M-order quadrature amplitude modulated waveforms (QAM) with square-root-raised-cosine (SRRC) pulse-shaping (M-QAM-SRRC).  Due to CubeSat CR limitations, we simplify parts of the design using a single-point estimator with little BRAM.  We conclude this chapter with comprehensive look into the digital architecture for such a design, which we will refer to as the \textit{streaming-SCA}, due to its BRAM-reducing stream-based approach.
+
+In Chapter IV, we perform a characterization of our newly created streaming-SCA.  Experiments will stress-test various parameters, including bit widths, symbol rates, center frequencies, capture lengths, noise, and SRRC roll-offs.  We conclude this thesis in Chapter V with an overall summary and a discussion of opportunities for future work.
+
+
+\clearpage

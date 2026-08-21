@@ -1,0 +1,26 @@
+\newpage
+\addcontentsline{toc}{chapter}{\quad \: V \hspace{9pt}  CONCLUSION}
+
+\begin{center}
+  \vspace*{1.75in}
+  CHAPTER V\\
+  CONCLUSION   
+\end{center}
+
+\bigskip
+We investigated a low-memory FPGA implementation of an SCA for M-QAM-SRRC SR-CF detection.  We began by developing a set of assumptions that limited the scope of existing SCA paradigms.  We then discussed the HDL design used to construct such a system, which did not rely on FFTs and used no proprietary tools.  Following this, we presented the performance characterization results of the newly formed streaming-SCA.
+
+% preprocessing
+As discussed in section 3.2, one of the shortcomings of this design is that performance scales poorly with higher resolutions when compared to other methods.  This difficulty in scaling is the main disadvantage when compared to the SSCA.  Instead of blindly sweeping across all SRs with a high resolution, Koch instead uses a preprocessor to turn the SCA from blind to semi-blind.  The concept is to use an FFT to produce the CAF then a threshold is applied.  Values that meet the threshold are known as SR candidates fed into the streaming SCA to evaluate.  This preprocessing can reduce the detection from thousands of $(R_{s},f_{c})$ pairs to hundreds or even dozens.  This thesis does not cover preprocessing due to the memory requirements of the FFT.  However, preprocessor use is highly encouraged if the platform can afford the extra memory.
+
+% decimation
+Another way to increase performance is through decimation.  While this thesis does not cover the algorithm to sweep through $(R_{s},f_{c})$ values, the general data flow is to determine the symbol rate to be checked, then decimate by $\sfrac{F_{s}}{R_{s}}$.  Potential difficulties may be keeping track of bin's mapping to actual values and scheduling issues when using multiple streaming SCAs in parallel.
+
+% postprocessing
+The threshold used in this algorithm is a basic example. This example threshold has several unsolved problems.  The primary issue for some $R_{s}$, only one $f_{c}$ can be detected by finding the maxima of a given spectral density.  To solve this issue, an algorithm to detect local CF maxima above the threshold is needed.  This enhancement would allow for the ability to detect multiple CFs sharing the same SR.  The second issue is that when very fine values of $\alpha$ are used, there will be false detection for values close to the true SR.  To solve this issue, an algorithm to detect local SR maxima above the threshold is needed.  This enhancement would decrease the probability of SR false alarms.  For now, peak detection is the best solution, but a study on the optimal detection for digital circuits would greatly expand this design's utility.
+
+% additional waveforms
+Lastly, M-QAM-SRRC is simply the easiest waveform to detect.  Other PSFs, such as rectangular, can be support, in addition to other waveforms such as FSK, OOK, MSK, DSSS, DPSK, and encodings such as Manchester, are all supported by the streaming-SCA.  However, optimal detection is much more difficult on these waveforms, and are not covered in this thesis.
+
+\clearpage
+

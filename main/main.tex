@@ -1,0 +1,149 @@
+% created by: Dylan J. Gormley (dylan.j.gormley@gmail.com)
+
+% preamble
+\documentclass[12pt]{report} % csu font size
+\usepackage[doublespacing]{setspace} % csu spacing
+\usepackage[
+  left   = 1.5in,
+  top    = 1in,
+  bottom = 1in,
+  right  = 1in
+  ]{geometry} % csu margins
+
+\usepackage{amssymb} % under/overset
+\usepackage{mathtools} % scaling abs val
+  \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\usepackage{xfrac} % sfrac
+\usepackage{bm} % bold math symbols
+\usepackage{graphicx} % import figures
+  \graphicspath{{../images}}
+\usepackage{acronym} % acronym table
+\usepackage{subcaption, multicol} % figures in columns
+\usepackage{float} % [H]
+\usepackage{anyfontsize} % fractional font sizes
+
+% used to put code in appendix
+\usepackage[table, dvipsnames]{xcolor}
+  \definecolor{dkgreen}{rgb}{0.0,  0.6, 0.00}
+  \definecolor{gray}   {rgb}{0.5,  0.5, 0.50}
+  \definecolor{mauve}  {rgb}{0.58, 0.0, 0.82}
+\usepackage{listings}
+  \lstset{
+    frame             = tb,
+  	language          = Matlab,
+  	aboveskip         = 3mm,
+  	belowskip         = 3mm,
+  	showstringspaces  = false,
+  	columns           = flexible,
+  	basicstyle        = {\small\ttfamily},
+  	numbers           = none,
+  	numberstyle       = \tiny\color{gray},
+  	keywordstyle      = \color{blue},
+  	commentstyle      = \color{dkgreen},
+  	stringstyle       = \color{mauve},
+  	breaklines        = true,
+  	breakatwhitespace = true,
+  	tabsize           = 3
+  }
+
+\title{A Low-Memory Spectral-Correlation Analyzer for Digital QAM-SRRC Waveforms}
+\author{Dylan Jacob Gormley}
+
+\usepackage{tocloft}
+\renewcommand*{\cftchapfont}{\normalfont}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftsecdotsep}}
+
+% override default toc title with csu format
+\setlength{\cftbeforetoctitleskip}{-3em}
+\setlength{\cftaftertoctitleskip}{0em}
+\renewcommand{\cfttoctitlefont}{\normalfont}
+\renewcommand{\contentsname}{
+  \begin{center}
+  TABLE OF CONTENTS
+  \end{center}
+  }
+
+% override default lot title with csu format
+\setlength{\cftbeforelottitleskip}{-3em}
+\setlength{\cftafterlottitleskip}{0em}
+\renewcommand{\cftlottitlefont}{\normalfont}
+\renewcommand{\listtablename}{
+  \begin{center}
+  LIST OF TABLES
+  \end{center}
+  }
+
+% override default lof title with csu format
+\setlength{\cftbeforeloftitleskip}{-3em}
+\setlength{\cftafterloftitleskip}{0em}
+\renewcommand{\cftloftitlefont}{\normalfont}
+\renewcommand{\listfigurename}{
+  \begin{center}
+  LIST OF FIGURES
+  \end{center}
+  }
+
+% override default bib title with csu format
+\usepackage[square,numbers,sort&compress]{natbib}
+%\usepackage{natbib}
+  \bibliographystyle{unsrtnat}
+\newcommand{\mybibname}{REFERENCES}
+\renewcommand\bibsection{%
+   \clearpage
+   \center\noindent\normalsize\MakeUppercase{\mybibname}%
+   \markboth{\MakeUppercase{\mybibname}}{\MakeUppercase{\mybibname}}%
+  }
+
+\begin{document}
+\makeatletter
+
+% frontmatter
+\newpage
+\pagenumbering{roman}
+\input{../sections/titlepage}
+\input{../sections/copyright}
+\input{../sections/approval}
+\input{../sections/dedication}
+\input{../sections/acknowledgment}
+
+\addtocontents{toc}{~\hfill Page \par}
+\input{../sections/abstract}
+
+\newpage
+\tableofcontents
+
+\newpage
+\addcontentsline{toc}{chapter}{LIST OF TABLES}
+\addtocontents{lot}{~\hfill Page \par}
+\listoftables
+
+\newpage
+\addcontentsline{toc}{chapter}{LIST OF FIGURES}
+\addtocontents{lof}{~\hfill Page \par}
+\listoffigures
+
+% mainmatter
+\newpage
+\pagenumbering{arabic}
+
+\cftlocalchange{toc}{360pt}{0cm} % turn off leaders
+  \cftaddtitleline{toc}{chapter}{CHAPTERS}{}
+\cftlocalchange{toc}{1.55em}{2.55em} % turn on leaders
+
+\input{../sections/chapter_i}
+\input{../sections/chapter_ii}
+\input{../sections/chapter_iii}
+\input{../sections/chapter_iv}
+\input{../sections/chapter_v}
+
+% backmatter
+\newpage
+\addcontentsline{toc}{chapter}{REFERENCES}
+\bibliography{../sections/references}
+
+\newpage
+\input{../sections/appendix_a}
+\input{../sections/appendix_b}
+%\input{../sections/appendix_c}
+
+\end{document}
