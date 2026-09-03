@@ -1,0 +1,18 @@
+{signal: [
+  {name: 'Clock',            wave: 'p.|...|..|..|..'},
+  {name: 'Reset',            wave: '10|...|..|..|..'},
+  {name: 'SampleIn_I',       wave: 'x.|.44|44|4x|xx', data: ['0','','5','','N-1']},
+  {name: 'SampleIn_Q',       wave: 'x.|.44|44|4x|xx', data: ['0','','5','','N-1']},
+  {name: 'SampleOutReady',   wave: '01|...|..|.0|..'},
+  {name: 'SampleInValid',    wave: '0.|.1.|..|.0|..'},
+  {name: 'SampleInLast',     wave: '0.|...|..|10|..'},
+  {name: 'SampleInReady',    wave: '0.|1..|..|..|.0'},
+  {name: 'SampleOutValid',   wave: '0.|...|1.|..|.0'},
+  {name: 'SampleOutLast',    wave: '0.|...|..|..|10'},
+  {name: 'SampleOut_I',      wave: 'x.|...|33|33|3x', data: ['0','','N-6','','N-1']},
+  {name: 'SampleOut_Q',      wave: 'x.|...|33|33|3x', data: ['0','','N-6','','N-1']},
+
+  {}
+],
+config: { hscale: 1 }}
+

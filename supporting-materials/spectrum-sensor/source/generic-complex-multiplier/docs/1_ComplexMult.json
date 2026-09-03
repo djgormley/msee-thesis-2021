@@ -1,0 +1,17 @@
+{signal: [
+  {name: 'Clock',            wave: 'p.......|....'},
+  {name: 'Reset',            wave: '10......|....'},
+  {name: 'RealA_in',         wave: 'x...4444|4xxx', data: ['0', '1', '2', '', 'N-1']},
+  {name: 'ImagA_in',         wave: 'x...4444|4xxx', data: ['0', '1', '2', '', 'N-1']},
+  {name: 'RealB_in',         wave: 'x...4444|4xxx', data: ['0', '1', '2', '', 'N-1']},
+  {name: 'ImagB_in',         wave: 'x...4444|4xxx', data: ['0', '1', '2', '', 'N-1']},
+  {name: 'SampleInValid',    wave: '0...1...|.0..'},
+  {name: 'SampleInLast',     wave: '0.......|10..'},
+  {name: 'SampleOutReady',   wave: '01......|.0..'},
+  {name: 'ProductReal',      wave: 'x.....33|333x', data: ['0', ' ', 'N-3', 'N-2', 'N-1']},
+  {name: 'ProductImaginary', wave: 'x.....33|333x', data: ['0', ' ', 'N-3', 'N-2', 'N-1']},
+  {name: 'SampleOutValid',   wave: '0.....1.|...0'},
+  {name: 'SampleOutLast',    wave: '0.......|..10'},
+  {name: 'SampleInReady',    wave: '0..1....|...0'},
+  {}
+]}

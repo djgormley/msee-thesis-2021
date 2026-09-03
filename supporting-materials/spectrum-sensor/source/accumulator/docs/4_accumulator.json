@@ -1,0 +1,15 @@
+{signal: [
+  {name: 'Clock',            wave: 'p.....|....'},
+  {name: 'Reset',            wave: '10....|....'},
+  {name: 'SampleIn',         wave: 'x..444|4xxx', data: ['0','1','','N-1']},
+  {name: 'SampleOutReady',   wave: '01....|.0..'},
+  {name: 'SampleInValid',    wave: '0..1..|.0..'},
+  {name: 'SampleInLast',     wave: '0.....|10..'},
+  {name: 'SampleInReady',    wave: '0.1...|..0.'},
+  {name: 'SampleOutValid',   wave: '0...1.|..0.'},
+  {name: 'SampleOutLast',    wave: '0.....|.10.'},
+  {name: 'SampleOut',        wave: 'x...33|33xx', data: ['0','','N-2','N-1']},
+  {}
+],
+config: { hscale: 1 }}
+

@@ -1,0 +1,17 @@
+{signal: [
+  {name: 'Clock',              wave: 'p.|..|..|..|..|..|..'},
+  {name: 'Reset',              wave: '10|..|..|..|..|..|..'},
+  {name: 'CenterFrequencyFcw', wave: 'x.|.8|..|.8|..|.x|..', data: ['CF FCW 1' , 'CF FCW 2']},
+  {name: 'SymbolRateFcw',      wave: 'x.|.5|..|..|..|.x|..', data: ['SRE FCW    ']},
+  {name: 'SampleIn',           wave: 'x.|.4|..|.4|..|.x|..', data: ['capture 1 in   ' , 'capture 2 in   ']},
+  {name: 'SampleOutReady',     wave: '01|..|..|..|..|.0|..'},
+  {name: 'SampleInValid',      wave: '0.|.1|..|..|..|.0|..'},
+  {name: 'SampleInLast',       wave: '0.|..|..|10|..|10|..'},
+  {name: 'SampleInReady',      wave: '0.|1.|..|..|..|..|.0'},
+  {name: 'SampleOutValid',     wave: '0.|..|.1|..|..|..|.0'},
+  {name: 'SampleOutLast',      wave: '0.|..|..|..|10|..|10'},
+  {name: 'SampleOut',          wave: 'x.|..|.3|..|.3|..|.x', data: ['capture 1 out    ', 'capture 2 out    ']},
+  {}
+],
+config: { hscale: 1 }}
+

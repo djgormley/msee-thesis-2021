@@ -1,0 +1,22 @@
+# Vivado build products
+**/.Xil/
+**/*.cache/
+**/*.gen/
+**/*.hw/
+**/*.ip_user_files/
+**/*.runs/
+**/*.sim/
+**/*_proj/
+**/project_1/
+**/*.jou
+**/*.log
+**/*.pb
+**/*.str
+**/*.wdb
+
+# Generated test and helper outputs
+**/__pycache__/
+**/*.py[cod]
+**/test/*.txt
+**/test/matlab/mux.txt
+**/test/matlab/taps.txt

@@ -1,0 +1,17 @@
+{signal: [
+  {name: 'Clock',            wave: 'p...|.............|....|....'},
+  {name: 'Reset',            wave: '10..|.............|....|....'},
+  {name: 'Coeffs',           wave: 'x.88|8x...........|....|....', data: ['0','','T-1']},
+  {name: 'I_in',             wave: 'x...|.......444444|4xxx|xxxx', data: ['0','1','2','3','4','','N']},
+  {name: 'Q_in',             wave: 'x...|.......444444|4xxx|xxxx', data: ['0','1','2','3','4','','N']},
+  {name: 'SampleInValid',    wave: '0...|.......1.....|.0..|....'},
+  {name: 'SampleInLast',     wave: '0...|.............|10..|....'},
+  {name: 'SampleOutReady',   wave: '0...|..1..........|....|....'},
+  {name: 'I_out',            wave: 'x...|...........33|3333|3x..', data: ['0','','N-5','N-4','N-3','','F']},
+  {name: 'Q_out',            wave: 'x...|...........33|3333|3x..', data: ['0','','N-5','N-4','N-3','','F']},
+  {name: 'SampleOutValid',   wave: '0...|...........1.|....|.0..'},
+  {name: 'SampleOutLast',    wave: '0...|.............|....|10..'},
+  {name: 'SampleInReady',    wave: '0...|......1......|....|....'},
+  {}
+],
+config: { hscale: 1 }}

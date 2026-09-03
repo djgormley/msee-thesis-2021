@@ -1,0 +1,5 @@
+* text eol=lf
+
+# Preserve imported source bytes, including their original line endings and spacing.
+source/** -text whitespace=-trailing-space,-space-before-tab,-blank-at-eof
+source/**/*.mlx binary

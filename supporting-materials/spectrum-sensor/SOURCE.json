@@ -1,0 +1,69 @@
+{
+  "source_package": {
+    "filename": "spectrum-sensor-20260903T023016Z-1-001.zip",
+    "size_bytes": 62810971,
+    "sha256": "4960a061ccf22ab7382eafa4eb4e30ddd9e07cd0d7a29f4062755c34a639a8cf"
+  },
+  "source_repository": {
+    "name": "spectrum-sensor",
+    "intended_branch": "master",
+    "remote_tracking_tip": "1972ccba7c2227c1e403950c21c91683a9b76d99",
+    "remote_tracking_tip_timestamp": "2022-07-05T09:02:15-04:00",
+    "remote_tracking_tree": "3f6b37fdd830ebae8827b9a7ea26b0d0a235b532",
+    "selected_bytes_from": "working tree in the supplied package",
+    "identity_note": "MANIFEST.sha256 identifies the exact selected working-tree files. The remote-tracking reference is retained as repository context rather than as the byte identity of this selection."
+  },
+  "import": {
+    "date": "2026-09-03",
+    "scope": "XC7Z020/ZedBoard component sources, tests, models, project definitions, coefficients, timing definitions, and compact regression fixtures",
+    "vivado_version": "2019.2.1",
+    "fpga_part": "xc7z020clg484-1",
+    "board_part": "em.avnet.com:zed:part0:1.4",
+    "supplied_license": null
+  },
+  "matlab_exports": [
+    {
+      "source": "source/generic-fir/test/matlab/gen_taps.mlx",
+      "source_sha256": "3b36624914c01f1bd6b625822016ea08a9249f3f92575ed8b3cf09a43c7197e7",
+      "export": "source/generic-fir/test/matlab/gen_taps.m",
+      "export_sha256": "2b6f23813bb25bc4810bff427e772b29598bf872181b612808e131540a995afe",
+      "export_tool": "MATLAB R2025b"
+    },
+    {
+      "source": "source/spectrum-sensor/model/qam_srrc_xmtr.mlx",
+      "source_sha256": "8cc03dcb366a7ba1fa04ff1a1facf4e75d74c26f11140e0311b8fc66faf42025",
+      "export": "source/spectrum-sensor/model/qam_srrc_xmtr.m",
+      "export_sha256": "f78741e30e598a3cc1a23f8feead6c6ef238fabe5518b2832c084d98af335911",
+      "export_tool": "MATLAB R2025b"
+    },
+    {
+      "source": "source/spectrum-sensor/model/sca.mlx",
+      "source_sha256": "98b91904d07314529a5f1cf9085d3e9a6f3531b4d80e4f41c8d6296d62b2f3c1",
+      "export": "source/spectrum-sensor/model/sca.m",
+      "export_sha256": "e599f88f97083c2d766353d62de0bb78c2643dabea1896a8938ccf310b915066",
+      "export_tool": "MATLAB R2025b"
+    },
+    {
+      "source": "source/spectrum-sensor/model/sca_detect.mlx",
+      "source_sha256": "a2e417234d5025d9d6b974ad5449f9f3a086168fa09b9b7df8701cd25e84675b",
+      "export": "source/spectrum-sensor/model/sca_detect.m",
+      "export_sha256": "0b4f6fddc6622232187e245fa757c1baba862bec6a4ed30d0cf2ed942de19cf4",
+      "export_tool": "MATLAB R2025b"
+    },
+    {
+      "source": "source/spectrum-sensor/model/sca_roc.mlx",
+      "source_sha256": "7a59a8eb694196ea21a30498c8f746f80d94d88f1f7508015036fc236d9844d3",
+      "export": "source/spectrum-sensor/model/sca_roc.m",
+      "export_sha256": "acdceb41111108ddc6fa193c40a86132c8f337eda75a097f4aca6d4a27050c5e",
+      "export_tool": "MATLAB R2025b"
+    }
+  ],
+  "excluded_categories": [
+    "embedded Git metadata",
+    "generated Xilinx FFT products and the XCKU5P platform configuration",
+    "Office, Visio, and review documents",
+    "debug screenshots, waveform configurations, and older captures",
+    "machine-specific convenience scripts and build products",
+    "later platform-integration sources outside the thesis XC7Z020 component flow"
+  ]
+}
