@@ -1,4 +1,4 @@
-%% CSD estimates for square-root-raised-cosine M-QAM waveforms
+%% SCF estimates for square-root-raised-cosine M-QAM waveforms
 
 clear;
 rng(11,'twister');
@@ -27,7 +27,7 @@ plot_colors = [colors.blue;colors.orange;colors.green;colors.purple];
 modulation_orders = 2.^(1:4);
 expected_symbol_variances = [1,2,6,10];
 symbol_variances = zeros(size(modulation_orders));
-csd_peaks = zeros(size(modulation_orders));
+scf_peaks = zeros(size(modulation_orders));
 axes_handles = gobjects(size(modulation_orders));
 
 for i = 1:numel(modulation_orders)
@@ -64,17 +64,17 @@ for i = 1:numel(modulation_orders)
     Ra_padded = complex(zeros(Ncf,Nfreqs));
     Ra_padded(:,1:Nlags+1) = Ra(:,Nlags+1:end);
     Ra_padded(:,end-Nlags+1:end) = Ra(:,1:Nlags);
-    CSD_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
-    CSD = circular_movmean(CSD_raw,smoothing_length,2);
-    csd_peaks(i) = max(abs(CSD),[],'all');
+    SCF_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
+    SCF = circular_movmean(SCF_raw,smoothing_length,2);
+    scf_peaks(i) = max(abs(SCF),[],'all');
 
     [~,symbol_rate_index] = min(abs(alpha-Rs));
-    [~,carrier_index] = max(abs(CSD(symbol_rate_index,:)));
+    [~,carrier_index] = max(abs(SCF(symbol_rate_index,:)));
     assert(abs(f(carrier_index)-fc) <= Fs/Nfreqs);
 
     ax = nexttile(layout);
     axes_handles(i) = ax;
-    surface_handle = waterfall(ax,f,alpha,abs(CSD));
+    surface_handle = waterfall(ax,f,alpha,abs(SCF));
     set(surface_handle,'EdgeColor',plot_colors(i,:), ...
         'FaceColor','none','LineWidth',0.75);
     view(ax,225,20);
@@ -87,19 +87,19 @@ end
 
 % Use one vertical scale so that the sigma_a^2 amplitude dependence remains
 % visible instead of being hidden by independent subplot autoscaling.
-shared_zmax = 1.05*max(csd_peaks);
+shared_zmax = 1.05*max(scf_peaks);
 for i = 1:numel(axes_handles)
     zlim(axes_handles(i),[0,shared_zmax]);
 end
 
-normalized_peaks = csd_peaks./symbol_variances;
+normalized_peaks = scf_peaks./symbol_variances;
 assert(max(abs(normalized_peaks/mean(normalized_peaks)-1)) < 0.08, ...
-    'The CSD shapes do not exhibit the expected symbol-variance scaling.');
+    'The SCF shapes do not exhibit the expected symbol-variance scaling.');
 fprintf('Symbol variances:');
 fprintf(' %.6f',symbol_variances);
-fprintf('\nCSD peaks:');
-fprintf(' %.6f',csd_peaks);
-fprintf('\nCSD peak / symbol variance:');
+fprintf('\nSCF peaks:');
+fprintf(' %.6f',scf_peaks);
+fprintf('\nSCF peak / symbol variance:');
 fprintf(' %.6f',normalized_peaks);
 fprintf('\n');
 

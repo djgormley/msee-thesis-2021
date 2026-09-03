@@ -91,8 +91,8 @@ S = goertzel(R, vbin) / Ncapture;
 T = abs(S).^2; % test statistic
 beta        = 1e-3; % user-selected threshold scale
 P_y_hat     = sum(abs(agc).^2)/Ncapture;
-gamma       = beta*P_y_hat^2;
-threshold   = gamma*ones(size(T));
+gamma_CFD   = beta*P_y_hat^2;
+threshold   = gamma_CFD*ones(size(T));
 
 % Report the strongest carrier candidate at each transmitted symbol rate.
 peak_T      = zeros(size(Rs));
@@ -102,10 +102,11 @@ for idx = 1:numel(Rs)
     row = find(a_array == Rs(idx),1);
     [peak_T(idx),column] = max(T(row,:));
     peak_fc(idx) = fc_array(column);
-    is_detected(idx) = peak_T(idx) > gamma;
+    is_detected(idx) = peak_T(idx) > gamma_CFD;
     fprintf(['Signal %d: Rs = %.0f kBd, estimated fc = %.0f kHz, ' ...
-        'T/gamma = %.2f, detected = %s\n'],idx,Rs(idx)/1e3, ...
-        peak_fc(idx)/1e3,peak_T(idx)/gamma,string(is_detected(idx)));
+        'T/gamma_CFD = %.2f, detected = %s\n'], idx, Rs(idx)/1e3, ...
+        peak_fc(idx)/1e3, peak_T(idx)/gamma_CFD, ...
+        string(is_detected(idx)));
 end
 assert(all(is_detected), 'At least one transmitted signal was not detected.');
 assert(all(peak_fc == fc), ...
@@ -136,6 +137,6 @@ xlabel('$f_c$ (MHz)')
 ylabel('$R_s$ (MBd)')
 zlabel('$T_y(v,k)=|\widehat{C}_y(\alpha_v,f_k)|^2$')
 legend([statistic_plot,threshold_plot], ...
-    {'$T_y(v,k)$','$\gamma=\beta\widehat{P}_y^2$'}, ...
+    {'$T_y(v,k)$','$\gamma_{\mathrm{CFD}}=\beta\widehat{P}_y^2$'}, ...
     'Location','northeast')
 thesis_export(fig,'qam_srrc_rs');

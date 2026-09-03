@@ -1,11 +1,11 @@
 \begin{tikzpicture}[node distance=6mm]
-  \node[arch/label] (xin) {$X[n]$};
+  \node[arch/label] (xin) {$x[n]$};
   \node[arch/smallblock, right=of xin] (extend) {sign\\extend};
   \node[dsp/add, right=of extend] (add) {$+$};
-  \node[dsp/reg, align=center, right=of add] (reg) {sum register\\store or clear\\$W_{\rm acc}=W+\lceil\log_2N\rceil$};
+  \node[dsp/reg, align=center, right=of add] (reg) {sum register\\store or clear\\$W_{\mathrm{acc}}=W+\lceil\log_2N\rceil$};
   \node[dsp/mux, align=center, right=of reg] (gate) {next/state\\mux};
   \node[arch/block, right=of gate] (norm) {normalize by $N$\\round, saturate,\\and resize};
-  \node[arch/label, right=of norm] (out) {$S[N-1]/N$};
+  \node[arch/label, right=of norm] (out) {$s[N-1]/N$};
   \node[arch/group, fit=(reg)(gate)] (record) {};
 
   \draw[arch/wire] (xin) -- (extend);

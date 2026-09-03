@@ -5,7 +5,7 @@
   \node[arch/block, right=of quad] (rom) {quarter-wave\\sine ROM};
   \node[arch/block, right=of rom] (sign) {sign and quadrant\\reconstruction};
 
-  \node[arch/label, below=13mm of quad] (xin) {$x[n]=I[n]+jQ[n]$};
+  \node[arch/label, below=13mm of quad] (xin) {$x[n]=x_{\mathrm{I}}[n]+\mathrm{j}x_{\mathrm{Q}}[n]$};
   \node[dsp/mult, right=8mm of xin] (cmul) {$\times$};
   \node[arch/block, right=of cmul] (sat) {round, resize,\\and saturate};
   \node[arch/label, right=of sat] (out) {$y[n]$};
@@ -15,7 +15,7 @@
   \draw[arch/wire] (quad) -- (rom);
   \draw[arch/wire] (rom) -- (sign);
   \coordinate (lobus) at ($(cmul.north)+(0,5mm)$);
-  \draw[arch/wire] (sign.south) -- ($(sign.south)+(0,-5mm)$) -- node[arch/tinylabel, above] {$\cos\theta[n]-j\sin\theta[n]$} (lobus) -- (cmul.north);
+  \draw[arch/wire] (sign.south) -- ($(sign.south)+(0,-5mm)$) -- node[arch/tinylabel, above] {$\cos\theta[n]-\mathrm{j}\sin\theta[n]$} (lobus) -- (cmul.north);
   \draw[arch/wire] (xin) -- (cmul);
   \draw[arch/wire] (cmul) -- (sat);
   \draw[arch/wire] (sat) -- (out);

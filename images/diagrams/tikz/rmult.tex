@@ -1,11 +1,11 @@
 \begin{tikzpicture}[node distance=7mm]
-  \node[arch/label] (ain) {$A[n]$};
-  \node[arch/label, below=8mm of ain] (bin) {$B[n]$};
+  \node[arch/label] (ain) {$a[n]$};
+  \node[arch/label, below=8mm of ain] (bin) {$b[n]$};
   \coordinate (inmid) at ($(ain.east)!0.5!(bin.east)$);
   \node[dsp/mult, right=12mm of inmid] (mult) {$\times$};
   \node[arch/block, right=of mult] (round) {round at selected\\binary point};
   \node[arch/block, right=of round] (sat) {resize and\\saturate};
-  \node[arch/label, right=of sat] (out) {$Y[n]=A[n]B[n]$};
+  \node[arch/label, right=of sat] (out) {$y[n]=a[n]b[n]$};
 
   \draw[arch/wire] (ain.east) -| ($(mult.west)+(0,2mm)$);
   \draw[arch/wire] (bin.east) -| ($(mult.west)+(0,-2mm)$);

@@ -9,7 +9,7 @@
 
 % background intro
 \bigskip
-This chapter characterizes the streaming SCA's ability to sense and estimate the CF and SR of signals in a monitored spectrum.  First, a Python model generates an $M$-QAM-SRRC waveform, applies the software channel, quantizes the in-phase and quadrature (IQ) samples, and saves them to a file.  A VHDL testbench reads that file, evaluates the channelized zero-lag CAF statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ over user-defined requested SR and CF candidate grids $\mathcal{R}$ and $\mathcal{F}$, and saves the results.  MATLAB then plots the statistic and the constant threshold $\gamma=\beta\widehat{P}_{y}^{\,2}$.  For each rate candidate $\alpha_v\in\mathcal{R}$, the selected CF is the $f_k\in\mathcal{F}$ having the largest statistic, and that row exceeds the threshold when its maximum is greater than $\gamma$.  Table~\ref{tab:perf} lists the selected peak pair or pairs in nominal physical units.  Each entry represents a row maximum, while $v$ and $k$ serve as candidate-array indices.
+This chapter characterizes the streaming SCA's ability to sense and estimate the center frequency and symbol rate of signals in a monitored spectrum.  First, a Python model generates an $M$-QAM-SRRC waveform, applies the software channel, quantizes the in-phase and quadrature (IQ) samples, and saves them to a file.  A VHDL testbench reads that file, evaluates the channelized zero-lag CAF statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ over user-defined requested symbol-rate and center-frequency candidate grids $\mathcal{R}$ and $\mathcal{F}$, and saves the results.  MATLAB then plots the statistic and the constant detector threshold $\gamma_{\mathrm{CFD}}=\beta\widehat{P}_{y}^{\,2}$.  For each symbol-rate candidate $\alpha_v\in\mathcal{R}$, the selected center frequency is the $f_k\in\mathcal{F}$ having the largest statistic, and that row exceeds the threshold when its maximum is greater than $\gamma_{\mathrm{CFD}}$.  Table~\ref{tab:perf} lists the selected peak pair or pairs in nominal physical units.  Each entry represents a row maximum, while $v$ and $k$ serve only as candidate-array indices.
 
 %
 % 4.1
@@ -63,12 +63,12 @@ XIII & $4$; $16$  & $0.35$; $0.35$ & $0.10$; $0.25$ & $0.05$; $0.10$  & $14.00$ 
 \begin{table}[H]
 \begin{center}
 \caption[VHDL receiver.]{VHDL receiver. \\
-Here, $BW$ is the bit width, and $\mathcal{R}$ and $\mathcal{F}$ are inclusive requested (nominal) physical search grids.  The notation $[a:s:b]$ means values from $a$ through $b$ in steps of $s$.}
+Here, $W_{\mathrm{data}}$ is the sample word width, and $\mathcal{R}$ and $\mathcal{F}$ are inclusive requested (nominal) physical search grids.  The notation $[a:s:b]$ means values from $a$ through $b$ in steps of $s$.}
 \label{tab:rx}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Expt.} & $\bm{F_{s}}$ \textbf{(MHz)} & $\bm{N}$ & $\bm{BW}$ & $\bm{\mathcal{R}}$ \textbf{(MBd)} & $\bm{\mathcal{F}}$ \textbf{(MHz)} \\
+\textbf{Expt.} & $\bm{F_{s}}$ \textbf{(MHz)} & $\bm{N}$ & $\bm{W_{\mathrm{data}}}$ & $\bm{\mathcal{R}}$ \textbf{(MBd)} & $\bm{\mathcal{F}}$ \textbf{(MHz)} \\
 \hline
 I    & $1.00$  & $2^{16}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
@@ -100,14 +100,92 @@ XIII & $1.00$  & $2^{16}$ & 16 & $[0.05:0.05:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \end{center}
 \end{table}
 
-The plots display the requested physical candidates normalized by the sample rate: their horizontal coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample.  The axis labels $v$ and $k$ denote these normalized candidate coordinates, and the black curves show the nonnegative test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$.  The requested CF grids include both Nyquist endpoints; because $-F_s/2$ and $+F_s/2$ represent the same discrete-time frequency, they map to the same signed control word and oscillator setting.
+The plots display the requested physical candidates normalized by the sample rate: their horizontal coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample.  The subscripts $v$ and $k$ identify the corresponding candidate-array indices, and the black curves show the nonnegative test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$.  The requested center-frequency grids include both Nyquist endpoints; because $-F_s/2$ and $+F_s/2$ represent the same discrete-time frequency, they map to the same signed control word and oscillator setting.
 
 Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text{ MHz}$, the 16-bit control word has a frequency quantum of $F_s/2^{16}=15.2588\text{ Hz}$, so nearest-word quantization maps the request sweep to 14 distinct hardware settings.  The plot therefore illustrates the relationship between a fine requested grid and the implemented control-word resolution.
 
 % baseline
+% The characterization source data are retained in the original raster
+% plots.  These wrappers replace the legacy index-only axis annotations
+% with the normalized physical candidates used in the text.
+\newcommand{\characterizationplot}[3][]{%
+\begin{tikzpicture}
+  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{characterization/#2}};
+  \coordinate (cfbottom) at ($(characterizationimage.south west)!0.247!(characterizationimage.south east)$);
+  \coordinate (cftop) at ($(characterizationimage.north west)!0.247!(characterizationimage.north east)$);
+  \coordinate (ratebottom) at ($(characterizationimage.south west)!0.565!(characterizationimage.south east)$);
+  \coordinate (ratetop) at ($(characterizationimage.north west)!0.565!(characterizationimage.north east)$);
+  \coordinate (statisticbottom) at ($(characterizationimage.south west)!0.035!(characterizationimage.south east)$);
+  \coordinate (statistictop) at ($(characterizationimage.north west)!0.035!(characterizationimage.north east)$);
+  \coordinate (legendbottom) at ($(characterizationimage.south west)!0.780!(characterizationimage.south east)$);
+  \coordinate (legendtop) at ($(characterizationimage.north west)!0.780!(characterizationimage.north east)$);
+  \coordinate (legendleftbottom) at ($(characterizationimage.south west)!0.740!(characterizationimage.south east)$);
+  \coordinate (legendlefttop) at ($(characterizationimage.north west)!0.740!(characterizationimage.north east)$);
+  \coordinate (legendrightbottom) at ($(characterizationimage.south west)!0.940!(characterizationimage.south east)$);
+  \coordinate (legendrighttop) at ($(characterizationimage.north west)!0.940!(characterizationimage.north east)$);
+  \fill[white] ($(legendleftbottom)!0.820!(legendlefttop)$) rectangle ($(legendrightbottom)!0.930!(legendrighttop)$);
+  \node[fill=white,inner sep=0.5pt,font=#3] at ($(cfbottom)!0.052!(cftop)$) {$f_k/F_s$};
+  \node[fill=white,inner sep=0.5pt,font=#3] at ($(ratebottom)!0.052!(ratetop)$) {$\alpha_v/F_s$};
+  \node[fill=white,inner sep=0.5pt,font=#3,rotate=90] at ($(statisticbottom)!0.500!(statistictop)$) {$T_y(v,k)$};
+  \node[draw,fill=white,inner sep=1pt,font=#3] at ($(legendbottom)!0.800!(legendtop)$) {%
+    \begin{tabular}{@{}c@{\ }l@{}}
+      \rule{1em}{0.3pt} & $T_y(v,k)$ \\
+      \textcolor{red}{\rule{1em}{0.3pt}} & $\gamma_{\mathrm{CFD}}$
+    \end{tabular}};
+\end{tikzpicture}%
+}
+
+\newcommand{\centerfrequencyplot}[3][]{%
+\begin{tikzpicture}
+  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{characterization/#2}};
+  \coordinate (axisbottom) at ($(characterizationimage.south west)!0.520!(characterizationimage.south east)$);
+  \coordinate (axistop) at ($(characterizationimage.north west)!0.520!(characterizationimage.north east)$);
+  \coordinate (statisticbottom) at ($(characterizationimage.south west)!0.065!(characterizationimage.south east)$);
+  \coordinate (statistictop) at ($(characterizationimage.north west)!0.065!(characterizationimage.north east)$);
+  \coordinate (legendbottom) at ($(characterizationimage.south west)!0.780!(characterizationimage.south east)$);
+  \coordinate (legendtop) at ($(characterizationimage.north west)!0.780!(characterizationimage.north east)$);
+  \coordinate (legendleftbottom) at ($(characterizationimage.south west)!0.740!(characterizationimage.south east)$);
+  \coordinate (legendlefttop) at ($(characterizationimage.north west)!0.740!(characterizationimage.north east)$);
+  \coordinate (legendrightbottom) at ($(characterizationimage.south west)!0.940!(characterizationimage.south east)$);
+  \coordinate (legendrighttop) at ($(characterizationimage.north west)!0.940!(characterizationimage.north east)$);
+  \fill[white] ($(legendleftbottom)!0.820!(legendlefttop)$) rectangle ($(legendrightbottom)!0.930!(legendrighttop)$);
+  \node[fill=white,inner sep=0.5pt,font=#3] at ($(axisbottom)!0.035!(axistop)$) {$f_k/F_s$};
+  \node[fill=white,inner sep=0.5pt,font=#3,rotate=90] at ($(statisticbottom)!0.500!(statistictop)$) {$T_y(v,k)$};
+  \node[draw,fill=white,inner sep=1pt,font=#3] at ($(legendbottom)!0.800!(legendtop)$) {%
+    \begin{tabular}{@{}c@{\ }l@{}}
+      \rule{1em}{0.3pt} & $T_y(v,k)$ \\
+      \textcolor{red}{\rule{1em}{0.3pt}} & $\gamma_{\mathrm{CFD}}$
+    \end{tabular}};
+\end{tikzpicture}%
+}
+
+\newcommand{\symbolrateplot}[3][]{%
+\begin{tikzpicture}
+  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{characterization/#2}};
+  \coordinate (axisbottom) at ($(characterizationimage.south west)!0.520!(characterizationimage.south east)$);
+  \coordinate (axistop) at ($(characterizationimage.north west)!0.520!(characterizationimage.north east)$);
+  \coordinate (statisticbottom) at ($(characterizationimage.south west)!0.065!(characterizationimage.south east)$);
+  \coordinate (statistictop) at ($(characterizationimage.north west)!0.065!(characterizationimage.north east)$);
+  \coordinate (legendbottom) at ($(characterizationimage.south west)!0.780!(characterizationimage.south east)$);
+  \coordinate (legendtop) at ($(characterizationimage.north west)!0.780!(characterizationimage.north east)$);
+  \coordinate (legendleftbottom) at ($(characterizationimage.south west)!0.740!(characterizationimage.south east)$);
+  \coordinate (legendlefttop) at ($(characterizationimage.north west)!0.740!(characterizationimage.north east)$);
+  \coordinate (legendrightbottom) at ($(characterizationimage.south west)!0.940!(characterizationimage.south east)$);
+  \coordinate (legendrighttop) at ($(characterizationimage.north west)!0.940!(characterizationimage.north east)$);
+  \fill[white] ($(legendleftbottom)!0.820!(legendlefttop)$) rectangle ($(legendrightbottom)!0.930!(legendrighttop)$);
+  \node[fill=white,inner sep=0.5pt,font=#3] at ($(axisbottom)!0.035!(axistop)$) {$\alpha_v/F_s$};
+  \node[fill=white,inner sep=0.5pt,font=#3,rotate=90] at ($(statisticbottom)!0.500!(statistictop)$) {$T_y(v,k)$};
+  \node[draw,fill=white,inner sep=1pt,font=#3] at ($(legendbottom)!0.800!(legendtop)$) {%
+    \begin{tabular}{@{}c@{\ }l@{}}
+      \rule{1em}{0.3pt} & $T_y(v,k)$ \\
+      \textcolor{red}{\rule{1em}{0.3pt}} & $\gamma_{\mathrm{CFD}}$
+    \end{tabular}};
+\end{tikzpicture}%
+}
+
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.75]{characterization/exp1}
+\characterizationplot[scale=0.75]{exp1}{\normalsize}
 \caption{Streaming-SCA test-statistic plot for Experiment I.}
 \end{figure}
 
@@ -118,29 +196,29 @@ Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp2}
+    \characterizationplot[width=0.98\linewidth]{exp2}{\scriptsize}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp3}
+    \characterizationplot[width=0.98\linewidth]{exp3}{\scriptsize}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp4}
+    \characterizationplot[width=0.98\linewidth]{exp4}{\scriptsize}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp5}
+    \characterizationplot[width=0.98\linewidth]{exp5}{\scriptsize}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp6}
+    \characterizationplot[width=0.98\linewidth]{exp6}{\scriptsize}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp7}
+    \characterizationplot[width=0.98\linewidth]{exp7}{\scriptsize}
 \end{subfigure}
 
 \caption{Streaming-SCA test-statistic plots for Experiments II--VII.}
@@ -154,29 +232,29 @@ Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp8}
+    \characterizationplot[width=0.98\linewidth]{exp8}{\scriptsize}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp9}
+    \characterizationplot[width=0.98\linewidth]{exp9}{\scriptsize}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp10}
+    \centerfrequencyplot[width=0.98\linewidth]{exp10}{\scriptsize}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp11}
+    \symbolrateplot[width=0.98\linewidth]{exp11}{\scriptsize}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp12}
+    \characterizationplot[width=0.98\linewidth]{exp12}{\scriptsize}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[width=0.98\linewidth]{characterization/exp13}
+    \characterizationplot[width=0.98\linewidth]{exp13}{\scriptsize}
 \end{subfigure}
 
 \caption{Streaming-SCA test-statistic plots for Experiments VIII--XIII.}
@@ -191,16 +269,16 @@ Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text
 \addcontentsline{toc}{section}{\quad \: 4.2 \quad Results}
 \noindent 4.2  \quad Results
 
-The simulation results are summarized in Table~\ref{tab:perf}, and Table~\ref{tab:ru} reports the FPGA resource utilization.  Every experiment produces at least one statistic above the selected threshold, and eleven identify the transmitted pair or pairs.  Experiment IV uses the configured input rate of $0.01\text{ MBd}$, and Experiment XIII identifies the second CF at $0.10\text{ MHz}$, matching the experiment definitions and plotted peaks.  Experiment VII selects $R_s=1.00\text{ MBd}$ for a $0.10\text{ MBd}$ input because $1.00\text{ MBd}$ is the first available receiver-grid rate.  Experiment X selects $f_c=0.04\text{ MHz}$, the nearest evaluated 10-kHz grid point to the transmitted $0.05\text{ MHz}$ feature.  These selections demonstrate the expected relationship between the configured candidate grid and estimator resolution.  The simulations use the Chapter III definitions for power format, record boundaries, accumulator sizing and normalization, and continuous-rate flow control.
+The simulation results are summarized in Table~\ref{tab:perf}, and Table~\ref{tab:ru} reports the FPGA resource utilization.  Every experiment produces at least one statistic above the selected threshold, and eleven identify the transmitted pair or pairs.  Experiment IV uses the configured input rate of $0.01\text{ MBd}$, and Experiment XIII identifies the second center frequency at $0.10\text{ MHz}$, matching the experiment definitions and plotted peaks.  Experiment VII selects $R_s=1.00\text{ MBd}$ for a $0.10\text{ MBd}$ input because $1.00\text{ MBd}$ is the first available receiver-grid rate.  Experiment X selects $f_c=0.04\text{ MHz}$, the nearest evaluated 10-kHz grid point to the transmitted $0.05\text{ MHz}$ feature.  These selections demonstrate the expected relationship between the configured candidate grid and estimator resolution.  The simulations use the Chapter III definitions for power format, record boundaries, accumulator sizing and normalization, and continuous-rate flow control.
 
 The FPGA implementation flow targets a ZedBoard XC7Z020CLG484-1 with Vivado 2019.2.1 and the default synthesis and implementation strategies.  Table~\ref{tab:ru} presents the resulting utilization categories for each experiment.  The common 16-bit configuration uses 814 LUTs, 3 LUTRAMs, 391 flip-flops, 15 BRAM resources, 16 DSP resources, and 108 I/O resources; the 8-bit configuration in Experiment IX reduces the LUT, flip-flop, and I/O counts.
 
-At one valid sample per clock, the nominal sample-processing time of a serial sweep is $N|\mathcal{R}||\mathcal{F}|/F_s$, excluding pipeline and control overhead.  The simulation times follow this serial-sweep scaling.  Experiment VIII uses $N=4096$, five SR candidates, 21 CF candidates, and a $1\text{-MHz}$ sample clock, giving a nominal sample-processing time of $0.430080\text{ s}$.  Its simulated time is $0.430241\text{ s}$, with the additional $161\,\mu\text{s}$ accounting for finite pipeline and control overhead.  Experiment IV uses a 50-rate by 21-frequency grid and therefore has a nominal sample-processing time of $68.8128\text{ s}$ before pipeline and control overhead.
+At one valid sample per clock, the nominal sample-processing time of a serial sweep is $N\,|\mathcal{R}|\,|\mathcal{F}|/F_s$, excluding pipeline and control overhead.  The simulation times follow this serial-sweep scaling.  Experiment VIII uses $N=4096$, five symbol-rate candidates, 21 center-frequency candidates, and a $1\text{-MHz}$ sample clock, giving a nominal sample-processing time of $0.430080\text{ s}$.  Its simulated time is $0.430241\text{ s}$, with the additional $161\,\mu\text{s}$ accounting for finite pipeline and control overhead.  Experiment IV uses a 50-rate by 21-frequency grid and therefore has a nominal sample-processing time of $68.8128\text{ s}$ before pipeline and control overhead.
 
 \begin{table}[H]
 \begin{center}
 \caption[Performance results.]{Streaming-SCA simulation results. \\
-Here, $\gamma=\beta\widehat{P}_{y}^{\,2}$ with $\beta=10^{-4}$; $\widehat{P}_{y}^{\,2}$ is dimensionless after input normalization and is rounded to six significant digits.  Each tuple is one selected nominal $(R_s,f_c)$ pair in (MBd, MHz).  The Experiment IV time is the nominal sample-processing value before pipeline and control overhead.}
+Here, $\gamma_{\mathrm{CFD}}=\beta\widehat{P}_{y}^{\,2}$ with $\beta=10^{-4}$; $\widehat{P}_{y}^{\,2}$ is dimensionless after input normalization and is rounded to six significant digits.  Each tuple is one selected nominal $(R_s,f_c)$ pair in (MBd, MHz).  The Experiment IV time is the nominal sample-processing value before pipeline and control overhead.}
 \label{tab:perf}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{|l|c|c|c|}
@@ -239,7 +317,7 @@ XIII & $13.762841$ & $0.0341933$ & $(0.10,\ 0.05)$; $(0.25,\ 0.10)$ \\
 
 \begin{table}[H]
 \begin{center}
-\caption[FPGA resource utilization.]{FPGA resource utilization by experiment for the ZedBoard XC7Z020CLG484-1 implementation.}
+\caption[FPGA resource utilization.]{FPGA resource utilization by experiment.}
 \label{tab:ru}
 \begin{tabular}{|l|c|c|c|c|c|c|}
 \hline

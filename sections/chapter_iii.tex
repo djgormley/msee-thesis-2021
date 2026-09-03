@@ -10,9 +10,9 @@
 % background intro
 \bigskip
 
-This work studies spectrum sensing for a prospective CubeSat cognitive radio (CR).  For the M-QAM-SRRC signal model, the receiver searches a specified grid of candidate symbol rates (SRs) and center frequencies (CFs) and uses cyclostationary feature detection (CFD) to distinguish modeled signals from noise.  A spectral correlation analyzer (SCA) realizes this detector.  Conventional FFT-based SCAs obtain high throughput by evaluating many spectral channels in parallel.  Their implementations buffer blocks of complex samples and intermediate transform results, so storage grows with both the capture length and the number of selected channels.  This memory can compete with limited on-chip FPGA block RAM (BRAM) in a CubeSat-class implementation.
+This work studies spectrum sensing for a prospective CubeSat cognitive radio (CR).  For the M-QAM-SRRC signal model, the receiver searches a specified grid of candidate symbol rates and center frequencies and uses cyclostationary feature detection (CFD) to distinguish modeled signals from noise.  A spectral correlation analyzer (SCA) realizes this detector.  Conventional FFT-based SCAs obtain high throughput by evaluating many spectral channels in parallel.  Their implementations buffer blocks of complex samples and intermediate transform results, so storage grows with both the capture length and the number of selected channels.  This memory can compete with limited on-chip FPGA block RAM (BRAM) in a CubeSat-class implementation.
 
-BRAM capacity is therefore a central design constraint.  Reducing buffered storage improves fit within on-chip memory, while sample-by-sample time-domain processing trades the parallel throughput of an FFT-based analyzer for a deeply pipelined data path.  The application focuses on detecting the SR and CF of M-QAM-SRRC waveforms, allowing the candidate search to be optimized for those cyclic features.  For this blind SR--CF estimator, we borrow the communications term \textit{streaming}.  Thus, this design will be referred to as the \textit{streaming SCA}, an FPGA architecture for resource-conscious signal processing.
+BRAM capacity is therefore a central design constraint.  Reducing buffered storage improves fit within on-chip memory, while sample-by-sample time-domain processing trades the parallel throughput of an FFT-based analyzer for a deeply pipelined data path.  The application focuses on detecting the symbol rate and center frequency of M-QAM-SRRC waveforms, allowing the candidate search to be optimized for those cyclic features.  For this blind symbol-rate--center-frequency estimator, we borrow the communications term \textit{streaming}.  Thus, this design will be referred to as the \textit{streaming SCA}, an FPGA architecture for resource-conscious signal processing.
 
 
 \clearpage
@@ -55,19 +55,19 @@ Let us assume that we wish to sense modeled waveforms present in a channel.  As 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/qam_srrc_rs}
-\caption[Streaming SCA detections for two M-QAM-SRRC signals.]{Streaming SCA test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ for two M-QAM-SRRC signals in a shared noise floor.  The transmitted parameter pairs are $(R_s,f_c)=(100\text{ kBd},50\text{ kHz})$ and $(200\text{ kBd},100\text{ kHz})$.  Both pairs lie on the estimator grid, both row maxima identify the transmitted CF, and both exceed the constant threshold $\gamma=\beta\widehat{P}_{y}^{2}$ with $\beta=10^{-3}$.  Green markers indicate the detected row maxima.}
+\caption[Streaming SCA detections for two M-QAM-SRRC signals.]{Streaming SCA test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ for two M-QAM-SRRC signals in a shared noise floor.  The transmitted parameter pairs are $(R_s,f_c)=(100\text{ kBd},50\text{ kHz})$ and $(200\text{ kBd},100\text{ kHz})$.  Both pairs lie on the estimator grid, both row maxima identify the transmitted center frequencies, and both exceed the constant threshold $\gamma_{\mathrm{CFD}}=\beta\widehat{P}_{y}^{2}$ with $\beta=10^{-3}$.  Green markers indicate the detected row maxima.}
 \label{fig:qam_srrc_rs}
 \end{center}
 \end{figure}
 
-The streaming SCA was modeled in MATLAB to produce Figure~\ref{fig:qam_srrc_rs}.  The two generated components are scaled so that a single receiver-noise realization gives the requested $E_b/N_0$ values of $14$ dB and $9$ dB.  A common automatic-gain-control (AGC) scale factor then limits the composite waveform without changing either component's carrier-to-noise ratio.  On the $10$ kHz CF grid, the row maxima occur at the transmitted CFs of $50$ kHz and $100$ kHz; their test-statistic-to-threshold ratios are $9.41$ and $2.16$, respectively.  These numerical values are reproducible because the model fixes its random-number seed.  The executable MATLAB model is imported directly in Appendix A.
+The streaming SCA was modeled in MATLAB to produce Figure~\ref{fig:qam_srrc_rs}.  The two generated components are scaled so that a single receiver-noise realization gives the requested $E_b/N_0$ values of $14$ dB and $9$ dB.  A common automatic-gain-control (AGC) scale factor then limits the composite waveform without changing either component's carrier-to-noise ratio.  On the $10$ kHz center-frequency grid, the row maxima occur at the transmitted center frequencies of $50$ kHz and $100$ kHz; their test-statistic-to-threshold ratios are $9.41$ and $2.16$, respectively.  These numerical values are reproducible because the model fixes its random-number seed.  The executable MATLAB model is imported directly in Appendix A.
 
-In exchange for this low memory use, the processing time is increased.  With one $(v,k)$ point evaluated at a time, no backpressure, and a sustained rate of one valid sample per clock, an exhaustive search over $N_v$ SR candidates and $N_k$ CF candidates requires approximately $NN_vN_k$ sample clocks, in addition to pipeline and control overhead.  For fixed search spans, the processing delay therefore increases with capture length and with the number of candidates:
+In exchange for this low memory use, the processing time is increased.  With one $(v,k)$ point evaluated at a time, no backpressure, and a sustained rate of one valid sample per clock, an exhaustive search over $N_v$ symbol-rate candidates and $N_k$ center-frequency candidates requires approximately $NN_vN_k$ sample clocks, in addition to pipeline and control overhead.  For fixed search spans, the processing delay therefore increases with capture length and with the number of candidates:
 
 \begin{itemize}
-\item SR step size: A smaller step produces more SR candidates and a longer search, whereas a larger step coarsens the grid and can increase parameter mismatch.
+\item Symbol-rate step size: A smaller step produces more symbol-rate candidates and a longer search, whereas a larger step coarsens the grid and can increase parameter mismatch.
 
-\item CF step size: A smaller step produces more CF candidates and a longer search, whereas a larger step coarsens the grid and can increase parameter mismatch.
+\item Center-frequency step size: A smaller step produces more center-frequency candidates and a longer search, whereas a larger step coarsens the grid and can increase parameter mismatch.
 
 \item Capture length $N$: A larger capture takes longer to process but provides a longer observation interval; a smaller capture reduces delay at the cost of a less stable finite-record estimate.
 \end{itemize}
@@ -83,39 +83,39 @@ In exchange for this low memory use, the processing time is increased.  With one
 To describe the implementation of the streaming SCA as a digital circuit, we will walk through each component and its subcomponents.  The signal-processing datapath uses custom VHDL modules and selected-frequency arithmetic in place of a vendor FFT core.  MATLAB and Xilinx Vivado support modeling, simulation, synthesis, and implementation.  The tables define the configured external interfaces used by the architecture; propagation-only width and latency parameters remain internal to their corresponding pipeline stages.
 
 \begin{samepage}
-\noindent\textit{Interface and naming conventions.}  The interface tables use descriptive labels: \texttt{I\_\allowbreak WIDTH} and \texttt{Q\_\allowbreak WIDTH} for real and imaginary component widths, \texttt{A\_\allowbreak WIDTH} and \texttt{B\_\allowbreak WIDTH} for multiplier-operand widths, and \texttt{MSB\_\allowbreak TRUNC\_\allowbreak BITS} and \texttt{LSB\_\allowbreak ROUND\_\allowbreak BITS} for the bit counts removed at each end of a fixed-point word.  These labels correspond to the VHDL generics \texttt{LengthA}, \texttt{LengthB}, \texttt{BitstoTrunc}, and \texttt{BitstoRound}.  References to source identifiers retain their exact spelling; displayed frequency-control-word names consistently use \texttt{FCW}.
+\noindent\textit{Interface and naming conventions.}  The interface tables use descriptive labels: \texttt{I\_\allowbreak WIDTH} and \texttt{Q\_\allowbreak WIDTH} for real and imaginary component widths, \texttt{A\_\allowbreak WIDTH} and \texttt{B\_\allowbreak WIDTH} for multiplier-operand widths, and \texttt{MSB\_\allowbreak TRUNC\_\allowbreak BITS} and \texttt{LSB\_\allowbreak ROUND\_\allowbreak BITS} for the bit counts removed at each end of a fixed-point word.  In the instantaneous-power table, \texttt{I\_\allowbreak WIDTH} and \texttt{Q\_\allowbreak WIDTH} map to the exact VHDL generics \texttt{LengthA} and \texttt{LengthB}; in the multiplier tables, \texttt{A\_\allowbreak WIDTH} and \texttt{B\_\allowbreak WIDTH} map to those same source identifiers.  The displayed truncation and rounding labels map to \texttt{BitstoTrunc} and \texttt{BitstoRound}.  References to source identifiers retain their exact spelling; displayed frequency-control-word names consistently use \texttt{FCW}.
 \end{samepage}
 
 The stream signal roles mirror AXI4-Stream: data, valid, and the final-sample tag travel downstream, while ready travels upstream.  The datapath specializes those roles to a continuous-rate, fixed-latency interface.  During each $N$-sample record, \texttt{SampleInValid} is asserted on every clock and downstream \texttt{SampleOutReady} is held high.  In sample-preserving stages, data and their valid and final-sample tags advance together at a fixed latency.  At an integrate-and-dump boundary, every accepted input contributes to the record state and one result, valid tag, and final-sample tag are emitted after the terminal input reaches that boundary.  The module-local \texttt{SampleIn} and \texttt{SampleOut} names identify this continuous-rate core interface; an elastic AXI4-Stream wrapper can map them to \texttt{s\_axis} and \texttt{m\_axis} channels while supplying stall-hold behavior at the protocol boundary.
 
-The configured CFE datapath uses \texttt{TAP\_COUNT=2}, giving the moving-average response $h=[0.5,0.5]$.  Its selected-frequency symbol-rate stage follows the streaming architecture described below, while the arithmetic and control interfaces are implemented as custom VHDL pipelines.  The discussion occasionally refers to VHDL functions, such as \texttt{resize()}; however, the signal-processing description is otherwise language-agnostic.
+The configured center-frequency-estimator datapath uses \texttt{TAP\_COUNT=2}, giving the moving-average response $h=[0.5,0.5]$.  In the supplied source, this datapath is entity \texttt{SingleTermCFE} in \texttt{CenterFrequencyEstimator.vhd}, and its selected-frequency symbol-rate stage is entity \texttt{SingleTermSRE}.  The arithmetic and control interfaces are implemented as custom VHDL pipelines.  The discussion occasionally refers to VHDL functions, such as \texttt{resize()}; however, the signal-processing description is otherwise language-agnostic.
 
 %
 % 3.3.1
 %
 \medskip
-\addcontentsline{toc}{subsection}{\quad 3.3.1 \quad Center Frequency Estimator}
-\noindent 3.3.1  \quad Center Frequency Estimator
+\addcontentsline{toc}{subsection}{\quad 3.3.1 \quad Center-Frequency Estimator}
+\noindent 3.3.1  \quad Center-Frequency Estimator
 
 % the purpose of the module
-The purpose of the center frequency estimator (CFE) is to produce a test-statistic surface over the SR--CF candidates.  Let $v$ and $k$ index user-defined candidate arrays with physical frequencies $\alpha_v$ and $f_k$, respectively.  For an input sequence $x[n]$, define
+The purpose of the center-frequency estimator is to produce a test-statistic surface over the symbol-rate--center-frequency candidate pairs.  Let $v$ and $k$ index user-defined candidate arrays with physical frequencies $\alpha_v$ and $f_k$, respectively.  For an input sequence $x[n]$, define
 
 \begin{equation*}
-z_k[n]=\left[\left(x[\cdot]e^{-j2\pi f_k(\cdot)/F_s}\right)\ast h[\cdot]\right][n],
+z_k[n]=\left[\left(x[\cdot]\mathrm{e}^{-\mathrm{j}2\pi f_k(\cdot)/F_s}\right)\ast h[\cdot]\right][n],
 \qquad
-\widehat{C}_{x}(\alpha_v,f_k)=\frac{1}{N}\sum_{n=0}^{N-1}|z_k[n]|^{2}e^{-j2\pi\alpha_v n/F_s}.
+\widehat{C}_{x}(\alpha_v,f_k)=\frac{1}{N}\sum_{n=0}^{N-1}|z_k[n]|^{2}\mathrm{e}^{-\mathrm{j}2\pi\alpha_v n/F_s}.
 \end{equation*}
 
-The center-frequency control word configures a downconverting local oscillator for the factor $e^{-j2\pi f_k n/F_s}$.  Next, an LPF module smooths the mixed signal with the fixed taps $[0.5,0.5]$.  The SRE then evaluates the zero-lag CAF coefficient $\widehat{C}_{x}(\alpha_v,f_k)=\widehat{R}_{z_k}^{\alpha_v}[0]$, and the final magnitude-squared operation produces one point of the test statistic, $T_x(v,k)=|\widehat{C}_{x}(\alpha_v,f_k)|^{2}$.  Thus, $v$ and $k$ are candidate-array indices rather than frequencies themselves.  As explained in Chapter II, $\widehat{C}_{x}$ is interpreted as the filter-localized cyclic statistic associated with $f_k$.
+The center-frequency control word configures a downconverting local oscillator for the factor $\mathrm{e}^{-\mathrm{j}2\pi f_k n/F_s}$.  Next, an LPF module smooths the mixed signal with the fixed taps $[0.5,0.5]$.  The symbol-rate estimator then evaluates the zero-lag CAF coefficient $\widehat{C}_{x}(\alpha_v,f_k)=\widehat{R}_{z_k}^{\alpha_v}[0]$, and the final magnitude-squared operation produces one point of the test statistic, $T_x(v,k)=|\widehat{C}_{x}(\alpha_v,f_k)|^{2}$.  Thus, $v$ and $k$ are candidate-array indices rather than frequencies themselves.  As explained in Chapter II, $\widehat{C}_{x}$ is interpreted as the filter-localized cyclic statistic associated with $f_k$.
 
 For each candidate pair $(\alpha_v,f_k)$, the controller holds both frequency-control words constant for one $N$-sample record.  Each sample is downconverted by $f_k$, filtered by $h[n]$, converted to a nonnegative magnitude-squared value, mixed by $\alpha_v$, and accumulated.  The final sample is included exactly once in the record result.  After normalization by $N$, the magnitude squared of the complex sum forms $T_x(v,k)$.  After the preceding record boundary has traversed the fixed-latency pipeline, the controller supplies an inter-record invalid bubble that inserts zero into the FIR's one-sample delay.  It then applies the next candidate pair and accepts its first sample with zero FIR state.
 
-The thesis configuration specializes the NCO to a 16-bit phase accumulator with two quadrant bits and a 14-bit quarter-wave lookup address.  An integer control word $q$ represents $qF_s/2^{16}$ modulo $F_s$, giving a $15.2588$-Hz quantum at $F_s=1\text{ MHz}$.  Signed center-frequency codes represent $[-F_s/2,F_s/2-F_s/2^{16}]$.  Unsigned symbol-rate codes 0 through 32767 retain their positive interpretation at the signed NCO boundary, while code 32768 represents the aliased Nyquist endpoint.  In continuous-rate operation, the oscillator advances one control-word step on every sample clock, so oscillator phase index and sample index advance together.  If the cycle-frequency candidates are restricted to an $N$-point DFT grid, MATLAB's one-based index satisfies $\alpha_v=(v-1)F_s/N$; the NCO can also evaluate candidates off that grid subject to its $15.2588$-Hz quantization.
+The thesis configuration specializes the NCO to a 16-bit phase accumulator with two quadrant bits and a 14-bit quarter-wave lookup address.  An integer frequency-control word $K_{\mathrm{FCW}}$ represents $K_{\mathrm{FCW}}\,F_s/2^{16}$ modulo $F_s$, giving a $15.2588$-Hz quantum at $F_s=1\text{ MHz}$.  Signed center-frequency codes represent $[-F_s/2,F_s/2-F_s/2^{16}]$.  Unsigned symbol-rate codes 0 through 32767 retain their positive interpretation at the signed NCO boundary, while code 32768 represents the aliased Nyquist endpoint.  In continuous-rate operation, the oscillator advances one control-word step on every sample clock, so oscillator phase index and sample index advance together.  If the cycle-frequency candidates are restricted to an $N$-point DFT grid, MATLAB's one-based index satisfies $\alpha_v=(v-1)F_s/N$; the NCO can also evaluate candidates off that grid subject to its $15.2588$-Hz quantization.
 
 \begin{figure}[H]
 \begin{center}
 \resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/cfe.tex}}
-\caption{Functional architecture of the CFE module. Solid arrows carry sampled data; dashed arrows carry configuration and block control.}
+\caption{Functional architecture of the center-frequency estimator. Solid arrows carry sampled data; dashed arrows carry configuration and block control.}
 \label{fig:cfe}
 \end{center}
 \end{figure}
@@ -123,8 +123,8 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_cfe.tex}}
-\caption{Symbolic continuous-rate timing of the CFE module; both control words remain fixed for each $N$-sample record, and one statistic is emitted after the terminal sample.}
-\label{fig:8_CFE}
+\caption[Center-frequency-estimator timing.]{Symbolic continuous-rate timing of the center-frequency estimator; both control words remain fixed for each $N$-sample record, and one statistic is emitted after the terminal sample.}
+\label{fig:center_frequency_timing}
 \end{center}
 \end{figure}
 
@@ -134,7 +134,7 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 \setlength{\tabcolsep}{2pt}
 \renewcommand{\arraystretch}{0.95}
 \begin{center}
-\caption{Configured CFE interface.}
+\caption{Configured center-frequency-estimator interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
@@ -153,9 +153,9 @@ SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-CenterFrequency\newline FCW & Input & signed(15 downto 0) & Signed 16-bit CF control word. \\
+CenterFrequency\newline FCW & Input & signed(15 downto 0) & Signed 16-bit center-frequency control word. \\
 \hline
-SymbolRateFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
+SymbolRateFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit symbol-rate control word. \\
 \hline
 SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
@@ -167,7 +167,7 @@ SampleOutValid     & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast      & Output & std\_logic & End-of-record tag aligned with the associated output. \\
 \hline
-OverflowStatus     & Output & std\_logic\_vector(3 \newline downto 0) & [3]: CF mixer I \newline [2]: CF mixer Q \newline [1]: SR mixer I \newline [0]: SR mixer Q \\
+OverflowStatus     & Output & std\_logic\_vector(3 \newline downto 0) & [3]: center-frequency mixer I \newline [2]: center-frequency mixer Q \newline [1]: symbol-rate mixer I \newline [0]: symbol-rate mixer Q \\
 \hline
 SampleOut          & Output & unsigned(\newline 2*BIT\_WIDTH-1 \newline downto 0) & Nonnegative magnitude-squared result. \\
 \hline
@@ -179,22 +179,22 @@ SampleOut          & Output & unsigned(\newline 2*BIT\_WIDTH-1 \newline downto 0
 % 3.3.2
 %
 \bigskip
-\addcontentsline{toc}{subsection}{\quad 3.3.2 \quad Symbol Rate Estimator}
-\noindent 3.3.2  \quad Symbol Rate Estimator
+\addcontentsline{toc}{subsection}{\quad 3.3.2 \quad Symbol-Rate Estimator}
+\noindent 3.3.2  \quad Symbol-Rate Estimator
 
 % purpose
-The purpose of the SR estimator (SRE) is to estimate the correlation between a waveform and the candidate SR cycle frequency $\alpha_v$.  Its computation is the finite-record CAF estimate evaluated at $\tau=0$:
+The purpose of the symbol-rate estimator is to estimate the correlation between a waveform and the candidate symbol-rate cycle frequency $\alpha_v$.  Its computation is the finite-record CAF estimate evaluated at $\tau=0$:
 
 \begin{equation*}
-\widehat{R}_{X}^{\alpha_v}[0] = \frac{1}{N} \sum_{n=0}^{N-1} |X[n]|^{2} e^{-j2\pi\alpha_v n/F_s}.
+\widehat{R}_{x}^{\alpha_v}[0] = \frac{1}{N} \sum_{n=0}^{N-1} |x[n]|^{2} \mathrm{e}^{-\mathrm{j}2\pi\alpha_v n/F_s}.
 \end{equation*}
 
-The instantaneous-power module computes the nonnegative value $|X[n]|^{2}$, and the selected-frequency Fourier-sum module evaluates the displayed zero-lag CAF expression at $\alpha_v$.  For Q1.15 input components, $P=I^2+Q^2$ lies in $[0,2]$ and has a full-precision unsigned 32-bit representation with 30 fractional bits.  The format boundary into the signed Fourier mixer therefore preserves the magnitude bit by either zero-extending into a wider signed word or by explicitly rescaling and saturating.  One conforming 16-bit mapping is a saturated Q1.15 representation of $P/2$.  This scales the resulting complex CAF coefficient by one half and the downstream magnitude-squared statistic and matching threshold by one quarter; those factors are carried consistently.  Every power sample remains nonnegative throughout the interface.
+The instantaneous-power module computes the nonnegative sequence $p_x[n]=|x[n]|^{2}$.  The selected-frequency Fourier-sum evaluator then computes the displayed zero-lag CAF expression at $\alpha_v$.  For Q1.15 input components, $p_x[n]=x_{\mathrm{I}}[n]^2+x_{\mathrm{Q}}[n]^2$ lies in $[0,2]$ and has a full-precision unsigned 32-bit representation with 30 fractional bits.  The format boundary into the signed Fourier mixer therefore preserves the magnitude bit by either zero-extending into a wider signed word or by explicitly rescaling and saturating.  One conforming 16-bit mapping is a saturated Q1.15 representation of $p_x[n]/2$.  This scales the resulting complex CAF coefficient by one half and the downstream magnitude-squared statistic and matching threshold by one quarter; those factors are carried consistently.  Every power sample remains nonnegative throughout the interface.
 
 \begin{figure}[H]
 \begin{center}
 \resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/st_sre.tex}}
-\caption{Functional architecture of the SRE module, including the nonnegative fixed-point format boundary after instantaneous power.}
+\caption{Functional architecture of the symbol-rate estimator, including the nonnegative fixed-point format boundary after instantaneous power.}
 \label{fig:sre}
 \end{center}
 \end{figure}
@@ -202,8 +202,8 @@ The instantaneous-power module computes the nonnegative value $|X[n]|^{2}$, and 
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_sre.tex}}
-\caption{Symbolic continuous-rate timing of the SRE module with an aligned terminal result, valid tag, and final-sample tag.}
-\label{fig:7_SRE}
+\caption{Symbolic continuous-rate timing of the symbol-rate estimator with an aligned terminal result, valid tag, and final-sample tag.}
+\label{fig:symbol_rate_timing}
 \end{center}
 \end{figure}
 
@@ -213,7 +213,7 @@ The instantaneous-power module computes the nonnegative value $|X[n]|^{2}$, and 
 \setlength{\tabcolsep}{2pt}
 \renewcommand{\arraystretch}{0.95}
 \begin{center}
-\caption{Configured SRE interface.}
+\caption{Configured symbol-rate-estimator interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
@@ -232,7 +232,7 @@ SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-OscillatorFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
+OscillatorFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit symbol-rate control word. \\
 \hline
 SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
@@ -257,18 +257,19 @@ SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary
 %
 % 3.3.3
 %
+\Needspace{12\baselineskip}
 \bigskip
-\addcontentsline{toc}{subsection}{\quad 3.3.3 \quad Discrete Fourier Transform}
-\noindent 3.3.3  \quad Discrete Fourier Transform
+\addcontentsline{toc}{subsection}{\quad 3.3.3 \quad Selected-Frequency Fourier-Sum Evaluator}
+\noindent 3.3.3  \quad Selected-Frequency Fourier-Sum Evaluator
 
 % purpose
-The DFT is used to perform frequency-domain analysis of discrete-time signals.  This implementation evaluates a finite-record Fourier sum at one selected physical frequency $f_0$ at a time:
+The VHDL entity \texttt{SingleTermDft} implements a selected-frequency Fourier-sum evaluator.  It evaluates a finite-record Fourier sum at one selected physical frequency $f_0$ at a time:
 
 \begin{equation*}
-\widehat{X}(f_0)=\frac{1}{N}\sum_{n=0}^{N-1}X[n]e^{-j2\pi f_0n/F_s}.
+\widehat{x}(f_0)=\frac{1}{N}\sum_{n=0}^{N-1}x[n]\mathrm{e}^{-\mathrm{j}2\pi f_0n/F_s}.
 \end{equation*}
 	
-The corresponding normalized $N$-point DFT coefficient $\widehat{X}[\ell]$ is the special case $f_0=\ell F_s/N$ for the zero-based bin $0\leq\ell<N$.  The oscillator frequency-control word selects $f_0$, the mixer forms the complex products $X[n]e^{-j2\pi f_0n/F_s}$, and separate real and imaginary accumulators sum exactly $N$ products.  The final marked sample is included before the completed sums are normalized, quantized, and emitted.  The quarter-wave lookup-table reconstruction can introduce a constant NCO initial-phase factor, but that factor cancels in the final magnitude squared.  For the SRE, $f_0=\alpha_v$; when the candidates lie on the DFT grid, $\ell=v-1$ under MATLAB's one-based indexing.
+The corresponding normalized $N$-point DFT coefficient $\widehat{x}[\ell]$ is the special case $f_0=\ell F_s/N$ for the zero-based bin $0\leq\ell<N$.  The oscillator frequency-control word selects $f_0$, the mixer forms the complex products $x[n]\mathrm{e}^{-\mathrm{j}2\pi f_0n/F_s}$, and separate real and imaginary accumulators sum exactly $N$ products.  The final marked sample is included before the completed sums are normalized, quantized, and emitted.  The quarter-wave lookup-table reconstruction can introduce a constant NCO initial-phase factor, but that factor cancels in the final magnitude squared.  For the symbol-rate estimator, $f_0=\alpha_v$; when the candidates lie on the DFT grid, $\ell=v-1$ under MATLAB's one-based indexing.
 
 \begin{figure}[H]
 \begin{center}
@@ -281,7 +282,7 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{X}[\ell]$ is th
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_dft.tex}}
-\caption{Symbolic continuous-rate timing of the selected-frequency DFT module; the normalized Fourier result follows the terminal input sample by fixed latency.}
+\caption{Symbolic continuous-rate timing of the selected-frequency Fourier-sum evaluator; the normalized Fourier result follows the terminal input sample by fixed latency.}
 \label{fig:6_DFT}
 \end{center}
 \end{figure}
@@ -292,7 +293,7 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{X}[\ell]$ is th
 \setlength{\tabcolsep}{2pt}
 \renewcommand{\arraystretch}{0.95}
 \begin{center}
-\caption{Configured DFT interface.}
+\caption{Configured selected-frequency Fourier-sum interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
@@ -344,11 +345,11 @@ SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary
 Frequency translation is performed by multiplying the input by a complex local oscillator generated by a numerically controlled oscillator (NCO).  For a positive-frequency component at $f_1$, multiplication by the downconverting oscillator at $f_{\mathrm{LO}}$ gives
 
 \begin{equation*}
-e^{j2\pi f_1n/F_s}\,e^{-j2\pi f_{\mathrm{LO}}n/F_s}
-=e^{j2\pi(f_1-f_{\mathrm{LO}})n/F_s}.
+\mathrm{e}^{\mathrm{j}2\pi f_1n/F_s}\,\mathrm{e}^{-\mathrm{j}2\pi f_{\mathrm{LO}}n/F_s}
+=\mathrm{e}^{\mathrm{j}2\pi(f_1-f_{\mathrm{LO}})n/F_s}.
 \end{equation*}
 
-When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The implementation generates the oscillator with a phase accumulator and a sine/cosine lookup table; the frequency-control word sets its phase increment.  In continuous-rate operation, the phase accumulator advances once per sample clock and the phase index therefore remains aligned with the consecutive sample index $n$.  An elastic interface gates the phase update with the sample-accept event so that a stalled transaction preserves both the sample and its corresponding oscillator phase.
+When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The implementation generates the oscillator with a phase accumulator and a sine/cosine lookup table; the frequency-control word sets its phase increment.  In continuous-rate operation, the phase accumulator advances once per sample clock and the phase index therefore remains aligned with the consecutive sample index $n$.  An external elastic wrapper would instead gate the phase update with the sample-accept event so that a stalled transaction preserves both the sample and its corresponding oscillator phase.
 
 \begin{figure}[H]
 \begin{center}
@@ -422,10 +423,10 @@ SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary
 A finite impulse response (FIR) filter has a finite-duration impulse response.  Filter coefficients are calculated from the desired properties of the filter in MATLAB or Python.  An $L$-tap FIR implements the convolution sum
 
 \begin{equation*}
-Y[n]=\sum_{i=0}^{L-1}b[i]X[n-i].
+y[n]=\sum_{m=0}^{L-1}b[m]x[n-m].
 \end{equation*}
 
-Here, $b[i]$ are the $L$ coefficients, and $X[n]$ is the input sequence.  A causal FIR with $L$ taps has order $L-1$.  This design uses the two-tap, first-order moving-average low-pass filter $b[0]=b[1]=0.5$.  Each candidate record uses the zero-state convention $X[-1]=0$.  Within a record, the delay stores the preceding sample.  Between records, at least one clock with \texttt{SampleInValid} deasserted inserts zero into the one-sample delay and inserts a deasserted valid tag for that corresponding delayed transaction; an earlier pipeline transaction may still emerge on the same clock.  The next record therefore begins from zero state.
+Here, $b[m]$ are the $L$ coefficients, and $x[n]$ is the input sequence.  A causal FIR with $L$ taps has order $L-1$.  This design uses the two-tap, first-order moving-average low-pass filter $b[0]=b[1]=0.5$.  Each candidate record uses the zero-state convention $x[-1]=0$.  Within a record, the delay stores the preceding sample.  Between records, at least one clock with \texttt{SampleInValid} deasserted inserts zero into the one-sample delay and inserts a deasserted valid tag for that corresponding delayed transaction; an earlier pipeline transaction may still emerge on the same clock.  The next record therefore begins from zero state.
 
 \begin{figure}[H]
 \begin{center}
@@ -499,12 +500,12 @@ SampleOut\_Q   & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary com
 \noindent 3.3.6  \quad Instantaneous Power
 
 % purpose
-This module computes the pointwise magnitude squared of a complex sample.  It supplies the $\tau=0$ product $X[n]X^{*}[n]$ used by the zero-lag AF and CAF:
+This module computes the pointwise magnitude squared of a complex sample.  It supplies the $\tau=0$ product $x[n]x^{*}[n]$ used by the zero-lag ACF and CAF:
 
 \begin{align*}
-P_{X}[n] &= X[n]X^{*}[n] \\
-          &= |X[n]|^{2} \\
-          &= \Re\{X[n]\}^{2}+\Im\{X[n]\}^{2}.
+p_x[n] &= x[n]x^{*}[n] \\
+       &= |x[n]|^{2} \\
+       &= \Real(x[n])^{2}+\Imag(x[n])^{2}.
 \end{align*}
 
 The real and imaginary components are squared in parallel and then added.  This pointwise identity is not Parseval's theorem, which instead relates a sum or integral of squared magnitudes in the time domain to one in the frequency domain.
@@ -576,18 +577,19 @@ SampleOut      & Output & unsigned(\newline 2*max(I\_WIDTH, \newline Q\_WIDTH)-1
 %
 % 3.3.7
 %
+\Needspace{14\baselineskip}
 \bigskip
 \addcontentsline{toc}{subsection}{\quad 3.3.7 \quad Complex Multiplier}
 \noindent 3.3.7  \quad Complex Multiplier
 
-Let the two complex operands be $X_A[n]=I_A[n]+jQ_A[n]$ and $X_B[n]=I_B[n]+jQ_B[n]$.  Their product can be expressed in terms of the corresponding real and imaginary components as follows:
+Let the two complex operands be $x_A[n]=x_{A,\mathrm{I}}[n]+\mathrm{j}x_{A,\mathrm{Q}}[n]$ and $x_B[n]=x_{B,\mathrm{I}}[n]+\mathrm{j}x_{B,\mathrm{Q}}[n]$, and let $y[n]=x_A[n]x_B[n]$.  The in-phase and quadrature components of the product are
 
 \begin{align*}
-\Re \{X_A[n]X_B[n] \} &= I_A[n]I_B[n]-Q_A[n]Q_B[n], \\
-\Im \{X_A[n]X_B[n] \} &= I_A[n]Q_B[n]+Q_A[n]I_B[n].
+y_{\mathrm{I}}[n] &= x_{A,\mathrm{I}}[n] \, x_{B,\mathrm{I}}[n]-x_{A,\mathrm{Q}}[n] \, x_{B,\mathrm{Q}}[n], \\
+y_{\mathrm{Q}}[n] &= x_{A,\mathrm{I}}[n] \, x_{B,\mathrm{Q}}[n]+x_{A,\mathrm{Q}}[n] \, x_{B,\mathrm{I}}[n].
 \end{align*}
 
-Thus, the multiplication of $X_A[n]$ and $X_B[n]$ requires four real multiplications, one real addition, and one real subtraction.
+Thus, the multiplication of $x_A[n]$ and $x_B[n]$ requires four real multiplications, one real addition, and one real subtraction.
 
 \begin{figure}[H]
 \begin{center}
@@ -669,7 +671,7 @@ SampleOut\_Q    & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUN
 There are many real multipliers used throughout this design.  The module provides a continuous-rate, fixed-latency pipeline together with explicit bit-width, truncation, saturation, and rounding controls.  Data, valid, and final-sample metadata advance through corresponding delay stages, while downstream ready is held high for the characterized operating mode.  Mathematically, this module performs the multiplication of two real values, expressed as:
 
 \begin{equation}
-Y[n]=X_{1}[n]X_{2}[n].
+y[n]=x_{1}[n]x_{2}[n].
 \end{equation}
 
 \begin{figure}[H]
@@ -747,16 +749,16 @@ SampleOut      & Output & signed(\newline A\_WIDTH+B\_WIDTH-1 \newline -LSB\_ROU
 The accumulator implements the running sum used by each single-frequency Fourier evaluation and participates in the integrate-and-dump flow control between sample sets.  For a sequence whose first accepted sample has local index $n=0$, the recurrence is
 
 \begin{equation}
-S[n] = \left\{
+s[n] = \left\{
        \begin{array}{ll}
-         X[n],          & n=0, \\
-         S[n-1]+X[n],   & n>0
+         x[n],          & n=0, \\
+         s[n-1]+x[n],   & n>0
       \end{array}
       \right.
       .
 \end{equation}
 
-\noindent Here, $X[n]$ is an input sample and $S[n]$ is the running sum within the current record.  The module itself is real-valued; the DFT instantiates separate accumulators for the in-phase and quadrature components.  On each valid sample, the adder first forms $S_{\mathrm{next}}=S+X[n]$, with the first sample using a cleared stored sum.  An ordinary sample stores $S_{\mathrm{next}}$.  A sample carrying \texttt{SampleInLast} stores no residual value: it emits the normalized $S_{\mathrm{next}}$, asserts the aligned output-valid and final-sample tags, and clears the stored sum for the next record.  This end-of-record convention includes each of the $N$ samples exactly once.
+\noindent Here, $x[n]$ is an input sample and $s[n]$ is the running sum within the current record.  The module itself is real-valued; the Fourier-sum evaluator instantiates separate accumulators for the in-phase and quadrature components.  On each valid sample, the adder first forms $s_{\mathrm{next}}=s+x[n]$, with the first sample using a cleared stored sum.  An ordinary sample stores $s_{\mathrm{next}}$.  A sample carrying \texttt{SampleInLast} stores no residual value: it emits the normalized $s_{\mathrm{next}}$, asserts the aligned output-valid and final-sample tags, and clears the stored sum for the next record.  This end-of-record convention includes each of the $N$ samples exactly once.
 
 For a signed $W$-bit input and a record of $N$ samples, the full-range accumulator width is
 

@@ -20,8 +20,8 @@
   \draw[arch/wire] (norm) -- (mag);
   \draw[arch/wire] (mag) -- (out);
 
-  \node[arch/tinylabel, above=8mm of mix] (fk) {CF candidate $f_k$\\$e^{-j2\pi f_kn/F_s}$};
-  \node[arch/tinylabel, above=8mm of corr] (av) {cycle-frequency candidate $\alpha_v$\\$e^{-j2\pi\alpha_vn/F_s}$};
+  \node[arch/tinylabel, above=8mm of mix] (fk) {center-frequency candidate $f_k$\\$\mathrm{e}^{-\mathrm{j}2\pi f_kn/F_s}$};
+  \node[arch/tinylabel, above=8mm of corr] (av) {cycle-frequency candidate $\alpha_v$\\$\mathrm{e}^{-\mathrm{j}2\pi\alpha_vn/F_s}$};
   \draw[arch/control] (fk) -- (mix.north);
   \draw[arch/control] (av) -- (corr.north);
   \node[arch/group, fit=(mix)(filt), label={[arch/tinylabel]below:channelizer $k$}] {};

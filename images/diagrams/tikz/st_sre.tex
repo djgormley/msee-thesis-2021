@@ -14,7 +14,7 @@
   \draw[arch/wire] (dft) -- (norm);
   \draw[arch/wire] (norm) -- (out);
 
-  \node[arch/tinylabel, above=8mm of mix] (srw) {SR control word $\alpha_v$\\$e^{-j2\pi\alpha_vn/F_s}$};
+  \node[arch/tinylabel, above=8mm of mix] (srw) {symbol-rate control word $\alpha_v$\\$\mathrm{e}^{-\mathrm{j}2\pi\alpha_vn/F_s}$};
   \node[arch/tinylabel, below=8mm of dft] (ctl) {$N$ and final-sample marker};
   \draw[arch/control] (srw) -- (mix.north);
   \draw[arch/control] (ctl) -- (dft.south);

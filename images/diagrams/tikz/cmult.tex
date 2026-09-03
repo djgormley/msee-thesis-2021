@@ -1,27 +1,30 @@
 \begin{tikzpicture}[x=1cm,y=1cm]
   \node[arch/label, anchor=west] at (0.05,4.55)
-    {$X_A=I_A+jQ_A,\qquad X_B=I_B+jQ_B$};
+    {$x_A=x_{A,\mathrm{I}}+\mathrm{j}x_{A,\mathrm{Q}},\qquad
+      x_B=x_{B,\mathrm{I}}+\mathrm{j}x_{B,\mathrm{Q}}$};
 
   \node[dsp/mult] (ii) at (2.55,3.8) {$\times$};
   \node[dsp/mult] (qq) at (2.55,2.8) {$\times$};
   \node[dsp/mult] (iq) at (2.55,1.6) {$\times$};
   \node[dsp/mult] (qi) at (2.55,0.6) {$\times$};
 
-  \node[arch/tinylabel, anchor=east] (ii-a) at (1.75,3.95) {$I_A$};
-  \node[arch/tinylabel, anchor=east] (ii-b) at (1.75,3.65) {$I_B$};
-  \node[arch/tinylabel, anchor=east] (qq-a) at (1.75,2.95) {$Q_A$};
-  \node[arch/tinylabel, anchor=east] (qq-b) at (1.75,2.65) {$Q_B$};
-  \node[arch/tinylabel, anchor=east] (iq-a) at (1.75,1.75) {$I_A$};
-  \node[arch/tinylabel, anchor=east] (iq-b) at (1.75,1.45) {$Q_B$};
-  \node[arch/tinylabel, anchor=east] (qi-a) at (1.75,0.75) {$Q_A$};
-  \node[arch/tinylabel, anchor=east] (qi-b) at (1.75,0.45) {$I_B$};
+  \node[arch/tinylabel, anchor=east] (ii-a) at (1.75,3.95) {$x_{A,\mathrm{I}}$};
+  \node[arch/tinylabel, anchor=east] (ii-b) at (1.75,3.65) {$x_{B,\mathrm{I}}$};
+  \node[arch/tinylabel, anchor=east] (qq-a) at (1.75,2.95) {$x_{A,\mathrm{Q}}$};
+  \node[arch/tinylabel, anchor=east] (qq-b) at (1.75,2.65) {$x_{B,\mathrm{Q}}$};
+  \node[arch/tinylabel, anchor=east] (iq-a) at (1.75,1.75) {$x_{A,\mathrm{I}}$};
+  \node[arch/tinylabel, anchor=east] (iq-b) at (1.75,1.45) {$x_{B,\mathrm{Q}}$};
+  \node[arch/tinylabel, anchor=east] (qi-a) at (1.75,0.75) {$x_{A,\mathrm{Q}}$};
+  \node[arch/tinylabel, anchor=east] (qi-b) at (1.75,0.45) {$x_{B,\mathrm{I}}$};
 
   \node[dsp/sub] (sub) at (4.75,3.3) {$-$};
   \node[dsp/add] (add) at (4.75,1.1) {$+$};
   \node[arch/block] (qre) at (6.85,3.3) {round, resize,\\and saturate};
   \node[arch/block] (qim) at (6.85,1.1) {round, resize,\\and saturate};
-  \node[arch/label, anchor=west] (yre) at (8.2,3.3) {$I_Y=I_AI_B-Q_AQ_B$};
-  \node[arch/label, anchor=west] (yim) at (8.2,1.1) {$Q_Y=I_AQ_B+Q_AI_B$};
+  \node[arch/label, anchor=west] (yre) at (8.2,3.3)
+    {$y_{\mathrm I}=x_{A,\mathrm I}\,x_{B,\mathrm I}-x_{A,\mathrm Q}\,x_{B,\mathrm Q}$};
+  \node[arch/label, anchor=west] (yim) at (8.2,1.1)
+    {$y_{\mathrm Q}=x_{A,\mathrm I}\,x_{B,\mathrm Q}+x_{A,\mathrm Q}\,x_{B,\mathrm I}$};
 
   \draw[arch/wire] (ii-a.east) -- ($(ii.west)+(0,1.5mm)$);
   \draw[arch/wire] (ii-b.east) -- ($(ii.west)+(0,-1.5mm)$);
@@ -31,10 +34,10 @@
   \draw[arch/wire] (iq-b.east) -- ($(iq.west)+(0,-1.5mm)$);
   \draw[arch/wire] (qi-a.east) -- ($(qi.west)+(0,1.5mm)$);
   \draw[arch/wire] (qi-b.east) -- ($(qi.west)+(0,-1.5mm)$);
-  \draw[arch/wire] (ii.east) -| node[arch/tinylabel, near start, above] {$I_AI_B$} (sub.north);
-  \draw[arch/wire] (qq.east) -| node[arch/tinylabel, near start, below] {$Q_AQ_B$} (sub.south);
-  \draw[arch/wire] (iq.east) -| node[arch/tinylabel, near start, above] {$I_AQ_B$} (add.north);
-  \draw[arch/wire] (qi.east) -| node[arch/tinylabel, near start, below] {$Q_AI_B$} (add.south);
+  \draw[arch/wire] (ii.east) -| node[arch/tinylabel, near start, above] {$x_{A,\mathrm I}\,x_{B,\mathrm I}$} (sub.north);
+  \draw[arch/wire] (qq.east) -| node[arch/tinylabel, near start, below] {$x_{A,\mathrm Q}\,x_{B,\mathrm Q}$} (sub.south);
+  \draw[arch/wire] (iq.east) -| node[arch/tinylabel, near start, above] {$x_{A,\mathrm I}\,x_{B,\mathrm Q}$} (add.north);
+  \draw[arch/wire] (qi.east) -| node[arch/tinylabel, near start, below] {$x_{A,\mathrm Q}\,x_{B,\mathrm I}$} (add.south);
   \draw[arch/wire] (sub) -- (qre);
   \draw[arch/wire] (add) -- (qim);
   \draw[arch/wire] (qre) -- (yre);

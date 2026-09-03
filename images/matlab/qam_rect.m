@@ -98,7 +98,7 @@ zlabel('$|\widehat{R}_{x}^{\alpha}(\tau)|$');
 xlim([tau_us(1),tau_us(end)]);
 thesis_export(fig,'cyclic_autocorrelogram');
 
-%% Frequency-smoothed cyclic spectral-density estimate
+%% Frequency-smoothed spectral correlation function estimate
 % Embed the contiguous -Nlags:Nlags sequence in its proper circular-lag
 % positions before zero-padding.  This keeps lag zero at DFT index zero,
 % positive lags at the beginning, and negative lags at the end.  Merely
@@ -108,21 +108,21 @@ thesis_export(fig,'cyclic_autocorrelogram');
 Ra_padded = complex(zeros(Na,Nfreqs));
 Ra_padded(:,1:Nlags+1) = Ra(:,Nlags+1:end);
 Ra_padded(:,end-Nlags+1:end) = Ra(:,1:Nlags);
-CSD_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
-CSD = circular_movmean(CSD_raw,smoothing_length,2);
+SCF_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
+SCF = circular_movmean(SCF_raw,smoothing_length,2);
 
 % The nontrivial alpha=Rs slice should identify the injected carrier to
 % within one DFT bin.
 [~,symbol_rate_index] = min(abs(alpha-Rs));
-[~,carrier_index] = max(abs(CSD(symbol_rate_index,:)));
+[~,carrier_index] = max(abs(SCF(symbol_rate_index,:)));
 assert(abs(f(carrier_index)-fc) <= Fs/Nfreqs);
 
 [fig, colors] = thesis_figure();
-surface_handle = waterfall(f,alpha,abs(CSD));
+surface_handle = waterfall(f,alpha,abs(SCF));
 set(surface_handle,'EdgeColor',colors.blue,'FaceColor','none','LineWidth',0.9);
 view(225,20);
 xlabel('$f\ (\mathrm{MHz})$');
 ylabel('$\alpha\ (\mathrm{MHz})$');
 zlabel('$|\widehat{S}_{x}^{\alpha}(f)|$');
 xlim([f(1),f(end)]);
-thesis_export(fig,'csd');
+thesis_export(fig,'scf');
