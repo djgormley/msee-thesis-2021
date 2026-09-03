@@ -1,14 +1,21 @@
 function [fig, colors] = new_figure()
 %NEW_FIGURE Create a consistently sized figure for thesis plots.
 
-colors.blue   = [0, 114, 178] / 255;
+% Exact Okabe--Ito qualitative colors.  This palette remains distinguishable
+% for the common forms of color-vision deficiency and also provides useful
+% luminance contrast when the figures are reproduced in grayscale.
 colors.orange = [230, 159, 0] / 255;
+colors.sky    = [86, 180, 233] / 255;
 colors.green  = [0, 158, 115] / 255;
+colors.yellow = [240, 228, 66] / 255;
+colors.blue   = [0, 114, 178] / 255;
 colors.red    = [213, 94, 0] / 255;
 colors.purple = [204, 121, 167] / 255;
-colors.sky    = [86, 180, 233] / 255;
-colors.yellow = [240, 228, 66] / 255;
-colors.gray   = [75, 75, 75] / 255;
+colors.black  = [0, 0, 0];
+
+% A neutral outline color supplements, but is not part of, the qualitative
+% palette.  It is used only where the data are already encoded by position.
+colors.gray = [75, 75, 75] / 255;
 
 fig = figure( ...
     'Color', 'white', ...
@@ -26,5 +33,5 @@ set(fig, ...
 
 set(fig, 'defaultAxesColorOrder', [ ...
     colors.blue; colors.orange; colors.green; colors.red; ...
-    colors.purple; colors.sky; colors.gray]);
+    colors.purple; colors.sky; colors.yellow; colors.black]);
 end

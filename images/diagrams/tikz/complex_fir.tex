@@ -21,6 +21,6 @@
   \node[arch/tinylabel, above=2mm of m0] {$\tfrac12$};
   \node[arch/tinylabel, above=2mm of m1] {$\tfrac12$};
   \node[arch/tinylabel, above=6mm of add] {same arithmetic for in-phase and quadrature components};
-  \node[arch/tinylabel, below=7mm of delay] (prime) {invalid bubble: insert zero into delay};
+  \node[arch/tinylabel, below=7mm of delay] (prime) {clear delay when\\\texttt{s\_axis\_tlast} is accepted};
   \draw[arch/control] (prime) -- (delay.south);
 \end{tikzpicture}

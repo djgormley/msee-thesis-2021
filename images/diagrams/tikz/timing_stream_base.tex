@@ -12,23 +12,23 @@
   timing/z/.style={black},
   timing/text format={\strut}
 ]
-  sample clock       & 24{c} \\
-  \TimingInputName   & 1Z 1D{\TimingInputZero} 1D{\TimingInputOne}
-                         1D{$\cdots$} 1D{\TimingInputLast} 7Z \\
-  input valid        & 1L 4H 7L \\
-  input last         & 4L 1H 7L \\
-  \TimingOutputName  & 7Z 1D{\TimingOutputZero} 1D{\TimingOutputOne}
-                         1D{$\cdots$} 1D{\TimingOutputLast} 1Z \\
-  output valid       & 7L 4H 1L \\
-  output last        & 10L 1H 1L \\
-  ready signals      & 12H \\
+  \texttt{aclk}          & 24{c} \\
+  \texttt{aresetn}       & 1L 11H \\
+  \texttt{s\_axis\_tdata}  & 1Z 1D{\TimingInputZero} 1D{\TimingInputOne}
+                                1D{$\cdots$} 1D{\TimingInputLast} 7Z \\
+  \texttt{s\_axis\_tvalid} & 1L 4H 7L \\
+  \texttt{s\_axis\_tlast}  & 4L 1H 7L \\
+  \texttt{s\_axis\_tready} & 1L 10H 1L \\
+  \texttt{m\_axis\_tdata}  & 7Z 1D{\TimingOutputZero} 1D{\TimingOutputOne}
+                                1D{$\cdots$} 1D{\TimingOutputLast} 1Z \\
+  \texttt{m\_axis\_tvalid} & 7L 4H 1L \\
+  \texttt{m\_axis\_tlast}  & 10L 1H 1L \\
+  \texttt{m\_axis\_tready} & 1L 10H 1L \\
 \extracode
   \begin{pgfonlayer}{background}
     \vertlines[timing/grid]{0,...,12}
   \end{pgfonlayer}
-  \node[timing/text, fill=white, inner sep=1pt] at (row8.mid)
-    {high throughout the record};
-  \coordinate (latencybase) at ($(row8.south)+(0,-3mm)$);
+  \coordinate (latencybase) at ($(row10.south)+(0,-3mm)$);
   \draw[<->, >=Latex, line width=0.5pt]
     (1,0 |- latencybase) --
     node[timing/text, fill=white, inner sep=1pt]

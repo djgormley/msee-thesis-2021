@@ -31,7 +31,6 @@ clim(ax,[0,1]);
 
 xlabel(ax,'Time, $t$ (s)');
 ylabel(ax,'Frequency, $f$ (GHz)');
-title(ax,'Primary-user occupancy and spectral holes');
 xlim(ax,[time_s(1),time_s(end)]);
 ylim(ax,[frequency_ghz(1),frequency_ghz(end)]);
 xticks(ax,0:10:50);

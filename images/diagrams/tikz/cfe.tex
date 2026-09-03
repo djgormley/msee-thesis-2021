@@ -1,7 +1,7 @@
 \begin{tikzpicture}[node distance=4mm]
   \node[arch/label] (xin) {$x[n]$};
   \node[arch/block, right=of xin] (mix) {complex\\mixer};
-  \node[arch/block, right=of mix] (fir) {two-tap FIR\\$h=[0.5,0.5]$};
+  \node[dsp/lpf, right=of mix] (fir) {};
   \node[arch/smallblock, right=of fir] (pwr) {$|z_k[n]|^2$};
   \node[arch/block, align=center, right=of pwr] (sum) {selected-frequency\\Fourier-sum evaluator\\$N$ samples};
   \node[arch/smallblock, right=of sum] (norm) {$\div N$};
@@ -16,9 +16,11 @@
   \draw[arch/wire] (norm) -- (mag);
   \draw[arch/wire] (mag) -- (out);
 
+  \node[arch/tinylabel, above=2mm of fir] {two-tap FIR\\$h=[0.5,0.5]$};
+
   \node[arch/tinylabel, above=8mm of mix] (cfw) {center-frequency control word $f_k$};
   \node[arch/tinylabel, above=8mm of sum] (srw) {symbol-rate control word $\alpha_v$};
-  \node[arch/tinylabel, below=8mm of sum] (ctl) {$N$ and final marker\\inter-record invalid bubble};
+  \node[arch/tinylabel, below=8mm of sum] (ctl) {record length $N$\\and \texttt{s\_axis\_tlast}};
   \draw[arch/control] (cfw) -- (mix.north);
   \draw[arch/control] (srw) -- (sum.north);
   \draw[arch/control] (ctl.west) -| (fir.south);

@@ -13,5 +13,5 @@
   \draw[arch/wire] (round) -- (sat);
   \draw[arch/wire] (sat) -- (out);
   \node[arch/tinylabel, below=3mm of mult] {full precision\\$W_A+W_B$ bits};
-  \node[arch/tinylabel, above=7mm of round] {data, valid, and final-sample metadata advance together};
+  \node[arch/tinylabel, above=7mm of round] {\texttt{tdata}, \texttt{tvalid}, and \texttt{tlast} advance together};
 \end{tikzpicture}

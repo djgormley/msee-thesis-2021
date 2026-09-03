@@ -82,11 +82,7 @@ In exchange for this low memory use, the processing time is increased.  With one
 
 To describe the implementation of the streaming SCA as a digital circuit, we will walk through each component and its subcomponents.  The signal-processing datapath uses custom VHDL modules and selected-frequency arithmetic in place of a vendor FFT core.  MATLAB and Xilinx Vivado support modeling, simulation, synthesis, and implementation.  The tables define the configured external interfaces used by the architecture; propagation-only width and latency parameters remain internal to their corresponding pipeline stages.
 
-\begin{samepage}
-\noindent\textit{Interface and naming conventions.}  The interface tables use descriptive labels: \texttt{I\_\allowbreak WIDTH} and \texttt{Q\_\allowbreak WIDTH} for real and imaginary component widths, \texttt{A\_\allowbreak WIDTH} and \texttt{B\_\allowbreak WIDTH} for multiplier-operand widths, and \texttt{MSB\_\allowbreak TRUNC\_\allowbreak BITS} and \texttt{LSB\_\allowbreak ROUND\_\allowbreak BITS} for the bit counts removed at each end of a fixed-point word.  In the instantaneous-power table, \texttt{I\_\allowbreak WIDTH} and \texttt{Q\_\allowbreak WIDTH} map to the exact VHDL generics \texttt{LengthA} and \texttt{LengthB}; in the multiplier tables, \texttt{A\_\allowbreak WIDTH} and \texttt{B\_\allowbreak WIDTH} map to those same source identifiers.  The displayed truncation and rounding labels map to \texttt{BitstoTrunc} and \texttt{BitstoRound}.  References to source identifiers retain their exact spelling; displayed frequency-control-word names consistently use \texttt{FCW}.
-\end{samepage}
-
-The stream signal roles mirror AXI4-Stream: data, valid, and the final-sample tag travel downstream, while ready travels upstream.  The datapath specializes those roles to a continuous-rate, fixed-latency interface.  During each $N$-sample record, \texttt{SampleInValid} is asserted on every clock and downstream \texttt{SampleOutReady} is held high.  In sample-preserving stages, data and their valid and final-sample tags advance together at a fixed latency.  At an integrate-and-dump boundary, every accepted input contributes to the record state and one result, valid tag, and final-sample tag are emitted after the terminal input reaches that boundary.  The module-local \texttt{SampleIn} and \texttt{SampleOut} names identify this continuous-rate core interface; an elastic AXI4-Stream wrapper can map them to \texttt{s\_axis} and \texttt{m\_axis} channels while supplying stall-hold behavior at the protocol boundary.
+The datapath uses an AXI4-Stream interface.  An input transfer occurs on a rising edge of \texttt{aclk} when both \texttt{s\_axis\_tvalid} and \texttt{s\_axis\_tready} are asserted; an output transfer occurs when both \texttt{m\_axis\_tvalid} and \texttt{m\_axis\_tready} are asserted.  While \texttt{m\_axis\_tready} is deasserted, the stage holds \texttt{m\_axis\_tdata}, \texttt{m\_axis\_tlast}, and \texttt{m\_axis\_tvalid} stable.  The upstream signal \texttt{s\_axis\_tready} indicates whether the stage can accept a sample.  In sample-preserving stages, \texttt{tdata}, \texttt{tvalid}, and \texttt{tlast} advance together.  At an integrate-and-dump boundary, every accepted input transfer contributes to the record state, and one aligned result is emitted with \texttt{m\_axis\_tvalid} and \texttt{m\_axis\_tlast} after the terminal input reaches that boundary.
 
 The configured center-frequency-estimator datapath uses \texttt{TAP\_COUNT=2}, giving the moving-average response $h=[0.5,0.5]$.  In the supplied source, this datapath is entity \texttt{SingleTermCFE} in \texttt{CenterFrequencyEstimator.vhd}, and its selected-frequency symbol-rate stage is entity \texttt{SingleTermSRE}.  The arithmetic and control interfaces are implemented as custom VHDL pipelines.  The discussion occasionally refers to VHDL functions, such as \texttt{resize()}; however, the signal-processing description is otherwise language-agnostic.
 
@@ -108,9 +104,9 @@ z_k[n]=\left[\left(x[\cdot]\mathrm{e}^{-\mathrm{j}2\pi f_k(\cdot)/F_s}\right)\as
 
 The center-frequency control word configures a downconverting local oscillator for the factor $\mathrm{e}^{-\mathrm{j}2\pi f_k n/F_s}$.  Next, an LPF module smooths the mixed signal with the fixed taps $[0.5,0.5]$.  The symbol-rate estimator then evaluates the zero-lag CAF coefficient $\widehat{C}_{x}(\alpha_v,f_k)=\widehat{R}_{z_k}^{\alpha_v}[0]$, and the final magnitude-squared operation produces one point of the test statistic, $T_x(v,k)=|\widehat{C}_{x}(\alpha_v,f_k)|^{2}$.  Thus, $v$ and $k$ are candidate-array indices rather than frequencies themselves.  As explained in Chapter II, $\widehat{C}_{x}$ is interpreted as the filter-localized cyclic statistic associated with $f_k$.
 
-For each candidate pair $(\alpha_v,f_k)$, the controller holds both frequency-control words constant for one $N$-sample record.  Each sample is downconverted by $f_k$, filtered by $h[n]$, converted to a nonnegative magnitude-squared value, mixed by $\alpha_v$, and accumulated.  The final sample is included exactly once in the record result.  After normalization by $N$, the magnitude squared of the complex sum forms $T_x(v,k)$.  After the preceding record boundary has traversed the fixed-latency pipeline, the controller supplies an inter-record invalid bubble that inserts zero into the FIR's one-sample delay.  It then applies the next candidate pair and accepts its first sample with zero FIR state.
+For each candidate pair $(\alpha_v,f_k)$, the controller holds both frequency-control words constant for one $N$-sample record.  Each accepted sample is downconverted by $f_k$, filtered by $h[n]$, converted to a nonnegative magnitude-squared value, mixed by $\alpha_v$, and accumulated.  The final sample is included exactly once in the record result.  After normalization by $N$, the magnitude squared of the complex sum forms $T_x(v,k)$.  Acceptance of the transfer carrying \texttt{s\_axis\_tlast} clears the FIR delay at the record boundary.  Once the resulting \texttt{m\_axis} transfer has been accepted, the controller applies the next candidate pair and accepts its first sample with zero FIR state.
 
-The thesis configuration specializes the NCO to a 16-bit phase accumulator with two quadrant bits and a 14-bit quarter-wave lookup address.  An integer frequency-control word $K_{\mathrm{FCW}}$ represents $K_{\mathrm{FCW}}\,F_s/2^{16}$ modulo $F_s$, giving a $15.2588$-Hz quantum at $F_s=1\text{ MHz}$.  Signed center-frequency codes represent $[-F_s/2,F_s/2-F_s/2^{16}]$.  Unsigned symbol-rate codes 0 through 32767 retain their positive interpretation at the signed NCO boundary, while code 32768 represents the aliased Nyquist endpoint.  In continuous-rate operation, the oscillator advances one control-word step on every sample clock, so oscillator phase index and sample index advance together.  If the cycle-frequency candidates are restricted to an $N$-point DFT grid, MATLAB's one-based index satisfies $\alpha_v=(v-1)F_s/N$; the NCO can also evaluate candidates off that grid subject to its $15.2588$-Hz quantization.
+The thesis configuration specializes the NCO to a 16-bit phase accumulator with two quadrant bits and a 14-bit quarter-wave lookup address.  An integer frequency-control word $K_{\mathrm{FCW}}$ represents $K_{\mathrm{FCW}}\,F_s/2^{16}$ modulo $F_s$, giving a $15.2588$-Hz quantum at $F_s=1\text{ MHz}$.  Signed center-frequency codes represent $[-F_s/2,F_s/2-F_s/2^{16}]$.  Unsigned symbol-rate codes 0 through 32767 retain their positive interpretation at the signed NCO boundary, while code 32768 represents the aliased Nyquist endpoint.  The oscillator advances one control-word step on every accepted input transfer, so oscillator phase index and sample index advance together even when backpressure pauses the stream.  If the cycle-frequency candidates are restricted to an $N$-point DFT grid, MATLAB's one-based index satisfies $\alpha_v=(v-1)F_s/N$; the NCO can also evaluate candidates off that grid subject to its $15.2588$-Hz quantization.
 
 \begin{figure}[H]
 \begin{center}
@@ -123,7 +119,7 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_cfe.tex}}
-\caption[Center-frequency-estimator timing.]{Symbolic continuous-rate timing of the center-frequency estimator; both control words remain fixed for each $N$-sample record, and one statistic is emitted after the terminal sample.}
+\caption[Center-frequency-estimator timing.]{Symbolic AXI4-Stream timing of the center-frequency estimator; both control words remain fixed for each $N$-sample record, and one statistic is emitted after the terminal input transfer.}
 \label{fig:center_frequency_timing}
 \end{center}
 \end{figure}
@@ -139,37 +135,37 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 \hline
 \textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES         & Generic & natural & Configured record length; \texttt{SampleInLast} marks sample $N-1$. \\
+N\_SAMPLES         & Generic & natural & Configured record length; \texttt{s\_axis\_tlast} marks sample $N-1$. \\
 \hline
 BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
-Clock              & Input & std\_logic & Synchronous clock. \\
+aclk               & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset              & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn            & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready    & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid      & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid    & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast     & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
 CenterFrequency\newline FCW & Input & signed(15 downto 0) & Signed 16-bit center-frequency control word. \\
 \hline
 SymbolRateFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit symbol-rate control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
+s\_axis\_tdata\_i  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the input sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
+s\_axis\_tdata\_q  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the input sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready    & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid     & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid    & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast     & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
 OverflowStatus     & Output & std\_logic\_vector(3 \newline downto 0) & [3]: center-frequency mixer I \newline [2]: center-frequency mixer Q \newline [1]: symbol-rate mixer I \newline [0]: symbol-rate mixer Q \\
 \hline
-SampleOut          & Output & unsigned(\newline 2*BIT\_WIDTH-1 \newline downto 0) & Nonnegative magnitude-squared result. \\
+m\_axis\_tdata     & Output & unsigned(\newline 2*BIT\_WIDTH-1 \newline downto 0) & Nonnegative magnitude-squared result. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -202,7 +198,7 @@ The instantaneous-power module computes the nonnegative sequence $p_x[n]=|x[n]|^
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_sre.tex}}
-\caption{Symbolic continuous-rate timing of the symbol-rate estimator with an aligned terminal result, valid tag, and final-sample tag.}
+\caption[Symbol-rate-estimator AXI4-Stream timing.]{Symbolic AXI4-Stream timing of the symbol-rate estimator with aligned \texttt{m\_axis\_tdata}, \texttt{m\_axis\_tvalid}, and \texttt{m\_axis\_tlast}.}
 \label{fig:symbol_rate_timing}
 \end{center}
 \end{figure}
@@ -218,37 +214,37 @@ The instantaneous-power module computes the nonnegative sequence $p_x[n]=|x[n]|^
 \hline
 \textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES         & Generic & natural & Configured record length; \texttt{SampleInLast} marks sample $N-1$. \\
+N\_SAMPLES         & Generic & natural & Configured record length; \texttt{s\_axis\_tlast} marks sample $N-1$. \\
 \hline
 BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
-Clock              & Input & std\_logic & Synchronous clock. \\
+aclk               & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset              & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn            & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready    & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid      & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid    & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast     & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
 OscillatorFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit symbol-rate control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
+s\_axis\_tdata\_i  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the input sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
+s\_axis\_tdata\_q  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the input sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready    & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid     & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid    & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast     & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
 OverflowStatus     & Output & std\_logic\_vector(1 \newline downto 0) & [1]: mixer I \newline [0]: mixer Q \\
 \hline
-SampleOut\_I       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of result. \\
+m\_axis\_tdata\_i  & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the result. \\
 \hline
-SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of result. \\
+m\_axis\_tdata\_q  & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the result. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -282,7 +278,7 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{x}[\ell]$ is th
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_dft.tex}}
-\caption{Symbolic continuous-rate timing of the selected-frequency Fourier-sum evaluator; the normalized Fourier result follows the terminal input sample by fixed latency.}
+\caption{Symbolic AXI4-Stream timing of the selected-frequency Fourier-sum evaluator; the normalized Fourier result follows the accepted terminal input transfer.}
 \label{fig:6_DFT}
 \end{center}
 \end{figure}
@@ -298,37 +294,37 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{x}[\ell]$ is th
 \hline
 \textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES         & Generic & natural & Configured record length; \texttt{SampleInLast} marks sample $N-1$. \\
+N\_SAMPLES         & Generic & natural & Configured record length; \texttt{s\_axis\_tlast} marks sample $N-1$. \\
 \hline
 BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
-Clock              & Input & std\_logic & Synchronous clock. \\
+aclk               & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset              & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn            & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready    & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid      & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid    & Input & std\_logic & High when input data and tags are valid. \\
 \hline 
-SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast     & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
 OscillatorFCW      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
+s\_axis\_tdata\_i  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the input sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
+s\_axis\_tdata\_q  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the input sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready    & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid     & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid    & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast     & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
 OverflowStatus     & Output & std\_logic\_vector(1 \newline downto 0) & [1]: mixer I \newline [0]: mixer Q \\
 \hline
-SampleOut\_I       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of result. \\
+m\_axis\_tdata\_i  & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the result. \\
 \hline
-SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of result. \\
+m\_axis\_tdata\_q  & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the result. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -349,12 +345,12 @@ Frequency translation is performed by multiplying the input by a complex local o
 =\mathrm{e}^{\mathrm{j}2\pi(f_1-f_{\mathrm{LO}})n/F_s}.
 \end{equation*}
 
-When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The implementation generates the oscillator with a phase accumulator and a sine/cosine lookup table; the frequency-control word sets its phase increment.  In continuous-rate operation, the phase accumulator advances once per sample clock and the phase index therefore remains aligned with the consecutive sample index $n$.  An external elastic wrapper would instead gate the phase update with the sample-accept event so that a stalled transaction preserves both the sample and its corresponding oscillator phase.
+When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The implementation generates the oscillator with a phase accumulator and a sine/cosine lookup table; the frequency-control word sets its phase increment.  The phase accumulator advances on each accepted \texttt{s\_axis} transfer, so a stalled transaction preserves both the sample and its corresponding oscillator phase and the phase index remains aligned with the consecutive sample index $n$.
 
 \begin{figure}[H]
 \begin{center}
 \resizebox{\textwidth}{!}{\input{images/diagrams/tikz/mixer.tex}}
-\caption{Functional architecture of the frequency mixer. The NCO phase advances once per sample clock during continuous-rate operation.}
+\caption{Functional architecture of the frequency mixer. The NCO phase advances once per accepted input transfer.}
 \label{fig:mixer}
 \end{center}
 \end{figure}
@@ -362,7 +358,7 @@ When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The 
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_mixer.tex}}
-\caption{Symbolic continuous-rate timing of the frequency mixer module. Data, valid, and final-sample tags share the same fixed latency.}
+\caption{Symbolic AXI4-Stream timing of the frequency mixer module. The \texttt{tdata}, \texttt{tvalid}, and \texttt{tlast} fields remain aligned through stalls.}
 \label{fig:5_GenMixer}
 \end{center}
 \end{figure}
@@ -380,33 +376,33 @@ When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The 
 \hline
 BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
-Clock              & Input & std\_logic & Synchronous clock. \\
+aclk               & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset              & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn            & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready    & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid      & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid    & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast     & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
 OscillatorFCW      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
+s\_axis\_tdata\_i  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the input sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
+s\_axis\_tdata\_q  & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the input sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready    & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid     & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid    & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast     & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
 OverflowStatus     & Output & std\_logic\_vector(1 \newline downto 0) & [1]: I \newline [0]: Q \\
 \hline
-SampleOut\_I       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of mixed sample. \\
+m\_axis\_tdata\_i  & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the mixed sample. \\
 \hline
-SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of mixed sample. \\
+m\_axis\_tdata\_q  & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the mixed sample. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -426,7 +422,7 @@ A finite impulse response (FIR) filter has a finite-duration impulse response.  
 y[n]=\sum_{m=0}^{L-1}b[m]x[n-m].
 \end{equation*}
 
-Here, $b[m]$ are the $L$ coefficients, and $x[n]$ is the input sequence.  A causal FIR with $L$ taps has order $L-1$.  This design uses the two-tap, first-order moving-average low-pass filter $b[0]=b[1]=0.5$.  Each candidate record uses the zero-state convention $x[-1]=0$.  Within a record, the delay stores the preceding sample.  Between records, at least one clock with \texttt{SampleInValid} deasserted inserts zero into the one-sample delay and inserts a deasserted valid tag for that corresponding delayed transaction; an earlier pipeline transaction may still emerge on the same clock.  The next record therefore begins from zero state.
+Here, $b[m]$ are the $L$ coefficients, and $x[n]$ is the input sequence.  A causal FIR with $L$ taps has order $L-1$.  This design uses the two-tap, first-order moving-average low-pass filter $b[0]=b[1]=0.5$.  Each candidate record uses the zero-state convention $x[-1]=0$.  Within a record, the delay stores the preceding accepted sample.  Acceptance of the transfer carrying \texttt{s\_axis\_tlast} marks the record boundary and clears the one-sample delay before the next record's first transfer.  No state from one candidate therefore enters the next.
 
 \begin{figure}[H]
 \begin{center}
@@ -439,7 +435,7 @@ Here, $b[m]$ are the $L$ coefficients, and $x[n]$ is the input sequence.  A caus
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_fir.tex}}
-\caption{Symbolic continuous-rate timing of the two-tap low-pass filter module. Data, valid, and final-sample tags remain aligned.}
+\caption{Symbolic AXI4-Stream timing of the two-tap low-pass filter module. The \texttt{tdata}, \texttt{tvalid}, and \texttt{tlast} fields remain aligned through stalls.}
 \label{fig:3_FIR}
 \end{center}
 \end{figure}
@@ -462,31 +458,31 @@ TAP\_WIDTH     & Config. & natural & Coefficient width: one sign bit and TAP\_WI
 \hline
 BIT\_WIDTH     & Config. & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
-Clock          & Input & std\_logic & Synchronous clock. \\
+aclk           & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset          & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn        & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
 Coeffs         & Input & CoeffArray(\newline TAP\_COUNT-1 \newline downto 0) & TAP\_COUNT signed coefficients, with $b[0]=b[1]=0.5$ in this application. \\
 \hline
-SampleOutReady & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid  & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast   & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_I    & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
+s\_axis\_tdata\_i & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the input sample. \\
 \hline
-SampleIn\_Q    & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
+s\_axis\_tdata\_q & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the input sample. \\
 \hline
-SampleInReady  & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast  & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
-SampleOut\_I   & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of filtered sample. \\
+m\_axis\_tdata\_i & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of the filtered sample. \\
 \hline
-SampleOut\_Q   & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of filtered sample. \\
+m\_axis\_tdata\_q & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of the filtered sample. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -521,7 +517,7 @@ The real and imaginary components are squared in parallel and then added.  This 
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_power.tex}}
-\caption{Symbolic continuous-rate timing of the instantaneous-power module. Each accepted complex input produces one nonnegative output after fixed latency.}
+\caption[Instantaneous-power AXI4-Stream timing.]{Symbolic AXI4-Stream timing of the instantaneous-power module. Each accepted complex input produces one nonnegative output.}
 \label{fig:2_InstPwr}
 \end{center}
 \end{figure}
@@ -542,33 +538,33 @@ I\_WIDTH       & Generic & natural & Bit width of the real input. \\
 \hline
 Q\_WIDTH       & Generic & natural & Bit width of the imaginary input. \\
 \hline
-LATENCY        & Generic & natural & Pipeline latency in clock cycles. \\
+LATENCY        & Generic & natural & Unstalled pipeline latency in clock cycles. \\
 \hline
 MSB\_TRUNC\_BITS & Generic & natural & Number of most-significant bits truncated. \\
 \hline
 LSB\_ROUND\_BITS & Generic & natural & Number of least-significant bits removed after rounding. \\
 \hline
-Clock          & Input & std\_logic & Synchronous clock. \\
+aclk           & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset          & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn        & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid  & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast   & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_I    & Input & signed(I\_WIDTH-1 \newline downto 0) & Real component of sample.  \\
+s\_axis\_tdata\_i & Input & signed(I\_WIDTH-1 \newline downto 0) & Real component of the input sample.  \\
 \hline
-SampleIn\_Q    & Input & signed(Q\_WIDTH-1 \newline downto 0) & Imaginary component of sample.  \\
+s\_axis\_tdata\_q & Input & signed(Q\_WIDTH-1 \newline downto 0) & Imaginary component of the input sample.  \\
 \hline
-SampleInReady  & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast  & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
-SampleOut      & Output & unsigned(\newline 2*max(I\_WIDTH, \newline Q\_WIDTH)-1- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Nonnegative magnitude-squared output. \\
+m\_axis\_tdata & Output & unsigned(\newline 2*max(I\_WIDTH, \newline Q\_WIDTH)-1- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Nonnegative magnitude-squared output. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -602,7 +598,7 @@ Thus, the multiplication of $x_A[n]$ and $x_B[n]$ requires four real multiplicat
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_cmult.tex}}
-\caption{Symbolic continuous-rate timing of the complex-multiplier module. Each aligned input pair produces one complex product.}
+\caption{Symbolic AXI4-Stream timing of the complex-multiplier module. Each accepted, aligned input pair produces one complex product.}
 \label{fig:1_ComplexMult}
 \end{center}
 \end{figure}
@@ -623,39 +619,39 @@ A\_WIDTH        & Generic & natural & Operand-A component width. \\
 \hline
 B\_WIDTH        & Generic & natural & Operand-B component width. \\
 \hline
-LATENCY         & Generic & natural & Pipeline latency in clock cycles. \\
+LATENCY         & Generic & natural & Unstalled pipeline latency in clock cycles. \\
 \hline
 MSB\_TRUNC\_BITS & Generic & natural & Most-significant bits truncated. \\
 \hline
 LSB\_ROUND\_BITS & Generic & natural & Least-significant bits removed after rounding. \\
 \hline
-Clock           & Input & std\_logic & Synchronous clock. \\
+aclk            & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset           & Input & std\_logic & Active-high synchronous reset. \\
+aresetn         & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady  & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid   & Input & std\_logic & Input is valid. \\
+s\_axis\_tvalid & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast    & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_A\_I  & Input & signed(A\_WIDTH-1 \newline downto 0) & Operand-A real component.  \\
+s\_axis\_tdata\_a\_i & Input & signed(A\_WIDTH-1 \newline downto 0) & Operand-A real component.  \\
 \hline
-SampleIn\_A\_Q  & Input & signed(A\_WIDTH-1 \newline downto 0) & Operand-A imaginary component.  \\
+s\_axis\_tdata\_a\_q & Input & signed(A\_WIDTH-1 \newline downto 0) & Operand-A imaginary component.  \\
 \hline
-SampleIn\_B\_I  & Input & signed(B\_WIDTH-1 \newline downto 0) & Operand-B real component.  \\
+s\_axis\_tdata\_b\_i & Input & signed(B\_WIDTH-1 \newline downto 0) & Operand-B real component.  \\
 \hline
-SampleIn\_B\_Q  & Input & signed(B\_WIDTH-1 \newline downto 0) & Operand-B imaginary component.  \\
+s\_axis\_tdata\_b\_q & Input & signed(B\_WIDTH-1 \newline downto 0) & Operand-B imaginary component.  \\
 \hline
-SampleInReady   & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid  & Output & std\_logic & Output is valid. \\
+m\_axis\_tvalid & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast   & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
-SampleOut\_I    & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Real component of product. \\
+m\_axis\_tdata\_i & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Real component of the product. \\
 \hline
-SampleOut\_Q    & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Imaginary component of product. \\
+m\_axis\_tdata\_q & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Imaginary component of the product. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -668,7 +664,7 @@ SampleOut\_Q    & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUN
 \addcontentsline{toc}{subsection}{\quad 3.3.8 \quad Multiplier}
 \noindent 3.3.8  \quad Multiplier
 
-There are many real multipliers used throughout this design.  The module provides a continuous-rate, fixed-latency pipeline together with explicit bit-width, truncation, saturation, and rounding controls.  Data, valid, and final-sample metadata advance through corresponding delay stages, while downstream ready is held high for the characterized operating mode.  Mathematically, this module performs the multiplication of two real values, expressed as:
+There are many real multipliers used throughout this design.  The module provides an AXI4-Stream pipeline together with explicit bit-width, truncation, saturation, and rounding controls.  The \texttt{tdata}, \texttt{tvalid}, and \texttt{tlast} fields advance through corresponding elastic stages; the output remains stable during downstream backpressure.  Mathematically, this module performs the multiplication of two real values, expressed as:
 
 \begin{equation}
 y[n]=x_{1}[n]x_{2}[n].
@@ -685,7 +681,7 @@ y[n]=x_{1}[n]x_{2}[n].
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_rmult.tex}}
-\caption{Symbolic continuous-rate timing of the fixed-point multiplier module. The product and its valid and final-sample tags share the configured latency.}
+\caption{Symbolic AXI4-Stream timing of the fixed-point multiplier module. The product on \texttt{tdata} remains aligned with \texttt{tvalid} and \texttt{tlast} through stalls.}
 \label{fig:0_GenericMult}
 \end{center}
 \end{figure}
@@ -705,33 +701,33 @@ A\_WIDTH       & Generic & natural & Bit width of operand A. \\
 \hline
 B\_WIDTH       & Generic & natural & Bit width of operand B. \\
 \hline
-LATENCY        & Generic & natural & Pipeline latency in clock cycles. \\
+LATENCY        & Generic & natural & Unstalled pipeline latency in clock cycles. \\
 \hline
 MSB\_TRUNC\_BITS & Generic & natural & Number of most-significant bits truncated. \\
 \hline
 LSB\_ROUND\_BITS & Generic & natural & Number of least-significant bits removed after rounding. \\
 \hline
-Clock          & Input & std\_logic & Synchronous clock. \\
+aclk           & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset          & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn        & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid  & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast   & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
+s\_axis\_tlast & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_A    & Input & signed(A\_WIDTH-1 \newline downto 0) & Real-valued operand A.  \\
+s\_axis\_tdata\_a & Input & signed(A\_WIDTH-1 \newline downto 0) & Real-valued operand A.  \\
 \hline
-SampleIn\_B    & Input & signed(B\_WIDTH-1 \newline downto 0) & Real-valued operand B.  \\
+s\_axis\_tdata\_b & Input & signed(B\_WIDTH-1 \newline downto 0) & Real-valued operand B.  \\
 \hline
-SampleInReady  & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast  & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
-SampleOut      & Output & signed(\newline A\_WIDTH+B\_WIDTH-1 \newline -LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Real-valued product. \\
+m\_axis\_tdata & Output & signed(\newline A\_WIDTH+B\_WIDTH-1 \newline -LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Real-valued product. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -758,7 +754,7 @@ s[n] = \left\{
       .
 \end{equation}
 
-\noindent Here, $x[n]$ is an input sample and $s[n]$ is the running sum within the current record.  The module itself is real-valued; the Fourier-sum evaluator instantiates separate accumulators for the in-phase and quadrature components.  On each valid sample, the adder first forms $s_{\mathrm{next}}=s+x[n]$, with the first sample using a cleared stored sum.  An ordinary sample stores $s_{\mathrm{next}}$.  A sample carrying \texttt{SampleInLast} stores no residual value: it emits the normalized $s_{\mathrm{next}}$, asserts the aligned output-valid and final-sample tags, and clears the stored sum for the next record.  This end-of-record convention includes each of the $N$ samples exactly once.
+\noindent Here, $x[n]$ is an input sample and $s[n]$ is the running sum within the current record.  The module itself is real-valued; the Fourier-sum evaluator instantiates separate accumulators for the in-phase and quadrature components.  On each accepted input transfer, the adder first forms $s_{\mathrm{next}}=s+x[n]$, with the first sample using a cleared stored sum.  An ordinary sample stores $s_{\mathrm{next}}$.  A sample carrying \texttt{s\_axis\_tlast} stores no residual value: it emits the normalized $s_{\mathrm{next}}$, asserts \texttt{m\_axis\_tvalid} and \texttt{m\_axis\_tlast}, and clears the stored sum for the next record.  This end-of-record convention includes each of the $N$ samples exactly once.
 
 For a signed $W$-bit input and a record of $N$ samples, the full-range accumulator width is
 
@@ -766,7 +762,7 @@ For a signed $W$-bit input and a record of $N$ samples, the full-range accumulat
 W_{\mathrm{acc}}=W+\ceil{\log_2 N}.
 \end{equation*}
 
-A 16-bit, 4096-sample configuration therefore uses a 28-bit sum and a 12-bit normalization shift.  A 16-bit, 65,536-sample configuration uses a 32-bit sum and a 16-bit shift.  For power-of-two $N$, a sign-aware rounding adjustment followed by selection of the corresponding upper bits implements rounded division by $N$; for other record lengths, normalization uses a constant reciprocal or divider with guard bits before the same rounding and saturation stage.  The configured \texttt{N\_SAMPLES} value establishes the counter limit, accumulator width, and normalization factor, while \texttt{SampleInLast} is asserted with count $N-1$ as the protocol-level end-of-record tag.  An invalid input clock leaves the sample-indexed state unchanged and inserts deasserted valid and final-sample tags into the fixed-latency tag path; a previously accepted sample or terminal result may still emerge on that clock according to the pipeline latency.
+A 16-bit, 4096-sample configuration therefore uses a 28-bit sum and a 12-bit normalization shift.  A 16-bit, 65,536-sample configuration uses a 32-bit sum and a 16-bit shift.  For power-of-two $N$, a sign-aware rounding adjustment followed by selection of the corresponding upper bits implements rounded division by $N$; for other record lengths, normalization uses a constant reciprocal or divider with guard bits before the same rounding and saturation stage.  The configured \texttt{N\_SAMPLES} value establishes the counter limit, accumulator width, and normalization factor, while \texttt{s\_axis\_tlast} is asserted with count $N-1$ as the protocol-level end-of-record tag.  A clock without an accepted input transfer leaves the sample-indexed state unchanged, and a pending output remains stable until accepted on \texttt{m\_axis}.
 
 \begin{figure}[H]
 \begin{center}
@@ -779,7 +775,7 @@ A 16-bit, 4096-sample configuration therefore uses a 28-bit sum and a 12-bit nor
 \begin{figure}[H]
 \begin{center}
 \resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_accumulator.tex}}
-\caption[Accumulator end-of-record timing.]{Symbolic block-synchronous timing of the accumulator module. The final-sample marker accompanies sample $N-1$, and one normalized terminal result is emitted after that sample has been included.}
+\caption[Accumulator end-of-record timing.]{Symbolic block-synchronous timing of the accumulator module.  The input \texttt{s\_axis\_tlast} accompanies sample $N-1$, and the output value $\bar{x}=s[N-1]/N$ is emitted after that sample has been included.}
 \label{fig:4_accumulator}
 \end{center}
 \end{figure}
@@ -799,25 +795,25 @@ N\_SAMPLES     & Generic & natural & Record length used for counting, width, and
 \hline
 BIT\_WIDTH     & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
-Clock          & Input & std\_logic & Synchronous clock. \\
+aclk           & Input & std\_logic & AXI4-Stream clock. \\
 \hline
-Reset          & Input & std\_logic & Synchronous, active-high reset. \\
+aresetn        & Input & std\_logic & Active-low AXI4-Stream reset. \\
 \hline
-SampleOutReady & Input & std\_logic & Downstream status input; held high during continuous-rate operation. \\
+m\_axis\_tready & Input & std\_logic & High when the downstream stage can accept a transfer. \\
 \hline
-SampleInValid  & Input & std\_logic & High when input is valid. \\
+s\_axis\_tvalid & Input & std\_logic & High when input data and tags are valid. \\
 \hline
-SampleInLast   & Input & std\_logic & End-of-record tag asserted with sample $N-1$. \\
+s\_axis\_tlast & Input & std\_logic & End-of-record tag asserted with sample $N-1$. \\
 \hline
-SampleIn       & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real-valued input sample. \\
+s\_axis\_tdata & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real-valued input sample. \\
 \hline
-SampleInReady  & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
+s\_axis\_tready & Output & std\_logic & High when this stage can accept an input transfer. \\
 \hline
-SampleOutValid & Output & std\_logic & High when output is valid. \\
+m\_axis\_tvalid & Output & std\_logic & High when output data and tags are valid. \\
 \hline
-SampleOutLast  & Output & std\_logic & End-of-record tag aligned with the associated output. \\
+m\_axis\_tlast & Output & std\_logic & End-of-record tag aligned with the output data. \\
 \hline
-SampleOut      & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Normalized completed-record sum containing all $N$ samples. \\
+m\_axis\_tdata & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Normalized completed-record sum containing all $N$ samples. \\
 \hline
 \end{tabularx}
 \end{center}

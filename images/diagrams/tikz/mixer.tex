@@ -20,7 +20,7 @@
   \draw[arch/wire] (cmul) -- (sat);
   \draw[arch/wire] (sat) -- (out);
 
-  \node[arch/tinylabel, below=7mm of phase] (accept) {sample clock};
+  \node[arch/tinylabel, below=7mm of phase] (accept) {advance on\\\texttt{s\_axis\_tvalid}\,\&\,\texttt{s\_axis\_tready}};
   \draw[arch/control] (accept) -- (phase.south);
   \draw[arch/control] (quad.north) |- (sign.north);
   \node[arch/tinylabel, below=2mm of cmul] {complex product};

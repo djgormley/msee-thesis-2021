@@ -26,7 +26,7 @@
   \draw[arch/wire] (quant) -- (out);
 
   \node[arch/tinylabel, left=5mm of nco] (fcw) {$f_0$ control word};
-  \node[arch/tinylabel, below=7mm of accgroup] (ctl) {final-sample marker: both sums include samples $0$ through $N-1$};
+  \node[arch/tinylabel, below=7mm of accgroup] (ctl) {\texttt{s\_axis\_tlast}: both sums include samples $0$ through $N-1$};
   \draw[arch/control] (fcw) -- (nco);
   \draw[arch/control] (ctl) -- (accgroup.south);
 \end{tikzpicture}

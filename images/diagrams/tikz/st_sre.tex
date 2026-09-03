@@ -15,7 +15,7 @@
   \draw[arch/wire] (norm) -- (out);
 
   \node[arch/tinylabel, above=8mm of mix] (srw) {symbol-rate control word $\alpha_v$\\$\mathrm{e}^{-\mathrm{j}2\pi\alpha_vn/F_s}$};
-  \node[arch/tinylabel, below=8mm of dft] (ctl) {$N$ and final-sample marker};
+  \node[arch/tinylabel, below=8mm of dft] (ctl) {record length $N$\\and \texttt{s\_axis\_tlast}};
   \draw[arch/control] (srw) -- (mix.north);
   \draw[arch/control] (ctl) -- (dft.south);
 \end{tikzpicture}

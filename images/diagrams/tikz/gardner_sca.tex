@@ -3,8 +3,8 @@
   \node[dsp/junction, right=4mm of xin] (split) {};
   \node[dsp/mult, above right=7mm and 8mm of split] (mixp) {$\times$};
   \node[dsp/mult, below right=7mm and 8mm of split] (mixm) {$\times$};
-  \node[arch/block, right=8mm of mixp] (lpfp) {$h_{\Delta f}(t)$};
-  \node[arch/block, right=8mm of mixm] (lpfm) {$h_{\Delta f}(t)$};
+  \node[dsp/lpf, right=8mm of mixp] (lpfp) {};
+  \node[dsp/lpf, right=8mm of mixm] (lpfm) {};
   \node[arch/smallblock, right=6mm of lpfm] (conj) {conjugate};
   \coordinate (branchmid) at ($(lpfp.east)!0.5!(conj.east)$);
   \node[dsp/mult, right=12mm of branchmid] (prod) {$\times$};
@@ -24,8 +24,9 @@
   \draw[arch/wire] (avg) -- (scale);
   \draw[arch/wire] (scale) -- (out);
 
-  \node[arch/tinylabel, above=2mm of mixp] {$\mathrm{e}^{-\mathrm{j}2\pi(f+\alpha/2)t}$};
-  \node[arch/tinylabel, below=2mm of mixm] {$\mathrm{e}^{-\mathrm{j}2\pi(f-\alpha/2)t}$};
-  \node[arch/tinylabel, above=2mm of lpfp] {bandwidth $\Delta f$};
+  \node[arch/tinylabel, above=6mm of mixp] {$\mathrm{e}^{-\mathrm{j}2\pi(f+\alpha/2)t}$};
+  \node[arch/tinylabel, below=6mm of mixm] {$\mathrm{e}^{-\mathrm{j}2\pi(f-\alpha/2)t}$};
+  \node[arch/tinylabel, above=1mm of lpfp] {low-pass $h_{\Delta f}(t)$\\bandwidth $\Delta f$};
+  \node[arch/tinylabel, above=1mm of lpfm] {low-pass $h_{\Delta f}(t)$\\bandwidth $\Delta f$};
   \node[arch/tinylabel, above=2mm of scale] {$\Delta f$};
 \end{tikzpicture}

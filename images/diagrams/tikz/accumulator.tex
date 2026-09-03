@@ -21,7 +21,7 @@
   \draw[arch/wire] (norm) -- (out);
   \draw[arch/wire] (regout) -- ++(0,-10mm) -| (add.south);
 
-  \node[arch/tinylabel, below=8mm of gate] (last) {$N$ and final-sample marker};
+  \node[arch/tinylabel, below=8mm of gate] (last) {record length $N$\\and \texttt{s\_axis\_tlast}};
   \draw[arch/control] (last) -- (gate.south);
   \draw[arch/control] (last.west) -| (reg.south);
 \end{tikzpicture}

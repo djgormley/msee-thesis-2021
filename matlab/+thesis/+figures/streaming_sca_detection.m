@@ -119,12 +119,17 @@ ax = axes(fig);
 statistic_plot = waterfall(ax,candidate_center_frequencies_hz/1e6, ...
     candidate_cycle_frequencies_hz/1e6,test_statistic);
 statistic_plot.EdgeColor = colors.blue;
-statistic_plot.FaceColor = 'none';
+statistic_plot.EdgeAlpha = 0.82;
+statistic_plot.FaceColor = colors.sky;
+statistic_plot.FaceAlpha = 0.14;
 hold(ax,'on');
 threshold_plot = waterfall(ax,candidate_center_frequencies_hz/1e6, ...
     candidate_cycle_frequencies_hz/1e6,threshold_surface);
 threshold_plot.EdgeColor = colors.orange;
-threshold_plot.FaceColor = 'none';
+threshold_plot.EdgeAlpha = 0.55;
+threshold_plot.LineStyle = '--';
+threshold_plot.FaceColor = colors.orange;
+threshold_plot.FaceAlpha = 0.18;
 for signal_index = 1:numel(symbol_rates_hz)
     estimated_center_frequency_mhz = ...
         estimated_center_frequencies_hz(signal_index)/1e6;
@@ -135,12 +140,11 @@ for signal_index = 1:numel(symbol_rates_hz)
         'HandleVisibility','off');
 end
 view(ax,225,20);
-title(ax,'Streaming SCA Detection of Two M-QAM-SRRC Signals');
 xlabel(ax,'$f_c$ (MHz)');
 ylabel(ax,'$R_s$ (MBd)');
 zlabel(ax,'$T_y(v,k)=|\widehat{C}_y(\alpha_v,f_k)|^2$');
 legend(ax,[statistic_plot,threshold_plot], ...
     {'$T_y(v,k)$','$\gamma_{\mathrm{CFD}}=\beta\widehat{P}_y^2$'}, ...
-    'Location','northeast');
+    'Location','northeastoutside');
 output_path = thesis.plot.export_png(fig,output_directory,'qam_srrc_rs');
 end
