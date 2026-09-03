@@ -1,0 +1,27 @@
+\begin{tikzpicture}[node distance=6mm]
+  \node[arch/label] (xin) {$X[n]$};
+  \node[arch/smallblock, right=of xin] (extend) {sign\\extend};
+  \node[arch/sum, right=of extend] (add) {$+$};
+  \node[arch/block, right=of add] (reg) {sum register\\store or clear\\$W_{\rm acc}=W+\lceil\log_2N\rceil$};
+  \node[arch/block, right=of reg] (gate) {terminal selector\\emit $S_{\rm next}$};
+  \node[arch/block, right=of gate] (norm) {normalize by $N$\\round, saturate,\\and resize};
+  \node[arch/label, right=of norm] (out) {$S[N-1]/N$};
+  \node[arch/group, fit=(reg)(gate)] (record) {};
+
+  \draw[arch/wire] (xin) -- (extend);
+  \draw[arch/wire] (extend) -- (add);
+  \coordinate (snext) at ($(add.east)+(3mm,0)$);
+  \draw[line width=0.7pt] (add.east) -- (snext);
+  \fill (snext) circle[radius=0.7pt];
+  \draw[arch/wire] (snext) -- node[arch/tinylabel, above] {$S_{\rm next}$} (reg.west);
+  \draw[arch/wire] (snext) -- ++(0,10mm) -| (gate.north);
+  \coordinate (regout) at ($(reg.east)+(3mm,0)$);
+  \draw[line width=0.7pt] (reg.east) -- (regout);
+  \fill (regout) circle[radius=0.7pt];
+  \draw[arch/wire] (gate) -- (norm);
+  \draw[arch/wire] (norm) -- (out);
+  \draw[arch/wire] (regout) -- ++(0,-10mm) -| (add.south);
+
+  \node[arch/tinylabel, below=8mm of gate] (last) {$N$ and final-sample marker};
+  \draw[arch/control] (last) -- (record.south east);
+\end{tikzpicture}

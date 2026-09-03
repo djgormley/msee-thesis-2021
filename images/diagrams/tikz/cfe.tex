@@ -1,0 +1,26 @@
+\begin{tikzpicture}[node distance=4mm]
+  \node[arch/label] (xin) {$x[n]$};
+  \node[arch/block, right=of xin] (mix) {complex\\mixer};
+  \node[arch/block, right=of mix] (fir) {two-tap FIR\\$h=[0.5,0.5]$};
+  \node[arch/smallblock, right=of fir] (pwr) {$|z_k[n]|^2$};
+  \node[arch/block, right=of pwr] (sum) {selected-frequency\\sum, $N$ samples};
+  \node[arch/smallblock, right=of sum] (norm) {$\div N$};
+  \node[arch/smallblock, right=of norm] (mag) {$|\cdot|^2$};
+  \node[arch/label, right=of mag] (out) {$T_x(v,k)$};
+
+  \draw[arch/wire] (xin) -- (mix);
+  \draw[arch/wire] (mix) -- (fir);
+  \draw[arch/wire] (fir) -- (pwr);
+  \draw[arch/wire] (pwr) -- (sum);
+  \draw[arch/wire] (sum) -- (norm);
+  \draw[arch/wire] (norm) -- (mag);
+  \draw[arch/wire] (mag) -- (out);
+
+  \node[arch/tinylabel, above=8mm of mix] (cfw) {CF control word $f_k$};
+  \node[arch/tinylabel, above=8mm of sum] (srw) {SR control word $\alpha_v$};
+  \node[arch/tinylabel, below=8mm of sum] (ctl) {$N$ and final marker\\inter-record zero prime};
+  \draw[arch/control] (cfw) -- (mix.north);
+  \draw[arch/control] (srw) -- (sum.north);
+  \draw[arch/control] (ctl.west) -| (fir.south);
+  \draw[arch/control] (ctl) -- (sum.south);
+\end{tikzpicture}

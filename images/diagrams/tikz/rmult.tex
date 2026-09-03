@@ -1,0 +1,16 @@
+\begin{tikzpicture}[node distance=7mm]
+  \node[arch/label] (ain) {$A[n]$};
+  \node[arch/label, below=8mm of ain] (bin) {$B[n]$};
+  \coordinate (inmid) at ($(ain.east)!0.5!(bin.east)$);
+  \node[arch/block, right=12mm of inmid] (mult) {full-precision\\multiply, $W_A+W_B$ bits};
+  \node[arch/block, right=of mult] (round) {round at selected\\binary point};
+  \node[arch/block, right=of round] (sat) {resize and\\saturate};
+  \node[arch/label, right=of sat] (out) {$Y[n]=A[n]B[n]$};
+
+  \draw[arch/wire] (ain.east) -| ($(mult.west)+(0,2mm)$);
+  \draw[arch/wire] (bin.east) -| ($(mult.west)+(0,-2mm)$);
+  \draw[arch/wire] (mult) -- (round);
+  \draw[arch/wire] (round) -- (sat);
+  \draw[arch/wire] (sat) -- (out);
+  \node[arch/tinylabel, above=7mm of round] {data, valid, and final-sample metadata advance together};
+\end{tikzpicture}

@@ -21,6 +21,7 @@
 \usepackage{acronym} % acronym table
 \usepackage{subcaption, multicol} % figures in columns
 \usepackage{float} % [H]
+\usepackage{needspace} % keep subsection headings with their opening text
 \usepackage{anyfontsize} % fractional font sizes
 \usepackage{tabularx} % wrapped, full-width tables
   \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
@@ -31,6 +32,41 @@
   \definecolor{dkgreen}{rgb}{0.0,  0.6, 0.00}
   \definecolor{gray}   {rgb}{0.5,  0.5, 0.50}
   \definecolor{mauve}  {rgb}{0.58, 0.0, 0.82}
+\usepackage{tikz}
+  \usetikzlibrary{arrows.meta, calc, fit, matrix, positioning, shapes.geometric}
+  \tikzset{
+    arch/block/.style={
+      draw=black,
+      line width=0.6pt,
+      rounded corners=1.2pt,
+      fill=black!6,
+      align=center,
+      minimum height=9mm,
+      minimum width=18mm,
+      inner sep=4pt,
+      font=\footnotesize\linespread{1}\selectfont
+    },
+    arch/smallblock/.style={arch/block, minimum height=7mm, minimum width=12mm, inner sep=3pt},
+    arch/sum/.style={
+      circle,
+      draw=black,
+      line width=0.6pt,
+      fill=black!6,
+      minimum size=8mm,
+      inner sep=0pt,
+      font=\footnotesize\linespread{1}\selectfont
+    },
+    arch/wire/.style={-{Latex[length=2.2mm, width=1.5mm]}, line width=0.7pt},
+    arch/control/.style={arch/wire, densely dashed},
+    arch/group/.style={draw=black, dashed, rounded corners=1.5pt, inner sep=5pt},
+    arch/label/.style={font=\footnotesize\linespread{1}\selectfont, align=center},
+    arch/tinylabel/.style={font=\scriptsize\linespread{1}\selectfont, align=center},
+    timing/rowlabel/.style={font=\scriptsize\linespread{1}\selectfont, anchor=east},
+    timing/text/.style={font=\scriptsize\linespread{1}\selectfont, align=center},
+    timing/grid/.style={draw=black!22, densely dotted, line width=0.35pt},
+    timing/wave/.style={draw=black, line width=0.7pt},
+    timing/bus/.style={draw=black, fill=black!6, line width=0.6pt}
+  }
 \usepackage{listings}
 \usepackage{upquote}
   \lstset{

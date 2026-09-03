@@ -124,7 +124,7 @@ The following definitions replace the corresponding original descriptions.
 
 \section{Spectral-correlation analyzer and detector}
 
-\noindent\textbf{Affected locations:} Sections 2.3--2.4, pp.~15--25; Chapter IV opening and plot captions, pp.~49 and 52--54.
+\noindent\textbf{Affected locations:} Sections 2.3--2.4, pp.~15--25; Sections 3.2--3.3.1, pp.~27--31; Chapter IV, pp.~49--55, including Tables 11--12 and Figures 35--37.
 
 \begin{itemize}
   \item Gardner's baseline time-smoothing analyzer shifts the spectral components centered at $f+\alpha/2$ and $f-\alpha/2$ to baseband, low-pass filters them, correlates the two outputs, and takes the ordered time and bandwidth limits. It should not be described as an FFT of the cyclic autocorrelation.
@@ -169,27 +169,31 @@ The following definitions replace the corresponding original descriptions.
   \]
   for the stated $N=2^{16}$, $N_p=32$, and 32-bit complex-word assumptions. This exceeds the approximately $4.9$ Mbit of block RAM listed for the XC7Z020 in Xilinx DS190. The comparison is an order-of-magnitude architectural motivation, not a synthesis result for the streaming design.
 
-  \item Avoiding an FFT capture array does not mean that the implementation contains no memory or buffering. The streaming design uses state, delay elements, lookup tables, and pipeline registers. At one accepted sample per clock, a fully serial sweep over $N_v$ rate candidates and $N_k$ center-frequency candidates requires approximately $NN_vN_k$ sample clocks plus control and pipeline overhead.
+  \item The low-memory architecture replaces a full-capture FFT array with bounded state, delay elements, lookup tables, and pipeline registers. At one sample per clock, a fully serial sweep over $N_v$ rate candidates and $N_k$ center-frequency candidates requires approximately $NN_vN_k$ sample clocks plus control and pipeline overhead.
 
-  \item A $W$-bit numerically controlled oscillator represents a requested frequency with the nearest frequency-control word, giving quantum $F_s/2^W$. With $W=16$ and $F_s=1$ MHz, the quantum is $15.2588$ Hz. Therefore the requested 1-Hz grid in Experiment XI does not demonstrate 1-Hz hardware resolution: its 201 requests map to only 14 distinct settings. The two discrete-time endpoints $-F_s/2$ and $+F_s/2$ also alias to the same oscillator setting.
+  \item A $W$-bit numerically controlled oscillator represents a requested frequency with the nearest frequency-control word, giving quantum $F_s/2^W$. With $W=16$ and $F_s=1$ MHz, the hardware frequency resolution is $15.2588$ Hz. Experiment XI's 201 one-hertz-spaced requests therefore quantize to 14 distinct settings. The two discrete-time endpoints $-F_s/2$ and $+F_s/2$ map to the same oscillator setting.
 
-  \item Contemporaneous component documentation supports the thesis design intent of a fixed two-tap filter with coefficients $[0.5,0.5]$. A later recovered active source tree contains a 41-tap, 128-bank filter and cannot be used as the historical RTL implementation of that two-tap description.
+  \item Surviving artifacts document two distinct filter configurations. The contemporaneous component report defines the thesis configuration as \texttt{TAP\_COUNT=2} with $h=[0.5,0.5]$. The recovered July 2022 worktree documents a later 41-tap, 128-bank configuration. The corrected edition uses the former for the thesis datapath and identifies the latter only when discussing the later source tree.
 
-  \item The recovered modules are fixed-latency pipelines, not a fully elastic ready/valid interface. Several paths and state machines do not stall when the downstream ready signal is low. The documented characterization therefore assumes continuous operation with one valid sample per clock and a ready downstream path.
+  \item The documented datapath uses a continuous-rate, fixed-latency streaming contract. During each record, \texttt{SampleInValid} is asserted on every clock and downstream \texttt{SampleOutReady} is held high. Sample-preserving stages advance data and their valid and final-sample tags together. Integrate-and-dump stages incorporate every accepted input into record state and emit one aligned result and final-sample tag per record. A fully elastic variant advances all sample-indexed state only on input acceptance and holds pending output data and tags until downstream acceptance.
 \end{itemize}
 
-\section{Recovered-RTL limitations}
+\section{RTL numerical and interface requirements}
 
-\noindent\textbf{Affected locations:} Sections 3.3.2, 3.3.4, 3.3.6, 3.3.8, and 3.3.9, pp.~32, 36, 40, and 44--48.
+\noindent\textbf{Affected locations:} Sections 3.3.1--3.3.6 and 3.3.8--3.3.9, pp.~30--42 and 44--48.
 
-The exact thesis-era RTL revision is unavailable. The following observations apply to a later, source-divergent recovered checkout and therefore do not prove that the thesis-era simulations contained the same defects. They do prevent that checkout from independently establishing bit-true agreement with the equations.
+The corrected edition states the following behavior as the contract for a conforming implementation. The exact thesis-era RTL revision is unavailable, so the separate July 2022 checkout is used only to distinguish later source behavior from these requirements.
 
 \begin{itemize}
-  \item The instantaneous-power path retains unsigned bits 29 through 14 and then reinterprets the resulting 16-bit word as signed. For 16-bit inputs with 15 fractional bits, powers at or above approximately $0.5$ can therefore appear negative, and an ideal power of $1.0$ is carried by a discarded upper bit and maps to zero.
+  \item For Q1.15 complex input components, the instantaneous power $P=I^2+Q^2$ is a nonnegative value in $[0,2]$ with a full-precision unsigned 32-bit representation and 30 fractional bits. The interface into the signed Fourier mixer preserves the magnitude bit by zero-extending into a wider signed word or by explicit rescaling and saturation. One conforming 16-bit mapping is saturated Q1.15 representation of $P/2$; this gives a one-half scale factor in the complex CAF coefficient and a one-quarter factor in its magnitude-squared statistic and matching threshold.
 
-  \item In the recovered accumulator, the sample-count generic is unused and the internal width is fixed at 28 bits. The 16-bit output slice \texttt{Sum(27 downto 12)} applies a 12-bit right shift, not division by $N=2^{16}$. A worst-case overflow-free sum of $2^{16}$ signed 16-bit samples requires 32 bits.
+  \item The selected-frequency Fourier output is the normalized coefficient $\widehat X(f_0)=N^{-1}\sum_{n=0}^{N-1}X[n]e^{-j2\pi f_0n/F_s}$. Both component sums include sample $N-1$ before a single division by $N$, quantization, and emission.
 
-  \item When the end-of-block marker is asserted on sample $N-1$, the emitted sum excludes that marked sample, which instead seeds the next block. Several status signals can also remain asserted across invalid cycles rather than forming one-cycle handshake events. Boundary, scaling, width, and interface control require correction and re-verification before this checkout is reused.
+  \item The two-tap FIR uses zero initial delay state for every candidate record. Within a record, the delay holds the preceding mixed sample. An inter-record clock with input valid deasserted inserts zero into the one-sample delay and inserts a deasserted valid tag for that corresponding delayed transaction; an earlier pipeline transaction may still emerge on the same clock. No state from one candidate enters the next.
+
+  \item A signed $W$-bit input accumulated across $N$ samples uses $W+\lceil\log_2N\rceil$ bits for full-range operation. Thus, a 16-bit, 4096-sample configuration uses a 28-bit sum and a 12-bit normalization shift, while a 16-bit, 65,536-sample configuration uses a 32-bit sum and a 16-bit shift. For power-of-two record lengths, normalization uses a sign-aware rounded right shift. Other record lengths use a constant reciprocal or divider with guard bits before the same rounding and saturation stage.
+
+  \item On each valid input, the accumulator first forms $S_{\mathrm{next}}=S+X[n]$. An ordinary sample stores that value. A sample carrying the final-sample marker at count $N-1$ emits the normalized $S_{\mathrm{next}}$, asserts aligned valid and final-sample tags, and clears the stored sum for the next record. An invalid input clock leaves the sample-indexed state unchanged and inserts deasserted valid and final-sample tags into the fixed-latency tag path; a previously accepted result may still emerge on that clock. This convention includes every record sample exactly once.
 \end{itemize}
 
 \section{Chapter IV experiments and results}
@@ -265,6 +269,7 @@ The corrected edition also makes the following non-substantive or production-ori
   \item It corrects spelling, grammar, punctuation, capitalization, units, mathematical notation, cross-references, table labels, and bibliographic metadata throughout.
   \item It regularizes front-matter order, margins, page-number placement, chapter and contents formatting, and the presentation of figures and tables.
   \item It repairs the MATLAB plotting scripts, uses fixed random seeds where stochastic examples are shown, corrects formulas and search grids, and regenerates the figures with a shared font, size, line-weight, and color specification.
+  \item It replaces the conceptual SCA and RTL architecture and timing raster images with native TikZ drawings that use the corrected notation, specified signal order, and a shared typographic style.
   \item It replaces the stale Appendix A code transcription with the maintained MATLAB source included by the document build.
 \end{itemize}
 

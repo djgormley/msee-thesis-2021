@@ -272,7 +272,7 @@ Here, $X_{1/\Delta f}(u,\nu)$ is the short-time Fourier transform centered at ti
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{diagrams/gardner_sca}
+\resizebox{0.94\textwidth}{!}{\input{../images/diagrams/tikz/gardner_sca.tex}}
 \caption[Example of a baseline SCA.]{As described by Gardner in \cite{gardner-06}, this baseline SCA shifts the components centered at $f+\sfrac{\alpha}{2}$ and $f-\sfrac{\alpha}{2}$ to baseband.  The component centers are separated by $\alpha$.  The shifted signals pass through low-pass filters $h_{\Delta f}(t)$ with bandwidth $\Delta f$ and unity-passband height before their outputs are correlated, time-averaged over $T$, and scaled by $\Delta f$.  The ideal CSD $S_{X}^{\alpha}(f)$ is obtained in the ordered limits $T\rightarrow\infty$ and then $\Delta f\rightarrow0$.}
 \label{fig:gardner_sca}
 \end{center}
@@ -345,8 +345,8 @@ Its estimated zero-lag CAF at the $v$th cycle-frequency candidate is
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{diagrams/koch_sca}
-\caption[Diagram of CAF-DFT SCA.]{This buffered CAF-DFT realization frequency-shifts $x[n]$ by each CF candidate $f_k$ and passes each shifted version through a low-pass filter, a process referred to as channelization.  Evaluating the channelized autocorrelation at $\tau=0$ gives the magnitude squared.  Correlation with the cycle-frequency kernel at $\alpha_v$, followed by division of the accumulated sum by $N$, produces the statistic $\widehat{C}_{x}(\alpha_v,f_k)$.  In the legacy diagram, $k_i$ denotes the normalized frequency $f_{k_i}/F_s$, and $F^v\{\cdot\}$ denotes selection of the cycle-frequency coefficient.}
+\resizebox{0.94\textwidth}{!}{\input{../images/diagrams/tikz/koch_sca.tex}}
+\caption[Diagram of CAF-DFT SCA.]{This buffered CAF-DFT reference realization frequency-shifts $x[n]$ by each physical CF candidate $f_k$ and passes each shifted version through a low-pass filter, a process referred to as channelization.  The magnitude squared produces the zero-lag autocorrelation sequence.  Correlation with the cycle-frequency kernel at the physical candidate $\alpha_v$, accumulation of $N$ samples, and division by $N$ produce $\widehat{C}_{x}(\alpha_v,f_k)$.  Its magnitude squared is the nonnegative test statistic $T_x(v,k)$.}
 \label{fig:koch_sca}
 \end{center}
 \end{figure}

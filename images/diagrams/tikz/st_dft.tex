@@ -1,0 +1,24 @@
+\begin{tikzpicture}[node distance=6mm and 8mm]
+  \node[arch/label] (xin) {$X[n]$};
+  \node[arch/sum, right=8mm of xin] (mult) {$\times$};
+  \node[arch/block, above right=8mm and 16mm of mult] (acci) {I sum core\\$W_{\rm acc}$ bits};
+  \node[arch/block, below right=8mm and 16mm of mult] (accq) {Q sum core\\$W_{\rm acc}$ bits};
+  \coordinate (accmid) at ($(acci.east)!0.5!(accq.east)$);
+  \node[arch/group, fit=(acci)(accq), label={[arch/tinylabel]above:one-record I/Q accumulation}] (accgroup) {};
+  \node[arch/block, right=12mm of accmid] (quant) {normalize by $N$\\round, saturate,\\and resize};
+  \node[arch/label, right=8mm of quant] (out) {$\widehat X(f_0)$};
+  \node[arch/block, below left=15mm and 1mm of mult] (nco) {phase accumulator\\and sine/cosine LUT};
+
+  \draw[arch/wire] (xin) -- (mult);
+  \draw[arch/wire] (nco.north) -- node[arch/tinylabel, right] {$e^{-j2\pi f_0n/F_s}$} (mult.south);
+  \draw[arch/wire] (mult.east) |- (acci.west);
+  \draw[arch/wire] (mult.east) |- (accq.west);
+  \draw[arch/wire] (acci.east) -| ($(quant.west)+(0,2mm)$);
+  \draw[arch/wire] (accq.east) -| ($(quant.west)+(0,-2mm)$);
+  \draw[arch/wire] (quant) -- (out);
+
+  \node[arch/tinylabel, left=5mm of nco] (fcw) {$f_0$ control word};
+  \node[arch/tinylabel, below=7mm of accgroup] (ctl) {final-sample marker: both sums include samples $0$ through $N-1$};
+  \draw[arch/control] (fcw) -- (nco);
+  \draw[arch/control] (ctl) -- (accgroup.south);
+\end{tikzpicture}

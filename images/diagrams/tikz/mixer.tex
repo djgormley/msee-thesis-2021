@@ -1,0 +1,26 @@
+\begin{tikzpicture}[node distance=5mm]
+  \node[arch/label] (fcw) {frequency\\control word};
+  \node[arch/block, right=of fcw] (phase) {phase\\accumulator};
+  \node[arch/block, right=of phase] (quad) {quadrant and\\address logic};
+  \node[arch/block, right=of quad] (rom) {quarter-wave\\sine ROM};
+  \node[arch/block, right=of rom] (sign) {sign and quadrant\\reconstruction};
+
+  \node[arch/label, below=13mm of quad] (xin) {$x[n]=I[n]+jQ[n]$};
+  \node[arch/block, right=8mm of xin] (cmul) {complex\\multiplier};
+  \node[arch/block, right=of cmul] (sat) {round, resize,\\and saturate};
+  \node[arch/label, right=of sat] (out) {$y[n]$};
+
+  \draw[arch/control] (fcw) -- (phase);
+  \draw[arch/wire] (phase) -- (quad);
+  \draw[arch/wire] (quad) -- (rom);
+  \draw[arch/wire] (rom) -- (sign);
+  \coordinate (lobus) at ($(cmul.north)+(0,5mm)$);
+  \draw[arch/wire] (sign.south) -- ($(sign.south)+(0,-5mm)$) -- node[arch/tinylabel, above] {$\cos\theta[n]-j\sin\theta[n]$} (lobus) -- (cmul.north);
+  \draw[arch/wire] (xin) -- (cmul);
+  \draw[arch/wire] (cmul) -- (sat);
+  \draw[arch/wire] (sat) -- (out);
+
+  \node[arch/tinylabel, below=7mm of phase] (accept) {sample clock};
+  \draw[arch/control] (accept) -- (phase.south);
+  \draw[arch/control] (quad.north) |- (sign.north);
+\end{tikzpicture}

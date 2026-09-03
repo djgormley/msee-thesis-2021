@@ -1,0 +1,24 @@
+\begin{tikzpicture}[node distance=6mm and 9mm]
+  \node[arch/label] (xin) {$x[n]$\\complex};
+  \coordinate[right=5mm of xin] (split);
+  \node[arch/smallblock, above right=5mm and 10mm of split] (m0) {$\times\tfrac12$};
+  \node[arch/smallblock, below right=5mm and 2mm of split] (delay) {$z^{-1}$};
+  \node[arch/smallblock, right=7mm of delay] (m1) {$\times\tfrac12$};
+  \coordinate (branchmid) at ($(m0.east)!0.5!(m1.east)$);
+  \node[arch/sum, right=12mm of branchmid] (add) {$+$};
+  \node[arch/block, right=8mm of add] (quant) {select and\\resize};
+  \node[arch/label, right=8mm of quant] (out) {$y[n]=\tfrac12x[n]+\tfrac12x[n-1]$};
+
+  \draw[line width=0.7pt] (xin) -- (split);
+  \draw[arch/wire] (split) |- (m0.west);
+  \draw[arch/wire] (split) |- (delay.west);
+  \draw[arch/wire] (delay) -- (m1);
+  \draw[arch/wire] (m0.east) -| (add.north);
+  \draw[arch/wire] (m1.east) -| (add.south);
+  \draw[arch/wire] (add) -- (quant);
+  \draw[arch/wire] (quant) -- (out);
+
+  \node[arch/tinylabel, above=6mm of add] {same arithmetic for I and Q};
+  \node[arch/tinylabel, below=7mm of delay] (prime) {invalid bubble: insert zero into delay};
+  \draw[arch/control] (prime) -- (delay.south);
+\end{tikzpicture}

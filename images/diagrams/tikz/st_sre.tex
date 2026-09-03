@@ -1,0 +1,19 @@
+\begin{tikzpicture}[node distance=5mm]
+  \node[arch/label] (zin) {$z_k[n]$\\complex};
+  \node[arch/block, right=of zin] (pwr) {instantaneous\\power};
+  \node[arch/block, right=of pwr] (fmt) {unsigned format\\align and widen};
+  \node[arch/block, right=of fmt] (dft) {$\times e^{-j2\pi\alpha_v n/F_s}$\\accumulate $N$ samples};
+  \node[arch/smallblock, right=of dft] (norm) {$\div N$};
+  \node[arch/label, right=of norm] (out) {$\widehat C_x(\alpha_v,f_k)$\\complex};
+
+  \draw[arch/wire] (zin) -- (pwr);
+\draw[arch/wire] (pwr) -- (fmt);
+\draw[arch/wire] (fmt) -- (dft);
+  \draw[arch/wire] (dft) -- (norm);
+  \draw[arch/wire] (norm) -- (out);
+
+  \node[arch/tinylabel, above=8mm of dft] (srw) {SR control word $\alpha_v$};
+  \node[arch/tinylabel, below=8mm of dft] (ctl) {$N$ and final-sample marker};
+  \draw[arch/control] (srw) -- (dft.north);
+  \draw[arch/control] (ctl) -- (dft.south);
+\end{tikzpicture}

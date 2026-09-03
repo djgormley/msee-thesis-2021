@@ -1,0 +1,17 @@
+\begin{tikzpicture}[node distance=6mm and 9mm]
+  \node[arch/label] (iin) {$I[n]$};
+  \node[arch/label, below=9mm of iin] (qin) {$Q[n]$};
+  \node[arch/smallblock, right=9mm of iin] (isq) {square};
+  \node[arch/smallblock, right=9mm of qin] (qsq) {square};
+  \coordinate (sqmid) at ($(isq.east)!0.5!(qsq.east)$);
+  \node[arch/sum, right=12mm of sqmid] (add) {$+$};
+  \node[arch/block, right=9mm of add] (fmt) {unsigned format\\round, truncate,\\saturate, and resize};
+  \node[arch/label, right=8mm of fmt] (out) {$p_q[n]\geq0$};
+
+  \draw[arch/wire] (iin) -- (isq);
+  \draw[arch/wire] (qin) -- (qsq);
+  \draw[arch/wire] (isq.east) -| (add.north);
+  \draw[arch/wire] (qsq.east) -| (add.south);
+  \draw[arch/wire] (add) -- (fmt);
+  \draw[arch/wire] (fmt) -- (out);
+\end{tikzpicture}
