@@ -16,7 +16,7 @@
 \usepackage{xfrac} % sfrac
 \usepackage{bm} % bold math symbols
 \usepackage{graphicx} % import figures
-  \graphicspath{{../images}}
+  \graphicspath{{./images/}{../images/}}
 \usepackage{acronym} % acronym table
 \usepackage{subcaption, multicol} % figures in columns
 \usepackage{float} % [H]
@@ -90,7 +90,9 @@
 \newcommand{\mybibname}{REFERENCES}
 \renewcommand\bibsection{%
    \clearpage
-   \center\noindent\normalsize\MakeUppercase{\mybibname}%
+   \begin{center}
+   \noindent\normalsize\MakeUppercase{\mybibname}%
+   \end{center}
    \markboth{\MakeUppercase{\mybibname}}{\MakeUppercase{\mybibname}}%
   }
 
@@ -127,7 +129,7 @@
 \pagenumbering{arabic}
 
 \cftlocalchange{toc}{360pt}{0cm} % turn off leaders
-  \cftaddtitleline{toc}{chapter}{CHAPTERS}{}
+  \addtocontents{toc}{\protect\contentsline{chapter}{CHAPTERS}{}{}}
 \cftlocalchange{toc}{1.55em}{2.55em} % turn on leaders
 
 \input{../sections/chapter_i}
@@ -139,7 +141,11 @@
 % backmatter
 \newpage
 \addcontentsline{toc}{chapter}{REFERENCES}
-\bibliography{../sections/references}
+\IfFileExists{sections/references.bib}{%
+  \bibliography{sections/references}%
+}{%
+  \bibliography{../sections/references}%
+}
 
 \newpage
 \input{../sections/appendix_a}
