@@ -1,5 +1,5 @@
-function [fig, colors] = thesis_figure()
-%THESIS_FIGURE Create a consistently sized figure for thesis plots.
+function [fig, colors] = new_figure()
+%NEW_FIGURE Create a consistently sized figure for thesis plots.
 
 colors.blue   = [0, 114, 178] / 255;
 colors.orange = [230, 159, 0] / 255;

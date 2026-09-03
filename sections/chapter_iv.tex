@@ -110,7 +110,7 @@ Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text
 % with the normalized physical candidates used in the text.
 \newcommand{\characterizationplot}[3][]{%
 \begin{tikzpicture}
-  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{characterization/#2}};
+  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{images/characterization/#2}};
   \coordinate (cfbottom) at ($(characterizationimage.south west)!0.247!(characterizationimage.south east)$);
   \coordinate (cftop) at ($(characterizationimage.north west)!0.247!(characterizationimage.north east)$);
   \coordinate (ratebottom) at ($(characterizationimage.south west)!0.565!(characterizationimage.south east)$);
@@ -137,7 +137,7 @@ Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text
 
 \newcommand{\centerfrequencyplot}[3][]{%
 \begin{tikzpicture}
-  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{characterization/#2}};
+  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{images/characterization/#2}};
   \coordinate (axisbottom) at ($(characterizationimage.south west)!0.520!(characterizationimage.south east)$);
   \coordinate (axistop) at ($(characterizationimage.north west)!0.520!(characterizationimage.north east)$);
   \coordinate (statisticbottom) at ($(characterizationimage.south west)!0.065!(characterizationimage.south east)$);
@@ -161,7 +161,7 @@ Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text
 
 \newcommand{\symbolrateplot}[3][]{%
 \begin{tikzpicture}
-  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{characterization/#2}};
+  \node[inner sep=0] (characterizationimage) {\includegraphics[#1]{images/characterization/#2}};
   \coordinate (axisbottom) at ($(characterizationimage.south west)!0.520!(characterizationimage.south east)$);
   \coordinate (axistop) at ($(characterizationimage.north west)!0.520!(characterizationimage.north east)$);
   \coordinate (statisticbottom) at ($(characterizationimage.south west)!0.065!(characterizationimage.south east)$);

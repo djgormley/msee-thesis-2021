@@ -8,9 +8,13 @@ This repository includes a formal errata for Dylan Jacob Gormley's May 2021 thes
 
 The errata uses the deposited thesis's printed page numbers and Arabic table labels (OhioLINK accession `csu1622636550863441`). The corrected thesis formats original Tables 10--13 as Tables X--XIII. Section, equation, figure, and table identifiers govern if another copy has different pagination. Minor editorial changes are summarized by category; substantive mathematical, experimental, implementation, and toolchain corrections are itemized.
 
-To rebuild the standalone document:
+From the repository root, build the standalone document into the ignored
+`build/errata/` directory:
 
 ```sh
-cd errata
-latexmk -pdf errata.tex
+make errata
 ```
+
+Run `make release` to update both canonical PDFs under `output/pdf/`, or
+`make verify` to validate the MATLAB tests and evidence manifests before a
+release.

@@ -1,5 +1,17 @@
-function output_path = thesis_export(fig, output_name)
-%THESIS_EXPORT Apply shared styling and export a thesis plot as a PNG.
+function output_path = export_png(fig, output_directory, output_name)
+%EXPORT_PNG Apply the shared thesis style and export a 1600-by-960 PNG.
+
+arguments
+    fig (1,1) matlab.ui.Figure
+    output_directory (1,1) string
+    output_name (1,1) string
+end
+
+if ~isfolder(output_directory)
+    mkdir(output_directory);
+end
+
+figure_cleanup = onCleanup(@() delete_if_valid(fig));
 
 axes_handles = findall(fig, 'Type', 'axes');
 for idx = 1:numel(axes_handles)
@@ -41,14 +53,18 @@ for idx = 1:numel(colorbar_handles)
 end
 
 drawnow;
-matlab_directory = fileparts(mfilename('fullpath'));
-plots_directory = fullfile(matlab_directory, '..', 'plots');
-output_path = fullfile(plots_directory, [output_name, '.png']);
+output_path = fullfile(output_directory, output_name + ".png");
 set(fig, ...
     'PaperPositionMode', 'manual', ...
     'PaperUnits', 'inches', ...
     'PaperPosition', [0, 0, 8, 4.8], ...
     'PaperSize', [8, 4.8]);
 print(fig, output_path, '-dpng', '-r200');
-close(fig);
+delete(fig);
+end
+
+function delete_if_valid(fig)
+if isvalid(fig)
+    delete(fig);
+end
 end

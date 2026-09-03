@@ -54,13 +54,13 @@ Let us assume that we wish to sense modeled waveforms present in a channel.  As 
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/qam_srrc_rs}
+\includegraphics[scale=0.75]{images/plots/qam_srrc_rs}
 \caption[Streaming SCA detections for two M-QAM-SRRC signals.]{Streaming SCA test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ for two M-QAM-SRRC signals in a shared noise floor.  The transmitted parameter pairs are $(R_s,f_c)=(100\text{ kBd},50\text{ kHz})$ and $(200\text{ kBd},100\text{ kHz})$.  Both pairs lie on the estimator grid, both row maxima identify the transmitted center frequencies, and both exceed the constant threshold $\gamma_{\mathrm{CFD}}=\beta\widehat{P}_{y}^{2}$ with $\beta=10^{-3}$.  Green markers indicate the detected row maxima.}
 \label{fig:qam_srrc_rs}
 \end{center}
 \end{figure}
 
-The streaming SCA was modeled in MATLAB to produce Figure~\ref{fig:qam_srrc_rs}.  The two generated components are scaled so that a single receiver-noise realization gives the requested $E_b/N_0$ values of $14$ dB and $9$ dB.  A common automatic-gain-control (AGC) scale factor then limits the composite waveform without changing either component's carrier-to-noise ratio.  On the $10$ kHz center-frequency grid, the row maxima occur at the transmitted center frequencies of $50$ kHz and $100$ kHz; their test-statistic-to-threshold ratios are $9.41$ and $2.16$, respectively.  These numerical values are reproducible because the model fixes its random-number seed.  The executable MATLAB model is imported directly in Appendix A.
+The streaming SCA was modeled in MATLAB to produce Figure~\ref{fig:qam_srrc_rs}.  The two generated components are scaled so that a single receiver-noise realization gives the requested $E_b/N_0$ values of $14$ dB and $9$ dB.  A common automatic-gain-control (AGC) scale factor then limits the composite waveform without changing either component's carrier-to-noise ratio.  On the $10$ kHz center-frequency grid, the row maxima occur at the transmitted center frequencies of $50$ kHz and $100$ kHz; their test-statistic-to-threshold ratios are $9.29$ and $2.47$, respectively.  These numerical values are reproducible because the model fixes its random-number seed.  The executable MATLAB model is imported directly in Appendix A.
 
 In exchange for this low memory use, the processing time is increased.  With one $(v,k)$ point evaluated at a time, no backpressure, and a sustained rate of one valid sample per clock, an exhaustive search over $N_v$ symbol-rate candidates and $N_k$ center-frequency candidates requires approximately $NN_vN_k$ sample clocks, in addition to pipeline and control overhead.  For fixed search spans, the processing delay therefore increases with capture length and with the number of candidates:
 
@@ -114,7 +114,7 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/cfe.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/cfe.tex}}
 \caption{Functional architecture of the center-frequency estimator. Solid arrows carry sampled data; dashed arrows carry configuration and block control.}
 \label{fig:cfe}
 \end{center}
@@ -122,7 +122,7 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_cfe.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_cfe.tex}}
 \caption[Center-frequency-estimator timing.]{Symbolic continuous-rate timing of the center-frequency estimator; both control words remain fixed for each $N$-sample record, and one statistic is emitted after the terminal sample.}
 \label{fig:center_frequency_timing}
 \end{center}
@@ -193,7 +193,7 @@ The instantaneous-power module computes the nonnegative sequence $p_x[n]=|x[n]|^
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/st_sre.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/st_sre.tex}}
 \caption{Functional architecture of the symbol-rate estimator, including the nonnegative fixed-point format boundary after instantaneous power.}
 \label{fig:sre}
 \end{center}
@@ -201,7 +201,7 @@ The instantaneous-power module computes the nonnegative sequence $p_x[n]=|x[n]|^
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_sre.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_sre.tex}}
 \caption{Symbolic continuous-rate timing of the symbol-rate estimator with an aligned terminal result, valid tag, and final-sample tag.}
 \label{fig:symbol_rate_timing}
 \end{center}
@@ -273,7 +273,7 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{x}[\ell]$ is th
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/st_dft.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/st_dft.tex}}
 \caption{Selected-frequency Fourier-sum architecture. Both accumulators include the final accepted sample before normalization.}
 \label{fig:dft}
 \end{center}
@@ -281,7 +281,7 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{x}[\ell]$ is th
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_dft.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_dft.tex}}
 \caption{Symbolic continuous-rate timing of the selected-frequency Fourier-sum evaluator; the normalized Fourier result follows the terminal input sample by fixed latency.}
 \label{fig:6_DFT}
 \end{center}
@@ -353,7 +353,7 @@ When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The 
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/mixer.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/mixer.tex}}
 \caption{Functional architecture of the frequency mixer. The NCO phase advances once per sample clock during continuous-rate operation.}
 \label{fig:mixer}
 \end{center}
@@ -361,7 +361,7 @@ When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The 
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_mixer.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_mixer.tex}}
 \caption{Symbolic continuous-rate timing of the frequency mixer module. Data, valid, and final-sample tags share the same fixed latency.}
 \label{fig:5_GenMixer}
 \end{center}
@@ -430,7 +430,7 @@ Here, $b[m]$ are the $L$ coefficients, and $x[n]$ is the input sequence.  A caus
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/complex_fir.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/complex_fir.tex}}
 \caption{Configured two-tap complex low-pass filter with coefficients $[0.5,0.5]$.}
 \label{fig:cfir}
 \end{center}
@@ -438,7 +438,7 @@ Here, $b[m]$ are the $L$ coefficients, and $x[n]$ is the input sequence.  A caus
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_fir.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_fir.tex}}
 \caption{Symbolic continuous-rate timing of the two-tap low-pass filter module. Data, valid, and final-sample tags remain aligned.}
 \label{fig:3_FIR}
 \end{center}
@@ -512,7 +512,7 @@ The real and imaginary components are squared in parallel and then added.  This 
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/mag_sq.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/mag_sq.tex}}
 \caption{Instantaneous-power architecture with a nonnegative fixed-point output.}
 \label{fig:mag_sq}
 \end{center}
@@ -520,7 +520,7 @@ The real and imaginary components are squared in parallel and then added.  This 
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_power.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_power.tex}}
 \caption{Symbolic continuous-rate timing of the instantaneous-power module. Each accepted complex input produces one nonnegative output after fixed latency.}
 \label{fig:2_InstPwr}
 \end{center}
@@ -593,7 +593,7 @@ Thus, the multiplication of $x_A[n]$ and $x_B[n]$ requires four real multiplicat
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/cmult.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/cmult.tex}}
 \caption{Complex-multiplier architecture with explicit real and imaginary arithmetic.}
 \label{fig:cmultiplier}
 \end{center}
@@ -601,7 +601,7 @@ Thus, the multiplication of $x_A[n]$ and $x_B[n]$ requires four real multiplicat
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_cmult.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_cmult.tex}}
 \caption{Symbolic continuous-rate timing of the complex-multiplier module. Each aligned input pair produces one complex product.}
 \label{fig:1_ComplexMult}
 \end{center}
@@ -676,7 +676,7 @@ y[n]=x_{1}[n]x_{2}[n].
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/rmult.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/rmult.tex}}
 \caption{Fixed-point multiplier architecture with explicit rounding and saturation stages.}
 \label{fig:multiplier}
 \end{center}
@@ -684,7 +684,7 @@ y[n]=x_{1}[n]x_{2}[n].
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_rmult.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_rmult.tex}}
 \caption{Symbolic continuous-rate timing of the fixed-point multiplier module. The product and its valid and final-sample tags share the configured latency.}
 \label{fig:0_GenericMult}
 \end{center}
@@ -770,7 +770,7 @@ A 16-bit, 4096-sample configuration therefore uses a 28-bit sum and a 12-bit nor
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{\textwidth}{!}{\input{../images/diagrams/tikz/accumulator.tex}}
+\resizebox{\textwidth}{!}{\input{images/diagrams/tikz/accumulator.tex}}
 \caption{Block-synchronous accumulator architecture. The final accepted sample is included before the terminal sum is normalized and emitted.}
 \label{fig:accumulator}
 \end{center}
@@ -778,7 +778,7 @@ A 16-bit, 4096-sample configuration therefore uses a 28-bit sum and a 12-bit nor
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.96\textwidth}{!}{\input{../images/diagrams/tikz/timing_accumulator.tex}}
+\resizebox{0.96\textwidth}{!}{\input{images/diagrams/tikz/timing_accumulator.tex}}
 \caption[Accumulator end-of-record timing.]{Symbolic block-synchronous timing of the accumulator module. The final-sample marker accompanies sample $N-1$, and one normalized terminal result is emitted after that sample has been included.}
 \label{fig:4_accumulator}
 \end{center}

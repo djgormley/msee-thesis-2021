@@ -1,0 +1,22 @@
+* text=auto eol=lf
+
+# Windows command files retain their native line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary documents, data, and generated assets must not be line-normalized.
+*.dcp binary
+*.docx binary
+*.fig binary
+*.jpg binary
+*.jpeg binary
+*.mat binary
+*.mlx binary
+*.pdf binary
+*.png binary
+*.PNG binary
+*.pptx binary
+*.vsdx binary
+*.wcfg binary
+*.xlsx binary
+*.zip binary

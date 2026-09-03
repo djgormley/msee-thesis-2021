@@ -35,7 +35,7 @@ The Gaussian PDF has the shape shown in Figure~\ref{fig:gaussian_pdf}.
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/gaussian_pdf}
+\includegraphics[scale=0.75]{images/plots/gaussian_pdf}
 \caption[Example of a Gaussian PDF.]{Example of a Gaussian PDF.  Here, Equation~(\ref{eq:gaussian_pdf}) is evaluated for $500$ values of $d$, with a mean of $\mu=5$ and a standard deviation of $\sigma=1$.}
 \label{fig:gaussian_pdf}
 \end{center}
@@ -68,7 +68,7 @@ Thus, a WSS process has a constant mean and variance, and its ACF is a function 
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/X_mean_std}
+\includegraphics[scale=0.75]{images/plots/X_mean_std}
 \caption[Example of a WSS Gaussian random signal.]{One 100-sample realization of an independent and identically distributed (IID) Gaussian process with constant mean $\mu_X=0.1$ and standard deviation $\sigma_X=0.25$.  The dashed line is the theoretical mean and the shaded band is $\mu_X\pm\sigma_X$.}
 \label{fig:X_mean_std}
 \end{center}
@@ -79,7 +79,7 @@ Many digitally modulated communication waveforms are not WSS but instead exhibit
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/2qam_time}
+\includegraphics[scale=0.75]{images/plots/2qam_time}
 \caption[Example of a $2$-QAM waveform $x(t)$.]{The real component of a $2$-QAM waveform.  The model generates $400$ random symbols, applies a length-$10$ rectangular pulse, and displays the first $200$ samples.  The waveform parameters are $R_s=0.1\text{ MBd}$, $f_c=0.05\text{ MHz}$, and $F_s=1\text{ MHz}$.}
 \label{fig:2qam_time}
 \end{center}
@@ -97,7 +97,7 @@ To conclude this section, Figure~\ref{fig:autocorrelogram} plots $|\widehat{R}_{
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/autocorrelogram}
+\includegraphics[scale=0.75]{images/plots/autocorrelogram}
 \caption[Example of an autocorrelation.]{Magnitude of the biased autocorrelation estimate for the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}, evaluated at $31$ integer-sample lags.}
 \label{fig:autocorrelogram}
 \end{center}
@@ -126,7 +126,7 @@ Figure~\ref{fig:cyclic_autocorrelogram} plots the magnitude of a finite-sample e
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/cyclic_autocorrelogram}
+\includegraphics[scale=0.75]{images/plots/cyclic_autocorrelogram}
 \caption[Example of a cyclic autocorrelogram.]{Magnitude of the biased cyclic-autocorrelation estimate for the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}, evaluated at $31$ integer-sample lags and six cycle frequencies from $0$ through $0.5\text{ MHz}$.}
 \label{fig:cyclic_autocorrelogram}
 \end{center}
@@ -169,7 +169,7 @@ The Fourier transform of $\Pi(t)$ is denoted $\hat{\Pi}(f)$.  Since $\Pi(t)$ is 
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/esd}
+\includegraphics[scale=0.75]{images/plots/esd}
 \caption[Example of an ESD plot.]{Squared-magnitude Fourier transform of the unit-width rectangular pulse $\Pi(t)$.  At $F_s=50\text{ MHz}$, the one-microsecond pulse occupies $50$ samples within a $150$-sample record; a zero-padded $4096$-point frequency grid renders the curve smoothly, and the numerical ESD satisfies Parseval's energy equality.}
 \label{fig:esd}
 \end{center}
@@ -187,7 +187,7 @@ P_{x,T}(f) = \frac{1}{T} \left| \hat{x}_{T}(f) \right|^{2},
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/periodogram}
+\includegraphics[scale=0.75]{images/plots/periodogram}
 \caption[Example of a periodogram.]{Squared-magnitude, power-scaled periodogram of the first $128$ samples of the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}.  The estimate uses a $128$-point FFT.}
 \label{fig:periodogram}
 \end{center}
@@ -205,7 +205,7 @@ One technique used to reduce this variability is the FSM \cite{spooner-92}.  Con
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/psd}
+\includegraphics[scale=0.75]{images/plots/psd}
 \caption[Example of a PSD plot.]{Frequency-smoothed PSD estimate of the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}.  The $128$-point periodogram is averaged over eight adjacent frequency bins.}
 \label{fig:psd}
 \end{center}
@@ -234,7 +234,7 @@ Across all values of cycle frequency $\alpha$ and spectral frequency $f$, the th
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/scf}
+\includegraphics[scale=0.75]{images/plots/scf}
 \caption[Example of an SCF plot.]{SCF magnitude estimate of the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}.  A $128$-point DFT is applied across the $31$ estimated lags of $\widehat{R}_x^{\alpha}(\tau)$, followed by averaging over eight adjacent frequency bins.}
 \label{fig:scf}
 \end{center}
@@ -272,7 +272,7 @@ Here, $x_{1/\Delta f}(u,\xi)$ is the short-time Fourier transform centered at ti
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.94\textwidth}{!}{\input{../images/diagrams/tikz/gardner_sca.tex}}
+\resizebox{0.94\textwidth}{!}{\input{images/diagrams/tikz/gardner_sca.tex}}
 \caption[Example of a baseline SCA.]{As described by Gardner in \cite{gardner-06}, this baseline SCA shifts the components centered at $f+\sfrac{\alpha}{2}$ and $f-\sfrac{\alpha}{2}$ to baseband.  The component centers are separated by $\alpha$.  The shifted signals pass through low-pass filters $h_{\Delta f}(t)$ with bandwidth $\Delta f$ and unity-passband height before their outputs are correlated, time-averaged over $T$, and scaled by $\Delta f$.  The ideal SCF $S_{X}^{\alpha}(f)$ is obtained in the ordered limits $T\rightarrow\infty$ and then $\Delta f\rightarrow0$.}
 \label{fig:gardner_sca}
 \end{center}
@@ -321,7 +321,7 @@ Here, $P(f)$ is the Fourier transform of $p(t)$.  If $p(t)$ is an SRRC pulse wit
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/qam_srrc}
+\includegraphics[scale=0.75]{images/plots/qam_srrc}
 \caption[SCF of QAM-SRRC for various values of $M$.]{SCF magnitude estimates for independently generated $2$-, $4$-, $8$-, and $16$-QAM-SRRC waveforms with $R_s=0.1\text{ MBd}$ and $f_c=0.05\text{ MHz}$.  The minimum-distance-two constellations have symbol variances $\sigma_a^2=1$, $2$, $6$, and $10$, respectively.  The common vertical scale shows the shared second-order SCF shape and its amplitude proportional to $\sigma_a^2$.  The $\alpha=0$ slice is the ordinary PSD, and each nontrivial $\alpha=R_s$ slice has its maximum within one $7.8125$-kHz DFT bin of $f_c$.}
 \label{fig:qam_srrc}
 \end{center}
@@ -345,7 +345,7 @@ Its estimated zero-lag CAF at the $v$th cycle-frequency candidate is
 
 \begin{figure}[H]
 \begin{center}
-\resizebox{0.94\textwidth}{!}{\input{../images/diagrams/tikz/koch_sca.tex}}
+\resizebox{0.94\textwidth}{!}{\input{images/diagrams/tikz/koch_sca.tex}}
 \caption[Diagram of CAF-DFT SCA.]{This buffered CAF-DFT reference realization frequency-shifts $x[n]$ by each physical center-frequency candidate $f_k$ and passes each shifted version through a low-pass filter, a process referred to as channelization.  The magnitude squared produces the zero-lag autocorrelation sequence.  Correlation with the cycle-frequency kernel at the physical candidate $\alpha_v$, accumulation of $N$ samples, and division by $N$ produce $\widehat{C}_{x}(\alpha_v,f_k)$.  Its magnitude squared is the nonnegative test statistic $T_x(v,k)$.}
 \label{fig:koch_sca}
 \end{center}
@@ -365,7 +365,7 @@ Spectrum sensing is the process of periodically monitoring a specific frequency 
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/spectrum_sensing}
+\includegraphics[scale=0.75]{images/plots/spectrum_sensing}
 \caption[Illustration of spectral holes.]{Conceptual time--frequency occupancy of five PU bands.  White regions are spectral holes and blue regions indicate normalized PU power.  An SU that maintains awareness of active PUs can hop among these holes and adapt its symbol rate to the currently available bandwidth.}
 \label{fig:spectrum_sensing}
 \end{center}
@@ -419,7 +419,7 @@ If $\Lambda(\mathbf{y})$ exceeds $\gamma_{\mathrm{LRT}}$, choose $H_{1}$; otherw
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/error_probabilities}
+\includegraphics[scale=0.75]{images/plots/error_probabilities}
 \caption[Illustration of the binary hypothesis test.]{Conditional Gaussian observation densities with equal priors, equal decision costs, common standard deviation $10$, and means $40$ and $60$.  The observation threshold $y_{\mathrm{th}}=50$ corresponds to likelihood-ratio threshold $\gamma_{\mathrm{LRT}}=1$ and gives $P_{\mathrm{FA}}=0.1587$ and $P_{\mathrm{D}}=0.8413$.  Shading identifies the four decision regions.}
 \label{fig:error_probabilities}
 \end{center}
@@ -499,7 +499,7 @@ Any nontrivial cycle-frequency slice containing a value above the threshold in E
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{plots/threshold_3d}
+\includegraphics[scale=0.75]{images/plots/threshold_3d}
 \caption[Full SCF statistic with threshold.]{Full SCF test statistic for a received BPSK-SRRC waveform with $R_s=100\text{ kBd}$, $f_c=50\text{ kHz}$, and requested $E_b/N_0=14\text{ dB}$.  The nontrivial cycle-frequency slices are compared with the flat empirical threshold $\gamma_{\mathrm{CFD}}=10^{-2}\widehat{P}_y^2$.  Only the $100$-kHz slice exceeds the threshold, and its maximum occurs at $50$ kHz.}
 \label{fig:threshold_3d}
 \end{center}

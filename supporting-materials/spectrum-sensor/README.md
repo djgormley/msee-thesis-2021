@@ -1,6 +1,6 @@
 # Spectrum sensor supporting materials
 
-This directory keeps the implementation and modeling files used alongside the thesis in the same version-controlled repository. The [maintained MATLAB figure sources](../../images/matlab/) remain authoritative for the thesis figures and Appendix A. The files under `source/` preserve the corresponding component-development material for traceability, reruns, and future technical review.
+This directory keeps the implementation and modeling files used alongside the thesis in the same version-controlled repository. The [maintained MATLAB figure sources](../../matlab/) remain authoritative for the thesis figures and Appendix A. The files under `source/` preserve the corresponding component-development material for traceability, reruns, and future technical review.
 
 ## Included material
 
