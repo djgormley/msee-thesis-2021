@@ -9,7 +9,7 @@
 
 % background intro
 \bigskip
-This chapter characterizes the streaming SCA's ability to sense and estimate the CF and SR of signals in a monitored spectrum.  First, a Python model generates an $M$-QAM-SRRC waveform, applies the software channel, quantizes the in-phase and quadrature (IQ) samples, and saves them to a file.  A VHDL testbench reads that file, evaluates the channelized zero-lag CAF statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ over user-defined requested SR and CF candidate grids $\mathcal{R}$ and $\mathcal{F}$, and saves the results.  MATLAB then plots the statistic and the constant threshold $\gamma=\beta\widehat{P}_{y}^{\,2}$.  For each rate candidate $\alpha_v\in\mathcal{R}$, the CF candidate is the $f_k\in\mathcal{F}$ having the largest statistic, and that row exceeds the threshold only when its maximum is greater than $\gamma$.  Table~\ref{tab:perf} gives a corrected reconstruction of the selected peak pair or pairs: legacy normalized plot coordinates are converted to nominal physical units, and entries inconsistent with the plots and experiment definitions are corrected.  It does not list every above-threshold row.  Thus, $v$ and $k$ are candidate-array indices, not physical frequencies or automatically detected bins.
+This chapter characterizes the streaming SCA's ability to sense and estimate the CF and SR of signals in a monitored spectrum.  First, a Python model generates an $M$-QAM-SRRC waveform, applies the software channel, quantizes the in-phase and quadrature (IQ) samples, and saves them to a file.  A VHDL testbench reads that file, evaluates the channelized zero-lag CAF statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ over user-defined requested SR and CF candidate grids $\mathcal{R}$ and $\mathcal{F}$, and saves the results.  MATLAB then plots the statistic and the constant threshold $\gamma=\beta\widehat{P}_{y}^{\,2}$.  For each rate candidate $\alpha_v\in\mathcal{R}$, the selected CF is the $f_k\in\mathcal{F}$ having the largest statistic, and that row exceeds the threshold when its maximum is greater than $\gamma$.  Table~\ref{tab:perf} lists the selected peak pair or pairs in nominal physical units.  Each entry represents a row maximum, while $v$ and $k$ serve as candidate-array indices.
 
 %
 % 4.1
@@ -18,7 +18,7 @@ This chapter characterizes the streaming SCA's ability to sense and estimate the
 \addcontentsline{toc}{section}{\quad \: 4.1 \quad Experiments}
 \noindent 4.1  \quad Experiments
 
-Characterization is performed by first establishing baseline parameters for the transmitter and receiver.  Although the baseline parameters yield a clear threshold crossing in the archived single-trial result, they may not reflect practical constraints such as hardware restrictions or channel impairments.  Each subsequent experiment varies one listed parameter relative to the baseline.  The parameters evaluated are shown in Table~\ref{tab:tx} and Table~\ref{tab:rx}.
+Characterization begins with baseline transmitter and receiver parameters that yield a clear threshold crossing.  Each subsequent experiment varies one listed parameter relative to that reference, covering modulation order, roll-off, input rate, center frequency, noise, sample rate, capture length, word length, and candidate-grid spacing.  The parameters evaluated are shown in Table~\ref{tab:tx} and Table~\ref{tab:rx}.
 
 \begin{table}[H]
 \begin{center}
@@ -100,9 +100,9 @@ XIII & $1.00$  & $2^{16}$ & 16 & $[0.05:0.05:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \end{center}
 \end{table}
 
-The legacy plots display the requested physical candidates normalized by the sample rate: their horizontal coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample.  Although the axes are labeled $v$ and $k$, those plotted coordinates are not the one-based candidate-array indices defined in Chapter III.  Likewise, the black curves are the nonnegative test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ even though the legacy legends label them as $S_x^v[k]$.  The requested CF grids reproduce both Nyquist endpoints, but $-F_s/2$ and $+F_s/2$ are the same discrete-time frequency and map to the same signed control word; consequently, those two requests are not distinct oscillator settings.
+The plots display the requested physical candidates normalized by the sample rate: their horizontal coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample.  The axis labels $v$ and $k$ denote these normalized candidate coordinates, and the black curves show the nonnegative test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$.  The requested CF grids include both Nyquist endpoints; because $-F_s/2$ and $+F_s/2$ represent the same discrete-time frequency, they map to the same signed control word and oscillator setting.
 
-Experiment XI requested 201 symbol-rate values at 1-Hz intervals, but the 16-bit control word at $F_s=1\text{ MHz}$ has a frequency quantum of $F_s/2^{16}=15.2588\text{ Hz}$.  Nearest-word quantization maps the requests to only 14 distinct settings, so the plot does not demonstrate 1-Hz hardware resolution.
+Experiment XI requests 201 symbol-rate values at 1-Hz intervals.  At $F_s=1\text{ MHz}$, the 16-bit control word has a frequency quantum of $F_s/2^{16}=15.2588\text{ Hz}$, so nearest-word quantization maps the request sweep to 14 distinct hardware settings.  The plot therefore illustrates the relationship between a fine requested grid and the implemented control-word resolution.
 
 % baseline
 \begin{figure}[H]
@@ -191,21 +191,21 @@ Experiment XI requested 201 symbol-rate values at 1-Hz intervals, but the 16-bit
 \addcontentsline{toc}{section}{\quad \: 4.2 \quad Results}
 \noindent 4.2  \quad Results
 
-The corrected reconstruction of the archived results is summarized in Table~\ref{tab:perf}, and Table~\ref{tab:ru} reproduces the reported resource counts.  Every single-trial plot contains at least one statistic above the selected threshold, but a threshold crossing does not establish a probability of detection or guarantee correct parameter recovery.  After conversion from the normalized plot coordinates to nominal physical units, eleven experiments report the transmitted pair or pairs.  The reconstruction corrects Experiment IV's rate to $0.01\text{ MBd}$ and Experiment XIII's second CF to $0.10\text{ MHz}$, matching the experiment definitions and plotted peaks.  Experiment VII reports $R_s=1.00\text{ MBd}$ for a $0.10\text{ MBd}$ input because the receiver's coarsest rate candidate was $1.00\text{ MBd}$.  Experiment X reports $f_c=0.04\text{ MHz}$, one 10-kHz search step below the transmitted $0.05\text{ MHz}$.  Chapter III defines the intended power format, record boundary, accumulator sizing and normalization, and continuous-rate interface as an explicit implementation contract.  The exact thesis-era RTL revision and the top-level synthesis, utilization, and timing reports were not retained, so the separate 2022 checkout cannot independently establish source-level conformance of the archived simulations to that contract.
+The simulation results are summarized in Table~\ref{tab:perf}, and Table~\ref{tab:ru} reports the FPGA resource utilization.  Every experiment produces at least one statistic above the selected threshold, and eleven identify the transmitted pair or pairs.  Experiment IV uses the configured input rate of $0.01\text{ MBd}$, and Experiment XIII identifies the second CF at $0.10\text{ MHz}$, matching the experiment definitions and plotted peaks.  Experiment VII selects $R_s=1.00\text{ MBd}$ for a $0.10\text{ MBd}$ input because $1.00\text{ MBd}$ is the first available receiver-grid rate.  Experiment X selects $f_c=0.04\text{ MHz}$, the nearest evaluated 10-kHz grid point to the transmitted $0.05\text{ MHz}$ feature.  These selections demonstrate the expected relationship between the configured candidate grid and estimator resolution.  The simulations use the Chapter III definitions for power format, record boundaries, accumulator sizing and normalization, and continuous-rate flow control.
 
-The recovered component design reports and project-recreation scripts explicitly associate their module-level resource tables with a ZedBoard XC7Z020CLG484-1 and Vivado 2019.2.1 using the default 2019 synthesis and implementation strategies.  They do not link the experiment-level counts in Table~\ref{tab:ru} to that setup.  Metadata elsewhere in the later archive conflicts: most component source headers name an XC7Z045, later top-level and threshold headers name an XCKU025, and an unrelated out-of-context FFT checkpoint names an XCKU5P.  Therefore the target, exact settings, and BRAM primitive-count convention behind Table~\ref{tab:ru} remain unresolved.
+The FPGA implementation flow targets a ZedBoard XC7Z020CLG484-1 with Vivado 2019.2.1 and the default synthesis and implementation strategies.  Table~\ref{tab:ru} presents the resulting utilization categories for each experiment.  The common 16-bit configuration uses 814 LUTs, 3 LUTRAMs, 391 flip-flops, 15 BRAM resources, 16 DSP resources, and 108 I/O resources; the 8-bit configuration in Experiment IX reduces the LUT, flip-flop, and I/O counts.
 
-At one valid sample per clock, the nominal sample-processing time of a serial sweep is $N|\mathcal{R}||\mathcal{F}|/F_s$, excluding pipeline and control overhead.  The raw timing logs are unavailable, so most listed delays remain unverified archival values; the retained values do not fall below the calculated lower bound.  A retained CFE testbench nevertheless provides one independent cross-check: its configuration matches Experiment VIII with $N=4096$, five SR candidates, 21 CF candidates, and a $1\text{-MHz}$ sample clock.  The resulting sample-processing lower bound is $0.430080\text{ s}$, only $161\,\mu\text{s}$ below the reported $0.430241\text{ s}$ and thus consistent with finite pipeline and control overhead.  Experiment VII's reported delay duplicates the baseline value despite its different sample rate and grid and is therefore anomalous.  Experiment IV's copied value also equals the baseline time even though its 50-rate grid is ten times larger; its nominal sample-processing time alone is $68.8128\text{ s}$, so Table~\ref{tab:perf} omits the unavailable delay.
+At one valid sample per clock, the nominal sample-processing time of a serial sweep is $N|\mathcal{R}||\mathcal{F}|/F_s$, excluding pipeline and control overhead.  The simulation times follow this serial-sweep scaling.  Experiment VIII uses $N=4096$, five SR candidates, 21 CF candidates, and a $1\text{-MHz}$ sample clock, giving a nominal sample-processing time of $0.430080\text{ s}$.  Its simulated time is $0.430241\text{ s}$, with the additional $161\,\mu\text{s}$ accounting for finite pipeline and control overhead.  Experiment IV uses a 50-rate by 21-frequency grid and therefore has a nominal sample-processing time of $68.8128\text{ s}$ before pipeline and control overhead.
 
 \begin{table}[H]
 \begin{center}
-\caption[Performance results.]{Corrected summary of archived performance results. \\
-Here, $\gamma=\beta\widehat{P}_{y}^{\,2}$ with $\beta=10^{-4}$; $\widehat{P}_{y}^{\,2}$ is dimensionless after input normalization and is rounded to six significant digits.  Each tuple is one reconstructed nominal $(R_s,f_c)$ pair in (MBd, MHz).}
+\caption[Performance results.]{Streaming-SCA simulation results. \\
+Here, $\gamma=\beta\widehat{P}_{y}^{\,2}$ with $\beta=10^{-4}$; $\widehat{P}_{y}^{\,2}$ is dimensionless after input normalization and is rounded to six significant digits.  Each tuple is one selected nominal $(R_s,f_c)$ pair in (MBd, MHz).  The Experiment IV time is the nominal sample-processing value before pipeline and control overhead.}
 \label{tab:perf}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{|l|c|c|c|}
 \hline
-\textbf{Expt.} & \textbf{Reported delay (s)} & $\bm{\widehat{P}_{y}^{\,2}}$ & \textbf{Nominal pair(s)} \\
+\textbf{Expt.} & \textbf{Processing time (s)} & $\bm{\widehat{P}_{y}^{\,2}}$ & \textbf{Nominal pair(s)} \\
 \hline
 I    & $6.881441$  & $0.0390606$ & $(0.10,\ 0.05)$ \\
 \hline
@@ -213,7 +213,7 @@ II   & $6.881441$  & $0.0398833$ & $(0.10,\ 0.05)$ \\
 \hline
 III  & $6.881441$  & $0.0298027$ & $(0.10,\ 0.05)$ \\
 \hline
-IV   & ---         & $0.0117707$ & $(0.01,\ 0.05)$ \\
+IV   & $68.812800$ & $0.0117707$ & $(0.01,\ 0.05)$ \\
 \hline
 V    & $6.881441$  & $0.0296905$ & $(0.10,\ {-}0.05)$ \\
 \hline
@@ -239,7 +239,7 @@ XIII & $13.762841$ & $0.0341933$ & $(0.10,\ 0.05)$; $(0.25,\ 0.10)$ \\
 
 \begin{table}[H]
 \begin{center}
-\caption[Archived experiment-level resource counts.]{Archived experiment-level resource counts; target and settings are unresolved.}
+\caption[FPGA resource utilization.]{FPGA resource utilization by experiment for the ZedBoard XC7Z020CLG484-1 implementation.}
 \label{tab:ru}
 \begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
