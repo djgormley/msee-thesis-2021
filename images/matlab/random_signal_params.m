@@ -1,29 +1,28 @@
-% first, initialize the random number generator to make the results in this example repeatable.
+%% WSS Gaussian sample path with its theoretical parameters
+
+clear;
 rng(0,'twister');
 
-% create a vector of 1000 random values drawn from a normal distribution with a mean of mu and a standard deviation of sigma.
-N     = 100;
-mu    = 0.1;
+N = 100;
+mu = 0.1;
 sigma = 0.25;
-y     = sigma.*randn(N,1) + mu;
-%%
-% plot random signal
-plot(y,'k')
-hold on
+t = (0:N-1)';           % Sample interval is 1 us
+x = sigma*randn(N,1)+mu;
 
-% plot mean
-plot(ones(N,1)*mu, "*")
-hold on
+[fig, colors] = thesis_figure();
+hold on;
+band = fill([t;flipud(t)], ...
+    [(mu-sigma)*ones(N,1);(mu+sigma)*ones(N,1)], ...
+    colors.sky,'FaceAlpha',0.18,'EdgeColor','none', ...
+    'DisplayName','$\mu\pm\sigma$');
+signal_line = plot(t,x,'Color',colors.blue,'LineWidth',1.25, ...
+    'DisplayName','$x(t)$');
+mean_line = yline(mu,'--','Color',colors.orange,'LineWidth',1.5, ...
+    'DisplayName','$\mu=0.1$');
 
-% plot std centered at mean
-errorbar(ones(N,1)*mu, ones(N,1)*std(y), ' ','LineWidth',1/1e12)
-
-% configure environment
-ylim([-1,1])
-xlabel('$t \: (\mu s)$','interpreter','latex')
-ylabel('$P_{x} (t)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-legend('$x(t)$','$\mu_{x(t)}$','$2 \sigma_{x(t)}$','interpreter', 'latex')
-grid on
-
-print('../plots/X_mean_std', '-dpng')
+xlabel('$t\ (\mu\mathrm{s})$');
+ylabel('$x(t)$');
+xlim([t(1),t(end)]);
+ylim([-1,1]);
+legend([signal_line,mean_line,band],'Location','southwest');
+thesis_export(fig,'X_mean_std');

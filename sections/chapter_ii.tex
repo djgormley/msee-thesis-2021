@@ -1,7 +1,7 @@
 \newpage
-\addcontentsline{toc}{chapter}{\quad \: II \hspace{9pt} BACKGROUND}
+\addcontentsline{toc}{chapter}{\quad \: II. \hspace{9pt} BACKGROUND}
 \begin{center}
-  \vspace*{1.75in}
+  \vspace*{1.65in}
   CHAPTER II\\
   BACKGROUND
 \end{center}
@@ -12,7 +12,6 @@ In this chapter, we review the concept of a random signal.  We then briefly disc
 
 %----------------------------------------------------------------------------
 % 2.1
-\bigskip
 \addcontentsline{toc}{section}{\quad \: 2.1 \quad Cyclostationary Signal Processing}
 \noindent {2.1 \quad Cyclostationary Signal Processing}
 
@@ -21,85 +20,85 @@ In this section, we summarize random signal notation and concepts as described i
 %
 % 2.1.1
 %
-\bigskip
+\smallskip
 \addcontentsline{toc}{subsection}{\quad 2.1.1 \quad The Autocorrelation Function}
 \noindent 2.1.1 \quad The Autocorrelation Function
 
 % random signal
-We begin with a review of stochastic processes.  For digital communications these are typically referred to as \textit{random signals}.  The random signal $X(t)$ is an infinite collection of individual signals plus probability density functions (PDF).  A member of $X(t)$ is the sample path or time-series, denoted as $x(t)$.  We will declare $X(t)$ a complex-valued random signal such that $X(t) \sim\ \mathcal{N} (t; \mu_{X}(t),\sigma_{X}(t))$, where $\mathcal{N}$ is the Gaussian PDF of the form:
+We begin with a review of stochastic processes.  For digital communications, these are typically referred to as \textit{random signals}.  A random signal $X(t)$ is a collection of random variables indexed by time.  One outcome of the underlying random experiment produces a sample path, or time series, denoted by $x(t)$.  Communication signals are often represented by complex-valued random processes, whereas the familiar one-dimensional Gaussian density describes a real-valued random variable $D\sim\mathcal{N}(\mu,\sigma^{2})$ as follows:
 
 \begin{equation}\label{eq:gaussian_pdf}
-p(d) =\frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{1}{2} \big(\frac{d-\mu}{\sigma} \big)^{2}}
+p_{D}(d) =\frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac{1}{2} \big(\frac{d-\mu}{\sigma} \big)^{2}}.
 \end{equation}
 
-Moreover, it has the shape shown in Figure \ref{fig:gaussian_pdf}.
+The Gaussian PDF has the shape shown in Figure~\ref{fig:gaussian_pdf}.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/gaussian_pdf}
-\caption[Example of a Gaussian PDF.]{Example of a Gaussian PDF.  Here, Equation (\ref{eq:gaussian_pdf}) is evaluated for $500$ values of $d$, with a mean of $\mu=5$, and a standard deviation of $\sigma=1$.}
+\caption[Example of a Gaussian PDF.]{Example of a Gaussian PDF.  Here, Equation~(\ref{eq:gaussian_pdf}) is evaluated for $500$ values of $d$, with a mean of $\mu=5$ and a standard deviation of $\sigma=1$.}
 \label{fig:gaussian_pdf}
 \end{center}
 \end{figure}
 
-We generally characterize a random signal by specifying all $n^{th}$-order joint PDFs for its values, known as \textit{probabilistic parameters}.  To properly define a signal's probabilistic parameters, we start with the expected value $E_{p}\{X(t)\}$.  If $X(t)$ is only a function of time, we find that we can model the PDFs under a framework known as \textit{fraction-of-time probability} \cite{spooner-92}.  Assuming $X(t)$ is modeled under the fraction-of-time framework $E\{X(t)\}$ is defined as
+A random process is completely specified by all of its finite-dimensional joint distributions, or by the corresponding joint PDFs when those densities exist.  Its mean is an ensemble average over realizations at a fixed time.  For a real-valued process with marginal PDF $p_{X(t)}(x)$, the mean is
 
 \begin{equation}\label{eq:E}
-E_{p}\{X(t)\} = \lim_{T\to\infty} \frac{1}{T} \int_{-\sfrac{T}{2}}^{\sfrac{T}{2}} X(t,s)p(s) ds
+\mu_{X}(t)=E\{X(t)\}=\int_{-\infty}^{\infty}x\,p_{X(t)}(x)\,dx.
 \end{equation}
 
 % moments
-Using Equation (\ref{eq:E}), we can determine probabilistic functions, known as \textit{moments}.   The first moment, defined as $E_{p}\{X(t)\}$, is known as the \textit{mean} of $X(t)$, denoted $\mu_{X}(t)$.  Assuming no skew, the mean is equivalent to the expected value for a Gaussian random signal \cite{gardner-90}.
+For a complex-valued process, the expectation in Equation~(\ref{eq:E}) is applied to the real and imaginary parts.  The ensemble average is distinct from a time average along one sample path; the two are equal only under the relevant ergodicity conditions.  The first raw moment $E\{X(t)\}$ is the mean $\mu_X(t)$ by definition, without any Gaussian or symmetry assumption \cite{gardner-90}.
 
-The second moment, defined as $E_{p}\{(X(t)-\mu_{X}(t))^{2}\}$, is known as the \textit{variance} of $X(t)$, denoted $\sigma_{X}^{2}(t)$.  The variance is commonly expressed as its square-root, known as the \textit{standard deviation} $\sigma_{X}(t)$.  The standard deviation is used to express the the spread of values for $X(t)$ \cite{gardner-90}.
+The second central moment $\sigma_{X}^{2}(t)=E\{|X(t)-\mu_{X}(t)|^{2}\}$ is the \textit{variance} of $X(t)$.  For a real-valued process, the magnitude squared reduces to the ordinary square.  The nonnegative square root $\sigma_X(t)$ is the \textit{standard deviation}, which describes the spread of $X(t)$ about its mean \cite{gardner-90}.
 
-The second joint moment of $X(t)$ with itself is defined as $E_{p}\{X(t_{1}){X}^{*}(t_{2})\}$ at times $(t_{1},t_{2})$, and is known as the \textit{AF}, denoted $R_{X}(t_{1},t_{2})$.  For WSS random signals, the AF is expressed as $R_{X}(\tau)$, where $\tau =t_{1}-t_{2}$.  Intuitively, variable $\tau$ is the amount of time that $t_{2}$ lags behind $t_{1}$ and is thus typically referred to as the \textit{lag variable} \cite{gardner-90}.
+The second joint moment $R_{X}(t_{1},t_{2})=E\{X(t_{1})X^{*}(t_{2})\}$ is the \textit{AF}.  For WSS random signals, the AF is expressed as $R_{X}(\tau)$, where $\tau=t_{1}-t_{2}$.  The variable $\tau$ is the time separation, or \textit{lag}, between the two samples \cite{gardner-90}.
 
 % wss
-If $X(t)$ exhibits time-invariance of its probabilistic parameter functions, then it is said to be \textit{stationary}.  If all probability densities up to order $n$ are time-invariant, the process is said to be $n^{th}$-order stationary.  A process that is $n^{th}$-order stationary for all possible values of $n$ is said to be \textit{strict-sense stationary}.  If only the mean function and AF are time-invariant, the process is said to be $2^{nd}$-order stationary (SOS) or \textit{wide-sense stationary} (WSS) \cite{spooner-92}\cite{gardner-90}.
+If the joint distributions of $X(t)$ through order $n$ are invariant under a common shift of all their time arguments, the process is said to be $n$th-order stationary.  A process with this invariance at every order is \textit{strict-sense stationary}.  A finite-second-moment process is second-order stationary (SOS), or \textit{wide-sense stationary} (WSS), when its mean is constant and its AF is invariant under a common time shift, so that the AF depends only on lag \cite{spooner-92,gardner-90}.
 
 % AF
-Let us further develop $X(t)$ by assuming it is a WSS random signal.  The WSS AF of $X(t)$ is defined as,
+Let us further develop $X(t)$ by assuming it is a WSS random signal.  Its AF is
 
 \begin{equation}\label{eq:AF}
-R_{X}(t,\tau) = \lim_{T\to\infty} \frac{1}{T} \int_{-\sfrac{T}{2}}^{\sfrac{T}{2}} X\bigg(t+\frac{\tau}{2}\bigg){X}^{*}\bigg(t-\frac{\tau}{2}\bigg)\ dt
+R_{X}(\tau)=E\left\{X\bigg(t+\frac{\tau}{2}\bigg)X^{*}\bigg(t-\frac{\tau}{2}\bigg)\right\}.
 \end{equation}
 
-For a WSS AF, the mean function and standard deviation function values are the same for all possible points in time \cite{gardner-90}, as illustrated in Figure \ref{fig:X_mean_std}.
+Thus, a WSS process has a constant mean and variance, and its AF is a function of $\tau$ rather than of absolute time.  For a correlation-ergodic WSS process, $R_X(\tau)$ can also be recovered as the infinite-time average along almost any sample path; a finite-record version is an autocorrelation estimate \cite{gardner-90}.  Figure~\ref{fig:X_mean_std} illustrates a WSS process with constant mean and variance.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/X_mean_std}
-\caption[Example of a WSS Gaussian random signal.]{Example of a WSS Gaussian random signal.  Here, we observe Equation (\ref{eq:gaussian_pdf}) for $100$ points in time, with $X(t) \sim\ \mathcal{N} (t; \mu_{X}(t),\sigma_{X}(t))$ and $\mu_{x(t)}=0.1$, $\sigma_{x(t)}=0.25$ for all $x(t)$.}
+\caption[Example of a WSS Gaussian random signal.]{One 100-sample realization of an independent and identically distributed (IID) Gaussian process with constant mean $\mu_X=0.1$ and standard deviation $\sigma_X=0.25$.  The dashed line is the theoretical mean and the shaded band is $\mu_X\pm\sigma_X$.}
 \label{fig:X_mean_std}
 \end{center}
 \end{figure}
 
 % 2-QAM AF
-Most real-world random signals-- such as digital communications waveforms-- are not WSS.  In this context, we will define \textit{waveform} as any modulated signal.  One such digital waveform, known as \textit{QAM}, transmits information by modulating the amplitude and phase of two carrier signals creating what is known as \textit{symbols}.  The number of combinations possible for a QAM waveform is defined by its \textit{modulation order} (M), denoted M-QAM.  The simplest case of M-QAM is $M=2$, where the waveform alternates between two phases, $180^{\circ}$ apart.  The rate at which these symbols alternate is known as the waveform's \textit{symbol rate} (SR), denoted $R_{s}$.  The modulated carrier frequency is known as the waveforms \textit{center frequency} (CF), denoted $f_{c}$.  An example of an arbitrary $2$-QAM time series is shown in Figure \ref{fig:2qam_time}.
+Many digitally modulated communication waveforms are not WSS but instead exhibit cyclostationarity.  In this context, we use \textit{waveform} to mean a modulated signal.  Quadrature amplitude modulation (QAM) conveys information through the amplitudes of two orthogonal carriers at the same frequency, conventionally called the in-phase and quadrature components.  Each symbol selects one of $M$ constellation points, where $M$ is the \textit{modulation order}.  Under the MATLAB convention used in this thesis, the $M=2$ case reduces to two antipodal constellation points and is equivalent to binary phase-shift keying (BPSK).  The rate at which symbols are transmitted is the \textit{symbol rate} (SR), denoted $R_{s}$, and the modulated carrier frequency is the waveform's \textit{center frequency} (CF), denoted $f_{c}$.  An example of a $2$-QAM time series is shown in Figure~\ref{fig:2qam_time}.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/2qam_time}
-\caption[Example of a $2$-QAM waveform $x(t)$.]{Example of a $2$-QAM waveform $x(t)$.  Here, we modulate $200$ random bits, followed by rectangular pulse-shaping of length $10$.  Our waveforms parameters are $R_{s}=0.1MBd$ and $f_{c}=0.05MHz$.}
+\caption[Example of a $2$-QAM waveform $x(t)$.]{The real component of a $2$-QAM waveform.  The model generates $400$ random symbols, applies a length-$10$ rectangular pulse, and displays the first $200$ samples.  The waveform parameters are $R_s=0.1\text{ MBd}$, $f_c=0.05\text{ MHz}$, and $F_s=1\text{ MHz}$.}
 \label{fig:2qam_time}
 \end{center}
 \end{figure}
 
-An M-QAM waveform has the mathematical representation,
+An $M$-QAM waveform has the following mathematical representation:
 
 \begin{equation}\label{eq:qam_general}
-X(t)=\sum^{\infty}_{k=-\infty} a_{k}p(t-kT_{0}-t_{0})e^{j2 \pi f_{0}t+j \theta_{0}}
+X(t)=\sum^{\infty}_{k=-\infty} a_{k}p(t-kT_{0}-t_{0})e^{j(2 \pi f_{c}t+\theta_{0})},
 \end{equation}
 
-\noindent where $a_{k}$ is the $k^{th}$ symbol, $p(t)$ is the pulse-shaping filter (PSF), and $f_{0}$ is the CF.  This definition also covers the general representation of phase-shift keying (PSK) and pulse modulation (PM) waveforms.  These M-QAM-SRRC waveforms are of keen interest to communication systems that use link adaptation, such as DVB-S2, WiMAX, HSDPA, and UMTS.  Thus for this thesis, we will narrow the scope of our investigation to the M-QAM-SRRC class of waveforms.
+\noindent where $a_{k}$ is the $k$th data symbol, $p(t)$ is the pulse shape, $T_{0}=1/R_s$ is the symbol period, $t_{0}$ is the timing offset, $f_{c}$ is the CF, and $\theta_{0}$ is the carrier-phase offset.  This linear-modulation model includes QAM and phase-shift keying (PSK) waveforms.  Adaptive modulation and Nyquist pulse shaping are widely used communication techniques.  This thesis narrows its investigation to the M-QAM-SRRC class of waveforms.
 
-To conclude this section, Figure \ref{fig:autocorrelogram} plots $R_{X}(\tau)$ versus $\tau$ as what is known as an \textit{autocorellogram}.
+To conclude this section, Figure~\ref{fig:autocorrelogram} plots $|\widehat{R}_{x}(\tau)|$ versus $\tau$ in what is known as an \textit{autocorrelogram}.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/autocorrelogram}
-\caption[Example of an autocorrelation]{Autocorrelogram of the example waveform $x(t)$ shown in Figure \ref{fig:2qam_time}.  Here, we evaluate Equation (\ref{eq:AF}) for $31$ evenly-spaced values of $\tau$.}
+\caption[Example of an autocorrelation.]{Magnitude of the biased autocorrelation estimate for the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}, evaluated at $31$ integer-sample lags.}
 \label{fig:autocorrelogram}
 \end{center}
 \end{figure}
@@ -111,29 +110,29 @@ To conclude this section, Figure \ref{fig:autocorrelogram} plots $R_{X}(\tau)$ v
 \addcontentsline{toc}{subsection}{\quad 2.1.2 \quad The Cyclic Autocorrelation Function}
 \noindent 2.1.2 \quad The Cyclic Autocorrelation Function
 
-If the probabilistic parameters of $X(t)$ vary periodically with time, $X(t)$ is said to exhibit \textit{cyclostationarity}.  If only the mean and autocorrelation vary periodically, it is said to be \textit{SOC} or \textit{wide-sense cyclostationary} (WSC) \cite{spooner-92}\cite{gardner-90}.  The WSC CAF for $X(t)$ is defined as
+If the finite-dimensional distributions of $X(t)$ are periodic under a common shift of their time arguments, $X(t)$ is said to exhibit \textit{cyclostationarity}.  If its mean and AF are periodic under a common time shift, it is said to be \textit{SOC} or \textit{wide-sense cyclostationary} (WSC) \cite{spooner-92,gardner-90}.  The ensemble CAF is the Fourier-series coefficient of the symmetric time-varying AF $R_X(t,\tau)=E\{X(t+\tau/2)X^*(t-\tau/2)\}$:
 
 \begin{equation}\label{eq:caf_general}
-\widetilde{R}_{X}^{\alpha}(\tau) = \lim_{T\to\infty} \frac{1}{T} \int_{-\sfrac{T}{2}}^{\sfrac{T}{2}} R_{X}(t,\tau) e^{-j2 \pi \alpha t} dt
+\widetilde{R}_{X}^{\alpha}(\tau) = \lim_{T\to\infty} \frac{1}{T} \int_{-\sfrac{T}{2}}^{\sfrac{T}{2}} R_{X}(t,\tau) e^{-j2 \pi \alpha t} dt.
 \end{equation}
 
-Equation (\ref{eq:caf_general}) can be thought of as the cross-correlation between the AF $R_{X}(t,\tau)$ and the periodic sinusoid $e^{-j2 \pi \alpha t}$, where $\alpha$ is called the \textit{cycle frequency parameter}. The expected value of a cyclostationary process is denoted as $E^{\alpha}\{X(t)\}$.  Further, cycloergodicity is a random signal property that is used to relate $E\{X(t)\}$ to $E^{\alpha}\{X(t)\}$ when we wish to relate fraction-of-time probability to conventional random-process ensemble probability \cite{spooner-92}.  These assumptions together create the cycloergodic WSC CAF of $X(t)$.  The equation for such a function is written as,
+In Equation~(\ref{eq:caf_general}), $\alpha$ is the \textit{cycle frequency}.  More generally, the cyclic expectation $E^{\alpha}\{Z(t)\}$ denotes the $\alpha$-frequency Fourier coefficient of the time-varying ensemble mean $E\{Z(t)\}$; it is not a different ordinary expectation.  Under the appropriate correlation-cycloergodicity condition, the ensemble CAF equals the fraction-of-time average computed from a single sample path \cite{spooner-92}.  The resulting sample-path expression is
 
 \begin{equation}\label{eq:caf}
-R_{X}^{\alpha}(\tau) =\lim_{T\to\infty} \frac{1}{T} \int_{-\sfrac{T}{2}}^{\sfrac{T}{2}} X\bigg(t+\frac{\tau}{2}\bigg)X^{*}\bigg(t-\frac{\tau}{2}\bigg) e^{-j2 \pi \alpha t} dt
+R_{X}^{\alpha}(\tau) =\lim_{T\to\infty} \frac{1}{T} \int_{-\sfrac{T}{2}}^{\sfrac{T}{2}} x\bigg(t+\frac{\tau}{2}\bigg)x^{*}\bigg(t-\frac{\tau}{2}\bigg) e^{-j2 \pi \alpha t} dt.
 \end{equation}
 
-\noindent Figure \ref{fig:cyclic_autocorrelogram} plots the Equation (\ref{eq:caf}) as what is known as the cyclic autocorrelogram.
+Figure~\ref{fig:cyclic_autocorrelogram} plots the magnitude of a finite-sample estimate of Equation~(\ref{eq:caf}) in what is known as the cyclic autocorrelogram.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/cyclic_autocorrelogram}
-\caption[Example of a cyclic autocorrelogram.]{Cyclic autocorrelogram of the waveform $x(t)$ shown in Figure \ref{fig:2qam_time}.  Here, we evaluate Equation (\ref{eq:caf}) for $31$ evenly-spaced values of $\tau$ and $6$ evenly spaced values of $\alpha$.}
+\caption[Example of a cyclic autocorrelogram.]{Magnitude of the biased cyclic-autocorrelation estimate for the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}, evaluated at $31$ integer-sample lags and six cycle frequencies from $0$ through $0.5\text{ MHz}$.}
 \label{fig:cyclic_autocorrelogram}
 \end{center}
 \end{figure}
 
-Each of the $(\alpha,\tau)$ peaks in Figure \ref{fig:cyclic_autocorrelogram} is a cycle feature of $X(t)$, telling us more information than the AF can alone.  We will build on this concept in the following three sections to explain the significance of cyclic features.
+Peaks in the finite-sample cyclic autocorrelogram indicate candidate cycle features of $X(t)$, providing information not present in the ordinary AF alone.  We will build on this concept in the following three sections to explain the significance of cyclic features.
 
 %----------------------------------------------------------------------------------------
 %
@@ -143,7 +142,7 @@ Each of the $(\alpha,\tau)$ peaks in Figure \ref{fig:cyclic_autocorrelogram} is 
 \addcontentsline{toc}{section}{\quad \: 2.2 \quad Spectral Density}
 \noindent 2.2 \quad Spectral Density
 
-This section will continue to the summary of notation and concepts described in \cite{gardner-90}.  We first review the periodogram, the challenges faced when estimating the PSD from the periodogram, and a PSD estimation method known as \textit{frequency-smoothing}.  Then we will build upon this work to develop the concept of the CSD.
+This section continues the summary of notation and concepts described in \cite{gardner-90}.  We first review the periodogram, the challenges faced when estimating the PSD from the periodogram, and a PSD estimation method known as \textit{frequency-smoothing}.  We then build upon this work to develop the concept of the CSD.
 
 %
 % 2.2.1
@@ -159,55 +158,55 @@ A rectangular pulse is defined as
 \begin{cases}
   0,           \quad if \quad |t|>\frac{1}{2} \\
   1,           \quad if \quad |t|\le\frac{1}{2} \\
-\end{cases}
+\end{cases}.
 \end{equation}
 
-\noindent The Fourier transform of $\Pi(t)$ is denoted as $\hat{\Pi}(f)$.  Since $\Pi(t)$ is a finite-energy signal, we can measure the distribution of the signal's energy over frequency using Parseval's theorem:
+The Fourier transform of $\Pi(t)$ is denoted $\hat{\Pi}(f)$.  Since $\Pi(t)$ is a finite-energy signal, its energy spectral density is defined by
 
 \begin{equation}\label{eq:esd}
-\Psi_{\Pi}(f) =\left| \hat{\Pi}(f) \right|^{2}
+\Psi_{\Pi}(f) =\left| \hat{\Pi}(f) \right|^{2}.
 \end{equation}
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/esd}
-\caption[Example of an ESD plot.]{Example of an ESD plot.  Here, we evaluate the the Fourier transform of the finite-energy signal $\Pi(t)$ for $150$ time instances, resulting in the spectral components expressed as $\Psi_{\Pi}$.}
+\caption[Example of an ESD plot.]{Squared-magnitude Fourier transform of the unit-width rectangular pulse $\Pi(t)$.  At $F_s=50\text{ MHz}$, the one-microsecond pulse occupies $50$ samples within a $150$-sample record; a zero-padded $4096$-point frequency grid renders the curve smoothly, and the numerical ESD satisfies Parseval's energy equality.}
 \label{fig:esd}
 \end{center}
 \end{figure}
 
-\noindent Equation (\ref{eq:esd}) is known as the \textit{energy spectral density} (ESD) function \cite{gardner-90}.
+Parseval's theorem states that the total spectral energy, $\int_{-\infty}^{\infty}\Psi_{\Pi}(f)\,df$, equals the time-domain energy, $\int_{-\infty}^{\infty}|\Pi(t)|^{2}\,dt$ \cite{gardner-90}.
 
-Our QAM waveform $X(t)$ is an random signal and as such does not meet the criterion to perform a Fourier transform, and therefore an ESD does not exist \cite{gardner-90}.  However, by time limiting $X(t)$ with window size $T$, the periodogram of $X(t)$ can be expressed as:
+A sustained QAM waveform is generally modeled as a power signal rather than a finite-energy signal, so an ordinary finite ESD is not the appropriate description.  For a sample path $x(t)$ observed through a duration-$T$ rectangular window, its periodogram is \cite{gardner-90}
 
 \begin{equation}\label{eq:periodogram}
-P_{X}(f) = \frac{1}{T} \left| \hat{X}_{T}(t,f) \right|^{2}
+P_{x,T}(f) = \frac{1}{T} \left| \hat{x}_{T}(f) \right|^{2},
 \end{equation}
 
-\noindent where the Fourier transform of $X(t)$ is denoted as $\hat{X}(f)$.  Equation (\ref{eq:periodogram}) measures the distribution of power over frequency.  As a result of time-variance, $P_{X}(f)$ is an extremely poor estimate with low signal-to-noise ratios \cite{gardner-90}.  Figure \ref{fig:periodogram} illustrates the periodogram of our $2$-QAM signal from \ref{fig:2qam_time}.
+\noindent where $\hat{x}_{T}(f)$ is the Fourier transform of the windowed record.  The periodogram estimates the distribution of average power over frequency, but its variance generally does not vanish as $T$ increases; it is therefore not, by itself, a consistent PSD estimator.  Low signal-to-noise ratio further obscures signal features \cite{gardner-90}.  Figure~\ref{fig:periodogram} illustrates the periodogram of the $2$-QAM signal from Figure~\ref{fig:2qam_time}.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/periodogram}
-\caption[Example of a periodogram.]{Periodogram of the waveform $X(t)$ shown in Figure \ref{fig:2qam_time}.  Here, we perform an FFT of length $128$.}
+\caption[Example of a periodogram.]{Squared-magnitude, power-scaled periodogram of the first $128$ samples of the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}.  The estimate uses a $128$-point FFT.}
 \label{fig:periodogram}
 \end{center}
 \end{figure}
 
-Notice that the periodogram is roughly centered at $f_{c}$ and roughly the width of two times the $R_{S}$, as expected.  However, without previous knowledge, it would be challenging to determine the true CF and SR.  Thus, we must find a way to improve upon the periodogram to determine our signal's parameters accurately.
+The periodogram is roughly centered at $f_{c}$.  Because this example uses rectangular pulses, its main lobe between the first spectral nulls has width approximately $2R_s$.  Without prior knowledge, however, it would be challenging to infer the true CF and SR accurately from this one high-variance estimate.
 
-One of the techniques used to mitigate this erratic behavior is the FSM \cite{spooner-92}.  A rectangular smoothing window $h(t)$ is applied to filter $P_{X}(f)$, which results in the estimate:
+One technique used to reduce this variability is the FSM \cite{spooner-92}.  Convolving the periodogram with a frequency-domain smoothing kernel $h(f)$ gives the estimate
 
 \begin{equation}\label{eq:psd}
-S_{X}(f) = h(t)*P_{X}(t,f)
+\widehat{S}_{X}(f) = h(f)*P_{x,T}(f),
 \end{equation}
 
-\noindent where $*$ is the convolution operator.  The frequency-smoothed periodogram has much higher determinism and more closely resembles the actual PSD.  Notice in Figure \ref{fig:psd} we can estimate the true CF with precision.  Smoothing also helps us find the actual SR, however smoothing also widens $S_{X}(f)$, creating difficulties in detecting the true SR.  Therefore, to maximize accuracy a minimal amount of smoothing should always be applied.
+\noindent where $*$ is the convolution operator.  Frequency smoothing reduces estimator variance at the cost of spectral resolution and can introduce bias.  In Figure~\ref{fig:psd}, it makes the CF easier to estimate, but excessive smoothing broadens spectral features and can degrade SR estimation.  The smoothing bandwidth must therefore be chosen according to the bias--variance and resolution tradeoffs; no single minimum amount is optimal for every record.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/psd}
-\caption[Example of a PSD plot.]{PSD of the waveform $x(t)$ shown in Figure \ref{fig:2qam_time}.  Here, we perform a $128$-point FFT of $x(t)$ and a apply a smoothing window of length $8$.}
+\caption[Example of a PSD plot.]{Frequency-smoothed PSD estimate of the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}.  The $128$-point periodogram is averaged over eight adjacent frequency bins.}
 \label{fig:psd}
 \end{center}
 \end{figure}
@@ -219,29 +218,29 @@ S_{X}(f) = h(t)*P_{X}(t,f)
 \addcontentsline{toc}{subsection}{\quad 2.2.2 \quad The Cyclic Spectral Density Function}
 \noindent 2.2.2 \quad The Cyclic Spectral Density Function
 
-In the previous subsection, we found that a random signal's PSD is obtained by applying Parseval's theorem with some smoothing technique to force convergence.  Using this same concept, we can obtain what is known as the \textit{cyclic periodogram}:
+For a WSS random process, the theoretical PSD is the Fourier transform of $R_X(\tau)$.  A finite-record periodogram estimates that PSD, and smoothing trades resolution for reduced variance.  The analogous finite-record quantity for spectral correlation is the \textit{cyclic periodogram}:
 
 \begin{equation}\label{eq:cyclic_periodogram}
-P_{X}^{\alpha}(f) =\frac{1}{T}  \hat{X}_{T}\Big(f+\frac{\alpha}{2}\Big)\hat{X}^{*}_{T}\Big(f-\frac{\alpha}{2}\Big)
+P_{x,T}^{\alpha}(f) =\frac{1}{T}  \hat{x}_{T}\Big(f+\frac{\alpha}{2}\Big)\hat{x}^{*}_{T}\Big(f-\frac{\alpha}{2}\Big),
 \end{equation}
 
-\noindent where $\hat{X}^{*}$ is the conjugate of $\hat{X}$.  Its corresponding CSD estimate expressed as:
+\noindent where $\hat{x}^{*}_{T}$ is the complex conjugate of $\hat{x}_{T}$.  Its corresponding frequency-smoothed CSD estimate is
 
 \begin{equation}\label{eq:csd}
-S_{X}^{\alpha}(f) =h(t)*P_{X}^{\alpha}(t,f)
+\widehat{S}_{X}^{\alpha}(f) =h(f)*P_{x,T}^{\alpha}(f).
 \end{equation}
 
-\noindent Equation (\ref{eq:csd}) completely characterizes $X(t)$ for all values of cycle frequency $\alpha$ and frequency $f$ \cite{gardner-90}.  The CSD estimate of $X(t)$ is shown in Figure \ref{fig:csd}.
+Across all values of cycle frequency $\alpha$ and spectral frequency $f$, the theoretical CSD $S_X^{\alpha}(f)$ characterizes the second-order periodic correlation structure of $X(t)$; it does not, in general, specify the process's higher-order statistics or full probability law \cite{gardner-90}.  Equation~(\ref{eq:csd}) is a finite-record estimate of that quantity.  The CSD estimate of $X(t)$ is shown in Figure~\ref{fig:csd}.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/csd}
-\caption[Example of a CSD plot.]{CSD of the waveform $x(t)$ shown in Figure \ref{fig:2qam_time}.  Here, we perform a $128$-point FFT of $R_{x}^{\alpha}(\tau)$ and a apply a smoothing window of length $8$.}
+\caption[Example of a CSD plot.]{CSD magnitude estimate of the waveform $x(t)$ shown in Figure~\ref{fig:2qam_time}.  A $128$-point DFT is applied across the $31$ estimated lags of $\widehat{R}_x^{\alpha}(\tau)$, followed by averaging over eight adjacent frequency bins.}
 \label{fig:csd}
 \end{center}
 \end{figure}
 
-For $\alpha=0$, the result is simply the PSD and is always expected to produce a strong result.  For $\alpha \neq 0$, patterns can be exploited to reveal statistical features of the received waveform.
+At $\alpha=0$, the CSD reduces to the ordinary, zero-cycle power spectrum.  Components at $\alpha\neq0$ reveal periodic second-order structure; ideal stationary noise has no such nonzero-cycle components.
 
 \clearpage
 %-------------------------------------------------------------------
@@ -252,89 +251,107 @@ For $\alpha=0$, the result is simply the PSD and is always expected to produce a
 \addcontentsline{toc}{section}{\quad \: 2.3 \quad Spectral Correlation Analyzers}
 \noindent 2.3 \quad Spectral Correlation Analyzers
 
-In this section, we move onto realizations of the CSD.  The process of producing the CSD of received waveform with no previous information is called \textit{blind estimation}.  Realizations of a blind estimator are often called \textit{SCAs}.  First, we will discuss an example of TSM-SCA as described by W. A. Gardner in his article, \textit{Cyclostationary: Half a Century of Research} \cite{gardner-06}.  This TSM-SCA is used to blindly estimate the CSD of arbitrary $(\alpha,f)$ pairs.
+In this section, we move on to realizations of the CSD.  The process of producing the CSD of a received waveform with no prior information is called \textit{blind estimation}.  Realizations of a blind estimator are often called \textit{SCAs}.  First, we discuss an example of a TSM-SCA as described by W. A. Gardner in the article \textit{Cyclostationarity: Half a Century of Research} \cite{gardner-06}.  This TSM-SCA is used to blindly estimate the CSD of arbitrary $(\alpha,f)$ pairs.
 
-We then discuss the case where the $\alpha$ we wish to estimate blindly is equal to SR of interest.  M. V. Koch describes an SCA technique to accomplish this in his technical report, \textit{Interference Mitigation Using Cyclic Autocorrelation and Multi-Objective Optimization} \cite{koch-19}, which he refers to as the \textit{CAC-FFT algorithm}. For consistency with our definitions and notations, we will refer to the CAC-FFT as the \textit{CAF-DFT} in this thesis.  Using the CAF-DFT, we can blindly estimate SR-CF pairs for M-QAM-SRRC waveforms by letting $\alpha=R_{s}$ and $f=f_{c}$.
+We then consider the case in which the cycle frequency of interest equals the SR.  M. V. Koch's technical report \textit{Interference Mitigation Using Cyclic Autocorrelation and Multi-Objective Optimization} describes a \textit{CAC-FFT algorithm} that forms $|x[n]|^2$, uses an FFT to evaluate the zero-lag CAC on a uniform rate grid, and selects candidate symbol rates from its peaks \cite{koch-19}.  For each candidate rate, the report's implemented center-frequency detector systematically shifts and low-pass filters the signal segment, then evaluates a single-rate CAC at each offset.  Koch also reports preliminary work on a different center-frequency preprocessor, which was not used in the reported system.  The estimator in this thesis adapts the implemented CAC and carrier-sweep operations to a serial, fixed-filter hardware architecture; we refer to its pointwise statistic as the \textit{CAF-DFT}.
 
 %
 % 2.3.1
 %
 \bigskip
-\addcontentsline{toc}{subsection}{\quad 2.3.1 \quad Blind Cycle Frequency-Frequency Estimation}
-\noindent 2.3.1 \quad Blind Cycle Frequency-Frequency Estimation
+\addcontentsline{toc}{subsection}{\quad 2.3.1 \quad Blind Cycle- and Spectral-Frequency Estimation}
+\noindent 2.3.1 \quad Blind Cycle- and Spectral-Frequency Estimation
 
-The most basic realization of the time-smoothed CSD is the TSM-SCA.  Rewriting Equation (\ref{eq:csd}) as,
+The most basic realization of the time-smoothed CSD is the TSM-SCA.  A finite time-smoothed CSD estimate can be written as
 
 \begin{equation}\label{eq:fs-sca}
-S_{X}^{\alpha} (t,f)_{T} = \frac{1}{T} \int_{t-\sfrac{T}{2}}^{t+\sfrac{T}{2}} \Delta f \hat{X}_{T}\Big(u,f+\frac{\alpha}{2}\Big)\hat{X}^{*}_{T}\Big(u,f-\frac{\alpha}{2}\Big) du
+\widehat{S}_{X}^{\alpha}(t,f)_{T,\Delta f} = \frac{1}{T} \int_{t-\sfrac{T}{2}}^{t+\sfrac{T}{2}} \Delta f\,X_{1/\Delta f}\Big(u,f+\frac{\alpha}{2}\Big)X^{*}_{1/\Delta f}\Big(u,f-\frac{\alpha}{2}\Big)\,du.
 \end{equation}
 
-\noindent We find that the TSM-SCA can decompose into simple multipliers, mixers, filters, and accumulators.  To establish a baseline implementation, the block diagram of the TSM-SCA, based on Equation (\ref{eq:fs-sca}), is diagrammed in Figure \ref{fig:gardner_sca} \cite{gardner-06}.
+Here, $X_{1/\Delta f}(u,\nu)$ is the short-time Fourier transform centered at time $u$, with an effective duration of approximately $1/\Delta f$.  The ideal CSD is approached by first letting $T\to\infty$ and then $\Delta f\to0$; a finite estimate is statistically reliable only when the time--bandwidth product $T\Delta f$ is sufficiently large.  The TSM-SCA can be decomposed into multipliers, mixers, filters, and accumulators.  To establish a baseline implementation, the block diagram based on Equation~(\ref{eq:fs-sca}) is shown in Figure~\ref{fig:gardner_sca} \cite{gardner-06}.
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.75]{/diagrams/gardner_sca}
-\caption[Example of a baseline SCA.]{As described by Gardner in \cite{gardner-06}, this baseline SCA is realized by frequency shifting the signal $x(t)$ by two amounts differing by $\sfrac{\alpha}{2}$, passing such frequency-shifted versions through two low-pass filters $h_{\Delta f}(t)$ with bandwidth $\Delta f$ and unity pass-band height, and then correlating the output signals.  The CSD $S_{X}^{\alpha}(f)$ is obtained by normalizing the output by $\Delta f$, and taking the limit as the correlation time $T \rightarrow \infty$ and the bandwidth $\Delta f \rightarrow 0$.}
+\includegraphics[scale=0.75]{diagrams/gardner_sca}
+\caption[Example of a baseline SCA.]{As described by Gardner in \cite{gardner-06}, this baseline SCA shifts the components centered at $f+\sfrac{\alpha}{2}$ and $f-\sfrac{\alpha}{2}$ to baseband.  The component centers are separated by $\alpha$.  The shifted signals pass through low-pass filters $h_{\Delta f}(t)$ with bandwidth $\Delta f$ and unity-passband height before their outputs are correlated, time-averaged over $T$, and scaled by $\Delta f$.  The ideal CSD $S_{X}^{\alpha}(f)$ is obtained in the ordered limits $T\rightarrow\infty$ and then $\Delta f\rightarrow0$.}
 \label{fig:gardner_sca}
 \end{center}
 \end{figure}
 
-While Figure \ref{fig:gardner_sca} works for any arbitrary waveform and gives the blind CSD estimate for any $(\alpha,f)$ pair, much of this search space is not helpful for most applications.  If we can intelligently limit this search space, we can significantly improve the utility of the TSM-SCA.
+Although the SCA shown in Figure~\ref{fig:gardner_sca} applies to an arbitrary waveform and gives the blind CSD estimate for any $(\alpha,f)$ pair, much of this search space is not helpful for most applications.  If we can intelligently limit this search space, we can significantly improve the utility of the TSM-SCA.
 
 %
 % 2.3.2
 %
 \bigskip
 \addcontentsline{toc}{subsection}{\quad 2.3.2 \quad Blind Symbol Rate-Center Frequency Point Estimation}
-\noindent  2.3.2 \quad Blind Symbol Rate - Center Frequency Point Estimation
+\noindent 2.3.2 \quad Blind Symbol Rate-Center Frequency Point Estimation
 
-Several common SCAs such as the FSM, TSM, SSCA, and FAM are discussed in \cite{spooner-92}.  While these techniques provide speed, they are FFT dependent and therefore memory dependent.  Although high-memory allocation is acceptable for terrestrial receivers, we must prioritize memory conservation for a CubeSat CR and explore alternative SCA designs.
+Several common SCAs, such as the FSM, TSM, SSCA, and FAM, are discussed in \cite{spooner-92}.  Efficient digital implementations of several of these techniques use FFTs and block buffering, which can make them memory-intensive.  Although larger memory allocations may be acceptable for terrestrial receivers, we must prioritize memory conservation for a CubeSat CR and explore alternative SCA designs.
 
-In \cite{koch-19}, M. A. Koch proposed a modified realization of the SCA, which we will refer to as the \textit{CAF-DFT algorithm}.  Koch reports that if we limit our random signal to only M-QAM-SRRC waveforms, then the CSD peaks are always equal to the waveform's actual $R_{s}$ and $f_{c}$ \cite{koch-19}.  This is proven in \cite{gardner-90} and will be summarized below.  The discrete AF of Equation (4) is expressed as:
+Koch's CAC-FFT uses peaks in the DFT of $|x[n]|^2$ to estimate candidate symbol rates \cite{koch-19}.  In the CAF-DFT used here, that operation is applied after channelization over candidate center frequencies.  The relevant QAM-SRRC cycle-frequency structure follows from the linear-modulation model in Equation~(\ref{eq:qam_general}) \cite{gardner-90}.  Assume the data symbols are zero-mean and uncorrelated, with $E\{a_k a_m^*\}=\sigma_a^2\delta_{km}$, and assume zero timing and carrier-phase offsets.  The symmetric AF is then
 
 \begin{equation}\label{eq:lms_af}
-R_{X}(t,\tau)=\sigma^{2}\sum_{k=-\infty}^{\infty} p(t+\tau-kT_{0})p^{*}(t-kT_{0})
+R_{X}(t,\tau)=\sigma_a^{2}e^{j2\pi f_c\tau}\sum_{k=-\infty}^{\infty}
+p\left(t+\frac{\tau}{2}-kT_{0}\right)
+p^{*}\left(t-\frac{\tau}{2}-kT_{0}\right).
 \end{equation}
 
-\noindent Because Equation (\ref{eq:lms_af}) is periodic with $T_{0}$, we can express the CAF as:
+Because Equation~(\ref{eq:lms_af}) is periodic with $T_{0}$, we can express the CAF as follows:
 
 \begin{equation}\label{eq:lms_caf}
-R_{X}^{\alpha}(\tau) = \frac{\sigma^{2}}{T_{0}} p(\tau) * \Big(p^{*}(-\tau) e^{j2 \pi \sfrac{n}{T_{0}}}\Big)
+R_{X}^{\alpha}(\tau) = \frac{\sigma_a^{2}}{T_{0}}
+e^{j2\pi f_c\tau}
+\int_{-\infty}^{\infty}
+p\left(u+\frac{\tau}{2}\right)
+p^{*}\left(u-\frac{\tau}{2}\right)e^{-j2\pi\alpha u}\,du,
+\qquad \alpha=\frac{n}{T_0},\;n\in\mathbb{Z}.
 \end{equation}
 
-\noindent And the CSD as:
+The corresponding CSD is:
 
 \begin{equation}\label{eq:lms_csd}
-S_{X}^{\alpha}(f) = \frac{\sigma^{2}}{T_{0}} P(f)P^{*}(f-\frac{n}{T_{0}})
+S_{X}^{\alpha}(f) = \frac{\sigma_a^{2}}{T_{0}}
+P\left(f-f_c+\frac{\alpha}{2}\right)
+P^{*}\left(f-f_c-\frac{\alpha}{2}\right),
+\qquad \alpha=\frac{n}{T_0}.
 \end{equation}
 
-\noindent Lastly, if $P(f)$ is an SRRC PSF, then only $\alpha=-Rs,0,Rs$ have non-zero cyclic frequencies.  Since $\alpha=0$ is the trivial case, and we do not wish to evaluate the negative symbol rate $\alpha=R_{s}=-1$, we are left with $S^{R_{s}}_{X}(f)$ as the only spectral density with nonzero points.  Evaluating the CSD slice of $S^{R_{s}}_{X}(f)$, we find that peak is at exactly $f=f_{c}$, perfectly matching the true $(R_{s},f_{c})$ of $X(t)$.  This finding is illustrated in Figure \ref{fig:qam_srrc}.
+Here, $P(f)$ is the Fourier transform of $p(t)$.  If $p(t)$ is an SRRC pulse with positive roll-off, the nontrivial cycle frequencies for this CSD occur at $\alpha=\pm R_s$, in addition to the ordinary $\alpha=0$ component.  Since this implementation searches only positive cycle frequencies, it evaluates candidates near $S^{R_s}_{X}(f)$.  In the ideal model, the peak coordinates estimate $(R_s,f_c)$ to within the estimator's cycle- and spectral-frequency resolutions.  This behavior is illustrated in Figure~\ref{fig:qam_srrc}.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/qam_srrc}
-\caption[CSD of QAM-SRRC for various values of M]{CSD of the waveform $x(t)$ shown in Figure \ref{fig:2qam_time}, with various values of $M$.  The PSD for $\alpha=0$ is the spectral density of the conventional AF, which will always return a strong correlation.  Barring this trivial case, we notice a strong correlation for $\alpha=0.1MBd$, which is the same as atual $R_{s}$ of $x(t)$'s.  Additionally, the peak of the PSD for $\alpha=0.1MBd$ is equal to actual $f_{c}$ of $x(t)$.  Therefore, by finding the nontrivial $(\alpha,f)$ peaks of the CSD for a M-QAM-SRRC waveform, we also find the waveform's actual $(R_{s},f_{c})$, even with no previous information.}
+\caption[CSD of QAM-SRRC for various values of $M$.]{CSD magnitude estimates for independently generated $2$-, $4$-, $8$-, and $16$-QAM-SRRC waveforms with $R_s=0.1\text{ MBd}$ and $f_c=0.05\text{ MHz}$.  The $\alpha=0$ slice is the ordinary PSD.  For each modulation order, the nontrivial $\alpha=R_s$ slice has its maximum within one $7.8125$-kHz DFT bin of $f_c$.}
 \label{fig:qam_srrc}
 \end{center}
 \end{figure}
 
-The discrete CAF-DFT is written as,
+For the discrete CAF-DFT statistic used in this thesis, define the sequence in the $k$th channel as
 
-\begin{equation} \label{eq:koch-sca}
-S_{X}^{v}[k] = \frac{1}{N} \sum_{n=0}^{N-1} {|(X[n]e^{-j2\pi kn})*h[n]|}^{2} e^{-j2\pi vn}
+\begin{equation}\label{eq:channelized-sequence}
+z_k[n]=\left[\left(x[\cdot]e^{-j2\pi f_k(\cdot)/F_s}\right)\ast h[\cdot]\right][n].
 \end{equation}
 
-\noindent Where $v=\ceil{\frac{R_{s}}{fs}N}+1$, $k=\ceil{\frac{f_{c}}{fs}N}+1$, and $n=\frac{t}{T}$.  The realization of Equation (\ref{eq:koch-sca}) is shown in Figure \ref{fig:koch_sca} \cite{koch-19}.
+Its estimated zero-lag CAF at the $v$th cycle-frequency candidate is
+
+\begin{equation} \label{eq:koch-sca}
+\widehat{C}_{x}(\alpha_v,f_k)
+\triangleq \widehat{R}_{z_k}^{\alpha_v}[0]
+= \frac{1}{N} \sum_{n=0}^{N-1}|z_k[n]|^{2}e^{-j2\pi \alpha_v n/F_s}.
+\end{equation}
+
+\noindent Here, $\alpha_v$ is the $v$th physical cycle-frequency candidate in hertz, $f_k$ is the $k$th physical CF candidate, and $n$ is the zero-based sample index.  The quantity $\widehat{C}_{x}(\alpha_v,f_k)$ is a channelized zero-lag CAF statistic---a filter-localized proxy for cyclic spectral content---rather than the point CSD value $\widehat{S}_{X}^{\alpha_v}(f_k)$.  On an $N$-point DFT-bin grid with one-based $v$, $\alpha_v=(v-1)F_s/N$, so the final kernel reduces to $e^{-j2\pi(v-1)n/N}$.  More generally, an NCO can evaluate candidates that do not lie on that grid, so $v$ is an array index rather than a frequency.  A buffered, parallel realization of Equation~(\ref{eq:koch-sca}) is shown in Figure~\ref{fig:koch_sca}; it adapts the mixer/filter search topology of the carrier-frequency sweep described in \cite{koch-19} while using a fixed $h[n]$ and no per-shift normalization.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{diagrams/koch_sca}
-\caption[Diagram of CAF-DFT SCA.]{This SCA is realized by frequency-shifting the waveform $x[n]$ by various candidate $k$s in parallel, passing each frequency-shifted version through a LPF $h_{\Delta v}[n]$ with bandwidth $\Delta v$ and unity-passband height, in a process referred to as channelization.  The autocorrelation of the channelized signal is then performed at $\tau=0$, which simplifies as the magnitude squared.  The DFT of is then performed using a kernel value of $v$.  The CSD $S_{X}^{v}[k]$ is obtained by normalizing the output by $\sfrac{1}{N}$.}
+\caption[Diagram of CAF-DFT SCA.]{This buffered CAF-DFT realization frequency-shifts $x[n]$ by each CF candidate $f_k$ and passes each shifted version through a low-pass filter, a process referred to as channelization.  Evaluating the channelized autocorrelation at $\tau=0$ gives the magnitude squared.  Correlation with the cycle-frequency kernel at $\alpha_v$, followed by division of the accumulated sum by $N$, produces the statistic $\widehat{C}_{x}(\alpha_v,f_k)$.  In the legacy diagram, $k_i$ denotes the normalized frequency $f_{k_i}/F_s$, and $F^v\{\cdot\}$ denotes selection of the cycle-frequency coefficient.}
 \label{fig:koch_sca}
 \end{center}
 \end{figure}
 
-As shown in Figure \ref{fig:koch_sca}, the CAC-DFT has a narrowed search space to estimate only the SR-CF of M-QAM-SRRC waveforms.  This assumption uses a constant value of $\tau=0$, thus avoiding the need to be processed in the frequency domain.  Therefore, the CAC-DFT lends itself well to time-domain processing.
+As shown in Figure~\ref{fig:koch_sca}, the CAF-DFT narrows the search to candidate SR-CF pairs for M-QAM-SRRC waveforms.  Fixing $\tau=0$ removes the lag dimension and therefore avoids the Fourier transform across lag required to form a full CSD.  It does not eliminate the cycle-frequency correlation in Equation~(\ref{eq:koch-sca}), which may be implemented by a DFT or by selected NCO kernels.  This structure lends itself well to streaming processing.
 
 %--------------------------------------------------------
 %
@@ -344,12 +361,12 @@ As shown in Figure \ref{fig:koch_sca}, the CAC-DFT has a narrowed search space t
 \addcontentsline{toc}{section}{\quad \: 2.4 \quad Spectrum Sensing}
 \noindent 2.4 \quad Spectrum Sensing
 
-Spectrum sensing is the process of periodically monitoring a specific frequency band to infer the presence or absence of users.  Monitoring is typically performed by a secondary user (SU) to reuse inactive frequencies allocated/licensed to a primary user (PU) \cite{ilyas-16}\cite{liang-20}.  These allocated, inactive areas of a band are referred to as \textit{spectral holes} \cite{ilyas-16}.  In this section, we discuss several detection techniques and the strengths of CSP for spectrum sensing.
+Spectrum sensing is the process of periodically monitoring a specific frequency band to infer the presence or absence of users.  Monitoring is typically performed by a secondary user (SU) to reuse inactive frequencies allocated or licensed to a primary user (PU) \cite{ilyas-16,liang-20}.  These allocated, inactive areas of a band are referred to as \textit{spectral holes} \cite{ilyas-16}.  In this section, we discuss several detection techniques and the strengths of CSP for spectrum sensing.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/spectrum_sensing}
-\caption[Illustration of spectral holes.]{Example of an RF spectrum over time.  PUs occupy various bands according to their allocation.  However, they may not always need to utilize a band at every moment in time.  These gaps in the spectrum use are known as spectral holes.  If a SU can maintain awareness of active PUs, the SU can frequency hop between the holes and dynamically change it is SR based on the current hole's allotted bandwidth.}
+\caption[Illustration of spectral holes.]{Conceptual time--frequency occupancy of five PU bands.  White regions are spectral holes and blue regions indicate normalized PU power.  An SU that maintains awareness of active PUs can hop among these holes and adapt its symbol rate to the currently available bandwidth.}
 \label{fig:spectrum_sensing}
 \end{center}
 \end{figure}
@@ -359,51 +376,51 @@ Spectrum sensing is the process of periodically monitoring a specific frequency 
 %
 \bigskip
 \addcontentsline{toc}{subsection}{\quad 2.4.1 \quad The Binary Hypothesis Test}
-\noindent 2.4.1 \quad The Binary Hypothesis
+\noindent 2.4.1 \quad The Binary Hypothesis Test
 
-Let us consider a SU that is monitoring a narrow RF band for the presence of a PU.  There are two hypotheses: $H_{0}$, the PU is inactive and $H_{1}$, the PU is active \cite{liang-20}.  The received signal is written as,
+Let us consider an SU that is monitoring a narrow RF band for the presence of a PU.  There are two hypotheses: under $H_{0}$, the PU is inactive; under $H_{1}$, the PU is active \cite{liang-20}.  The received signal is written as follows:
 
 \begin{align}
-  &H_{0}:Y(t)=\eta            \label{eq:h0} \\
-  &H_{1}:Y(t)=G(t)*X(t)+\eta  \label{eq:h1}
+  &H_{0}:Y(t)=\eta(t)                 \label{eq:h0} \\
+  &H_{1}:Y(t)=G(t)\ast X(t)+\eta(t), \label{eq:h1}
 \end{align}
 
-\noindent where $X(t)$ denotes the transmitted signal from the primary user, $G(t)$ is the channel response, and $\eta$ is independent and identically distributed (IID) additive Gaussian white noise (AWGN).  According to the binary hypothesis problem, we know that either $H_{0}$ or $H_{1}$ is true.  Our objective is to correctly choose $H_{0}$ or $H_{1}$, based on the samples received \cite{liang-20}.  For every observation we shall define the likelihood of four possible outcomes:
+\noindent where $X(t)$ denotes the transmitted signal from the primary user, $G(t)$ is the channel impulse response, $\ast$ denotes convolution, and $\eta(t)$ is zero-mean additive white Gaussian noise (AWGN) independent of $X(t)$.  In the sampled model used later, $\eta[n]$ is represented by IID Gaussian samples.  Exactly one of $H_{0}$ and $H_{1}$ is true, and the receiver selects a decision $\widehat{H}$ from the observed samples \cite{liang-20}.  The four conditional decision probabilities are
 
 \begin{enumerate}
-\item Probability of Correct Rejection           $P_{cr}                 = P(H_{0}|H_{0})$: $H_{0}$ is true; choose $H_{0}$. \label{eq:Pcr}
-\item Probability of Miss        \hspace{60.0pt} $P_{m} \hspace{-0.05pt} = P(H_{0}|H_{1})$: $H_{1}$ is true; choose $H_{0}$. \label{eq:Pm}
-\item Probability of False Alarm \hspace{25.0pt} $P_{fa}\hspace{-1.85pt} = P(H_{1}|H_{0})$: $H_{0}$ is true; choose $H_{1}$. \label{eq:Pfa}
-\item Probability of Detection   \hspace{37.0pt} $P_{d} \hspace{+3.25pt} = P(H_{1}|H_{1})$: $H_{1}$ is true; choose $H_{1}$. \label{eq:Pd}
+\item\label{eq:Pcr} Probability of correct rejection, $P_{\mathrm{CR}}=\Pr(\widehat{H}=H_{0}\mid H_{0})$: $H_{0}$ is true; choose $H_{0}$.
+\item\label{eq:Pm} Probability of miss, $P_{\mathrm{M}}=\Pr(\widehat{H}=H_{0}\mid H_{1})$: $H_{1}$ is true; choose $H_{0}$.
+\item\label{eq:Pfa} Probability of false alarm, $P_{\mathrm{FA}}=\Pr(\widehat{H}=H_{1}\mid H_{0})$: $H_{0}$ is true; choose $H_{1}$.
+\item\label{eq:Pd} Probability of detection, $P_{\mathrm{D}}=\Pr(\widehat{H}=H_{1}\mid H_{1})$: $H_{1}$ is true; choose $H_{1}$.
 \end{enumerate}
 
-Outcomes $P_{d}$ and $P_{cr}$ correspond to correct choices, while outcomes $P_{m}$ and $P_{fa}$ correspond to erroneous choices.  Each of these four probabilities have a corresponding physical meaning in the context of spectrum sensing:
+Outcomes $P_{\mathrm{D}}$ and $P_{\mathrm{CR}}$ correspond to correct decisions, whereas $P_{\mathrm{M}}$ and $P_{\mathrm{FA}}$ correspond to errors.  If the SU transmits only after deciding $H_0$, these probabilities have the following physical interpretations:
 
 \begin{enumerate}
-\item $P_{cr}$                  defines the likelihood that the SU will transmit.
-\item $P_{m}$  \hspace{-3.0pt} defines the likelihood that the SU will interfere with the PU.
-\item $P_{fa}$ \hspace{-5.00pt} defines the likelihood that the SU will miss an opportunity to transmit.
-\item $P_{d}$  \hspace{+0.05pt} defines the likelihood that the SU will not interfere with the PU.
+\item $P_{\mathrm{CR}}$ is the probability that the SU correctly identifies an idle band and may transmit.
+\item $P_{\mathrm{M}}$ is the probability that the SU declares an occupied band idle and may interfere with the PU.
+\item $P_{\mathrm{FA}}$ is the probability that the SU declares an idle band occupied and forgoes an opportunity to transmit.
+\item $P_{\mathrm{D}}$ is the probability that the SU correctly identifies an active PU and refrains from transmitting.
 \end{enumerate}
 
-In general, a detection method is said to be \textit{optimal} if it achieves the lowest $P_{fa}$ for a given $P_{d}$.  In many physical situations, it is not easy to know the probabilities in advance.  The Neyman-Pearson theorem \cite{liang-20}\cite{vantrees-01} states that we can constrain $P_{fa}$ to maximize the probability of detection with a likelihood ratio defined as
+For simple hypotheses with known conditional densities, the Neyman--Pearson lemma states that a likelihood-ratio test maximizes $P_{\mathrm{D}}$ among tests whose $P_{\mathrm{FA}}$ does not exceed a specified level \cite{liang-20,vantrees-01}.  Let $\mathbf{y}$ denote the observed sample vector.  Its likelihood ratio is
 
 \begin{equation}\label{eq:lr}
-\Lambda(Y(t))=\frac{P_{Y|H_{1}}(Y(t)|H_{1})}{P_{Y|H_{0}}(Y(t)|H_{0})}
+\Lambda(\mathbf{y})=\frac{p(\mathbf{y}\mid H_{1})}{p(\mathbf{y}\mid H_{0})}.
 \end{equation}
 
-\noindent We can compare $\Lambda(Y(t))$ to a threshold $\gamma$ to form a likelihood ratio test \cite{liang-20}\cite{vantrees-01} denoted as
+Comparing $\Lambda(\mathbf{y})$ with a threshold $\gamma$ gives the likelihood-ratio test
 
 \begin{equation}\label{eq:lrt}
-  \Lambda(Y(t)) \underset{H_{0}}{\overset{H_{1}}{\gtrless}} \gamma
+  \Lambda(\mathbf{y}) \underset{H_{0}}{\overset{H_{1}}{\gtrless}} \gamma.
 \end{equation}
 
-\noindent Using the likelihood ratio test, if $\Lambda(Y)$ exceeds $\gamma$, choose $H_{1}$, otherwise choose $H_{0}$ \cite{liang-20}.  Figure \ref{fig:error_probabilities} illustrates this concept:
+If $\Lambda(\mathbf{y})$ exceeds $\gamma$, choose $H_{1}$; otherwise, choose $H_{0}$ \cite{liang-20}.  Figure~\ref{fig:error_probabilities} illustrates this concept:
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/error_probabilities}
-\caption[Illustration of the binary hypothesis.]{Illustration of the binary hypothesis.  The left distribution is the probability that $H_{0}$ will occur.  The right distribution is the probability that $H_{1}$ will occur.  The vertical line in the middle is the decision threshold, $\gamma$.}
+\caption[Illustration of the binary hypothesis test.]{Conditional Gaussian observation densities with equal priors, equal decision costs, common standard deviation $10$, and means $40$ and $60$.  The observation threshold $y_{\mathrm{th}}=50$ corresponds to likelihood-ratio threshold $\gamma=1$ and gives $P_{\mathrm{FA}}=0.1587$ and $P_{\mathrm{D}}=0.8413$.  Shading identifies the four decision regions.}
 \label{fig:error_probabilities}
 \end{center}
 \end{figure}
@@ -415,75 +432,75 @@ In general, a detection method is said to be \textit{optimal} if it achieves the
 \addcontentsline{toc}{subsection}{\quad 2.4.2 \quad Classical Detection Methods}
 \noindent 2.4.2 \quad Classical Detection Methods
 
-There are many spectrum sensing detection methods available.  They are broadly categorized as \textit{cooperative}-- where coordination between many receivers is leveraged to detect a waveform-- or \textit{non-cooperative}-- where the receiver detects based only on what it can sense \cite{ilyas-16}.  In this subsection, we will discuss three non-cooperative methods for detection.
+There are many spectrum-sensing detection methods available.  They are broadly categorized as \textit{cooperative}---where coordination among many receivers is leveraged to detect a waveform---or \textit{non-cooperative}---where the receiver detects based only on what it can sense \cite{ilyas-16}.  In this subsection, we discuss three non-cooperative detection methods.
 
 %
 % 2.4.2.1
 %
 \bigskip
 \addcontentsline{toc}{subsubsection}{\quad 2.4.2.1 \quad Matched Filter Detector}
-\noindent 2.4.2.1  \quad Matched Filter Detector
+\noindent 2.4.2.1 \quad Matched Filter Detector
 
-If we assume the signal source $X(t)$ is deterministic and known to the receiver, then matched filtering is the optimal detection technique \cite{ilyas-16}\cite{liang-20}.  The matched filter, also known as a \textit{coherent detector}, maximizes the signal-to-noise ratio (SNR) by correlating the received signal with the known waveform to determine the presence of the PU.  While this technique performs well with AWGN, in the case of interference from a modulated signal, this technique performs poorly \cite{ilyas-16}.
+For a deterministic signal known to the receiver and observed in AWGN, the matched-filter test is optimal \cite{ilyas-16,liang-20}.  The matched filter maximizes the output signal-to-noise ratio (SNR) by correlating the received signal with the known waveform and is often used within a coherent detector.  Its performance degrades when the received waveform differs from the template or contains unmodeled interference \cite{ilyas-16}.
 
 %
 % 2.4.2.2
 %
 \bigskip
-\addcontentsline{toc}{subsubsection}{\quad 2.4.2.1 \quad Energy Detector}
+\addcontentsline{toc}{subsubsection}{\quad 2.4.2.2 \quad Energy Detector}
 \noindent 2.4.2.2 \quad Energy Detector
 
-If $X(t)$ and $\eta$ are IID, then energy detection is the optimal detection technique.  The energy detector treats $H_{0}$ and $H_{1}$ as varying levels of noise and determines the absence of a PU based on a defined threshold.  This threshold is based on the noise power \cite{ilyas-16}\cite{liang-20}.  If there is no previous knowledge known about the signal source, this detector performs well.  However, it performs poorly when classifying a signal's features, and it is vulnerable to unknown or changing noise levels.
+For a single-antenna sampled model in which the signal and noise samples are IID zero-mean Gaussian random variables and the noise power is known, energy detection is optimal \cite{liang-20}.  The energy detector compares the accumulated received energy with a threshold based on the noise power, declaring a PU present when the threshold is exceeded \cite{ilyas-16,liang-20}.  It is attractive when little prior information about the signal is available, but it does not classify signal features and is vulnerable to unknown or changing noise levels.
 
 %
 % 2.4.2.3
 %
 \bigskip
-\addcontentsline{toc}{subsubsection}{\quad 2.4.2.1 \quad Cyclostationary Feature Detector}
-\noindent 2.4.2.3  \quad Cyclostationary Feature Detector
+\addcontentsline{toc}{subsubsection}{\quad 2.4.2.3 \quad Cyclostationary Feature Detector}
+\noindent 2.4.2.3 \quad Cyclostationary Feature Detector
 
-Cyclostationary feature detectors (CFD) are able to differentiate between a modulated signal and noise, even at very low SNR values \cite{ilyas-16}.  Let us reexamine Equation (\ref{eq:h0}) and Equation (\ref{eq:h1}) using Equation (\ref{eq:koch-sca}):
+A cyclostationary feature detector (CFD) can distinguish a modulated signal from stationary noise by testing for nonzero-cycle features, often at lower SNR than an energy detector can support \cite{ilyas-16}.  Let $Q_Y(\alpha_v,f_k)$ denote either a full-CSD value $S_Y^{\alpha_v}(f_k)$ or the channelized zero-lag CAF quantity $C_Y(\alpha_v,f_k)$ underlying Equation~(\ref{eq:koch-sca}).  For either feature, stationary AWGN gives the idealized population relations
 
 \begin{align}
-  &H_{0}:S_{X}^{v}[k]=0      \label{eq:h0_caf} \\
-  &H_{1}:S_{X}^{v}[k] \neq 0 \label{eq:h1_caf}
+  &H_{0}:Q_{Y}(\alpha_v,f_k)=0, \quad \alpha_v\neq0,                         \label{eq:h0_caf} \\
+  &H_{1}:Q_{Y}(\alpha_v,f_k)\neq0 \quad \text{for some }(\alpha_v,f_k). \label{eq:h1_caf}
 \end{align}
 
-Now $H_{0}$ and $H_{1}$ can now be determined depending only on the CSD amplitude. If $H_{1}$ is nonzero at any $k$ for a fixed $v$, a PU is active and exhibiting cyclostationary behavior of SR $R_{s}=v$.  If $H_{0}$ is true, the PU is not active or not exhibiting cyclostationary behavior of SR $R_{s}=v$. Further, for each fixed $v$, the maximum $k$ corresponds to the PUs CF $f_{c}=k$.  In other words, the CFD allows us to distinguish between modulated signals and noise.
+These equalities describe the ideal nonzero-cycle feature.  A finite-sample estimate $\widehat{Q}_{y}(\alpha_v,f_k)$ is generally not exactly zero under $H_0$ because of estimation variance and spectral leakage, so the decision requires a threshold.  If the statistic exceeds that threshold at any $f_k$ for a fixed $\alpha_v$, the receiver declares cyclostationary behavior at that candidate rate.  Under the assumed M-QAM-SRRC, single-feature model, a uniquely resolved maximizing $f_k$ estimates the PU's center frequency.
 
 %
 % 2.4.3
 %
 \bigskip
-\addcontentsline{toc}{subsubsection}{\quad 2.4.3 \quad Test Statistic and Detection Threshold}
+\addcontentsline{toc}{subsection}{\quad 2.4.3 \quad Test Statistic and Detection Threshold}
 \noindent 2.4.3 \quad Test Statistic and Detection Threshold
 
-There is no information known about the signal to be detected in a spectrum sensing environment, the probability it will be active, or if a signal even exists \cite{liang-20}.  In this case, we cannot use our likelihood ratio developed in Equation (\ref{eq:lr}); instead, we use what is known as a \textit{sufficient statistic}.  The sufficient statistic $l(S_{X}^{v}[k])$, or simply $l$, is a special case of the likelihood ratio that depends explicitly on $S_{X}^{v}[k]$. That is, knowing $l$ is just as good as knowing the likelihood ratio \cite{vantrees-01}.  For hypotheses Equations (\ref{eq:h0_caf}) and Equation (\ref{eq:h1_caf}) this results in the sufficient statistic for each $(v,k)$ point of:
+In a spectrum-sensing environment, the receiver may lack prior information about the signal and its activity probability \cite{liang-20}.  For the illustrative detector used here, define a nonnegative pointwise test statistic $\ell(\widehat{Q}_{y}(\alpha_v,f_k))$, or simply $\ell$, for each candidate $(\alpha_v,f_k)$ pair:
 
 \begin{equation}\label{eq:caf_l}
-  l={|S^{v}_{X}[k]|}^{2}
+  \ell={|\widehat{Q}_{y}(\alpha_v,f_k)|}^{2}.
 \end{equation}
 
-Notice that we still have not developed a threshold $\gamma$.  Intuitively, $\gamma$ should be proportional to the noise power $\sigma^{2}_{\eta}$.  However, it is difficult to acquire noise power in a realistic spectrum sensing environment \cite{liang-20}.  Many test statistics/thresholds have been studied for the CSD.  Here, we will apply one of the simplest thresholds by generating the sufficient statistic of our received signal power and multiplying it by $\beta$.
+The statistic still requires a threshold $\gamma$.  Noise power is difficult to estimate in a realistic spectrum-sensing environment \cite{liang-20}, so this demonstration instead normalizes the threshold to the estimated average received power,
 
 \begin{equation}\label{eq:threshold}
-\sigma^{2}_{\eta}= \frac{1}{N} \sum_{n=0}^{N-1} {|X[n]|}^{2}
+\widehat{P}_{y}= \frac{1}{N} \sum_{n=0}^{N-1} {|y[n]|}^{2}.
 \end{equation}
 
-The threshold is thus $\gamma = \beta\sigma^{4}_{\eta}$, where $\beta$ is a scalar to adjust the sensitivity of false alarm \cite{liang-20}.  The result of our threshold and the sufficient statistic leaves us with the test,
+The empirical threshold is $\gamma=\beta\widehat{P}_{y}^{\,2}$, where the dimensionless scale $\beta$ controls sensitivity.  It is not itself a calibrated false-alarm probability; such calibration would require the statistic's null distribution or Monte Carlo trials.  The resulting test is
 
 \begin{equation}\label{eq:cfd}
-  	{|S^{v}_{X}[k]|}^{2}
-  	\underset{H_{0}}{\overset{H_{1}}{\gtrless}}
-  	\beta \Bigg(\frac{1}{N} \sum_{n=0}^{N-1} {|X[n]|}^{2}\Bigg)^{2}
+  {|\widehat{Q}_{y}(\alpha_v,f_k)|}^{2}
+  \underset{H_{0}}{\overset{H_{1}}{\gtrless}}
+  \beta \Bigg(\frac{1}{N} \sum_{n=0}^{N-1} {|y[n]|}^{2}\Bigg)^{2}.
 \end{equation}
 
-Any cycle frequency with values above the threshold in Equation (\ref{eq:cfd}) is considered a detected waveform SR.  Finally, a peak detection algorithm is employed for each SR to determine the CF of each waveform.  This concept is illustrated in Figure \ref{fig:threshold_3d}.
+Any nontrivial cycle-frequency slice containing a value above the threshold in Equation~(\ref{eq:cfd}) is considered detected.  Under the assumed signal model and a uniquely resolved peak, the largest value within each detected slice estimates its center frequency.  Figure~\ref{fig:threshold_3d} illustrates this rule using a full-CSD estimate, $\widehat{Q}_{y}=\widehat{S}_{Y}$; Chapter III applies it to the channelized statistic $\widehat{Q}_{y}=\widehat{C}_{y}$.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/threshold_3d}
-\caption[Example CSD with threshold.]{The application of Equation (\ref{eq:cfd}) to our waveform $x(t)$ from Figure \ref{fig:2qam_time}.  The sufficient statistic $l$ produces the estimations for each candidate SR.  To differentiate from noise, a threshold $\gamma$ is applied using a $\beta$ of $10^{-2}$.  PSD estimates with values above this threshold are determined to be detected SR slices.  To determine the CF, the index of the peak of each detected SR slice is taken.  The result is a detected waveform with indices $(v,k$), which map to the parameters $(R_{s},f_{c})$.}
+\caption[Full-CSD statistic with threshold.]{Full-CSD test statistic for a received BPSK-SRRC waveform with $R_s=100\text{ kBd}$, $f_c=50\text{ kHz}$, and requested $E_b/N_0=14\text{ dB}$.  The nontrivial cycle-frequency slices are compared with the flat empirical threshold $\gamma=10^{-2}\widehat{P}_y^2$.  Only the $100$-kHz slice exceeds the threshold, and its maximum occurs at $50$ kHz.}
 \label{fig:threshold_3d}
 \end{center}
 \end{figure}

@@ -1,0 +1,26 @@
+# LaTeX build artifacts
+/main.pdf
+/main.aux
+/main.fdb_latexmk
+/main.fls
+/main.lof
+/main.log
+/main.lot
+/main.toc
+/main/main.pdf
+/main/main.aux
+/main/main.bbl
+/main/main.blg
+/main/main.fdb_latexmk
+/main/main.fls
+/main/main.lof
+/main/main.log
+/main/main.lot
+/main/main.toc
+
+# Local review and intermediate outputs
+/tmp/
+/output/pdf/msee-thesis-2021-copyedited.pdf
+/output/pdf/msee-thesis-2021-corrected.pdf
+/output/pdf/msee-thesis-2021-fact-checked.pdf
+/output/pdf/msee-thesis-2021-format-compliant.pdf

@@ -1,78 +1,47 @@
-clear
+clear;
 
-N = 20;
-M = 50;
-z = zeros(N,M);
+% Conceptual time-frequency occupancy map. A value of zero is a spectral
+% hole; positive values denote primary-user activity at normalized power.
+time_s = 0:0.5:50;
+frequency_GHz = 2.40:0.001:2.50;
+power_map = zeros(numel(frequency_GHz), numel(time_s));
 
-view(225,40)
-xlabel('$t (s)$','interpreter','latex')
-ylabel('$f \: (GHz)$','interpreter','latex')
-zlabel('$P_{x}(t,f)$','interpreter','latex')
-xlim([0 M]);ylim([0 N]);zlim([0 1])
-set(gca,'TickLabelInterpreter','latex')
-xticklabels(1:50)
-yticklabels(1:21)
-hold on
-grid on
-set(gcf,'visible','off');
-%%
-z(1,2:35) = ones(length(2:35),1)*0.1;
-h = bar3(z,2); set(gcf,'visible','off');
-recolor_bars(h, '#80B9DE');
-z(1,1:35) = zeros(length(1:35),1);
-%%
-z(6,3:5) = ones(length(3:5),1)*0.2;
-z(6,30:45) = ones(length(30:45),1)*0.2;
-h = bar3(z,3); 
-recolor_bars(h, '#ECA98C');
-z(6,3:5) = zeros(length(3:5),1);
-z(6,30:45) = zeros(length(30:45),1);
-%%
-z(10,1:50) = ones(length(1:50),1)*0.1;
-h = bar3(z,1); set(gcf,'visible','off');
-recolor_bars(h, '#F6D890');
-z(10,1:50) = zeros(length(1:50),1);
-%%
-z(13,2:20) = ones(length(2:20),1)*0.05;
-z(13,45:50) = ones(length(45:50),1)*0.05;
-h = bar3(z,4); set(gcf,'visible','off')
-recolor_bars(h, '#BF97C7');
-z(13,2:20) = zeros(length(2:20),1);
-z(13,45:50) = zeros(length(45:50),1);
-%%
-z(17,15:50) = ones(length(15:50),1)*0.2;
-h = bar3(z,3); set(gcf,'visible','off')
-recolor_bars(h, '#BBD698');
-z(17,15:50) = zeros(length(15:50),1);
-%%
-z(1,50) = ones(length(50),1)/100;
-h = bar3(z,1000); 
-z(1,50) = zeros(length(50),1);
-recolor_bars(h, 'w');
+power_map(frequency_GHz >= 2.404 & frequency_GHz <= 2.414, ...
+    time_s >= 1 & time_s <= 35) = 0.50;
+power_map(frequency_GHz >= 2.426 & frequency_GHz <= 2.436, ...
+    (time_s >= 3 & time_s <= 6) | (time_s >= 30 & time_s <= 45)) = 0.75;
+power_map(frequency_GHz >= 2.446 & frequency_GHz <= 2.456, :) = 0.60;
+power_map(frequency_GHz >= 2.462 & frequency_GHz <= 2.472, ...
+    (time_s >= 2 & time_s <= 20) | (time_s >= 44 & time_s <= 50)) = 0.40;
+power_map(frequency_GHz >= 2.484 & frequency_GHz <= 2.494, ...
+    time_s >= 14) = 0.90;
 
-print('../plots/spectrum_sensing', '-dpng')
+[fig, colors] = thesis_figure();
+ax = axes(fig);
+imagesc(ax, time_s, frequency_GHz, power_map);
+axis(ax, 'xy');
 
-%% Local Functions
-function recolor_bars(h, hex_color)
-    cm = get(gcf,'colormap');
-    cnt = 0;
-    for jj = 1:length(h)
-        xd = get(h(jj),'xdata');
-        yd = get(h(jj),'ydata');
-        zd = get(h(jj),'zdata');
-        delete(h(jj))    
-        idx = [0;find(all(isnan(xd),2))];
-        if jj == 1
-            S = zeros(length(h)*(length(idx)-1),1);
-            dv = floor(size(cm,1)/length(S));
-        end
-        for ii = 1:length(idx)-1
-            cnt = cnt + 1;
-            S(cnt) = surface(xd(idx(ii)+1:idx(ii+1)-1,:),...
-                             yd(idx(ii)+1:idx(ii+1)-1,:),...
-                             zd(idx(ii)+1:idx(ii+1)-1,:),...
-                             'facecolor',cm((cnt-1)*dv+1,:));
-        end
-    end
-    set(S(:,1),'facecolor', hex_color)
-end
+% A single perceptually ordered palette keeps unused spectrum white and
+% active users within the thesis blue color family.
+num_colors = 256;
+color_map = [ ...
+    linspace(1, colors.blue(1), num_colors).', ...
+    linspace(1, colors.blue(2), num_colors).', ...
+    linspace(1, colors.blue(3), num_colors).'];
+colormap(ax, color_map);
+clim(ax, [0, 1]);
+
+xlabel(ax, 'Time, $t$ (s)');
+ylabel(ax, 'Frequency, $f$ (GHz)');
+title(ax, 'Primary-user occupancy and spectral holes');
+xlim(ax, [time_s(1), time_s(end)]);
+ylim(ax, [frequency_GHz(1), frequency_GHz(end)]);
+xticks(ax, 0:10:50);
+yticks(ax, 2.40:0.02:2.50);
+
+cb = colorbar(ax);
+cb.Label.String = 'Normalized power spectral density';
+cb.Label.Interpreter = 'latex';
+cb.TickLabelInterpreter = 'latex';
+
+thesis_export(fig, 'spectrum_sensing');

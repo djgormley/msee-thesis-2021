@@ -7,7 +7,8 @@
   left   = 1.5in,
   top    = 1in,
   bottom = 1in,
-  right  = 1in
+  right  = 1in,
+  footskip = 0.5in
   ]{geometry} % csu margins
 
 \usepackage{amssymb} % under/overset
@@ -21,6 +22,9 @@
 \usepackage{subcaption, multicol} % figures in columns
 \usepackage{float} % [H]
 \usepackage{anyfontsize} % fractional font sizes
+\usepackage{tabularx} % wrapped, full-width tables
+  \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+  \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 % used to put code in appendix
 \usepackage[table, dvipsnames]{xcolor}
@@ -28,19 +32,21 @@
   \definecolor{gray}   {rgb}{0.5,  0.5, 0.50}
   \definecolor{mauve}  {rgb}{0.58, 0.0, 0.82}
 \usepackage{listings}
+\usepackage{upquote}
   \lstset{
     frame             = tb,
   	language          = Matlab,
   	aboveskip         = 3mm,
   	belowskip         = 3mm,
-  	showstringspaces  = false,
+    showstringspaces  = false,
+    upquote           = true,
   	columns           = flexible,
-  	basicstyle        = {\small\ttfamily},
+	  basicstyle        = {\ttfamily},
   	numbers           = none,
-  	numberstyle       = \tiny\color{gray},
-  	keywordstyle      = \color{blue},
-  	commentstyle      = \color{dkgreen},
-  	stringstyle       = \color{mauve},
+	  numberstyle       = \color{black},
+	  keywordstyle      = \bfseries\color{black},
+	  commentstyle      = \itshape\color{black},
+	  stringstyle       = \color{black},
   	breaklines        = true,
   	breakatwhitespace = true,
   	tabsize           = 3
@@ -52,6 +58,10 @@
 \usepackage{tocloft}
 \renewcommand*{\cftchapfont}{\normalfont}
 \renewcommand{\cftchapleader}{\cftdotfill{\cftsecdotsep}}
+\renewcommand{\cfttabaftersnum}{.}
+\renewcommand{\cftfigaftersnum}{.}
+\setlength{\cfttabnumwidth}{3em}
+\renewcommand{\thetable}{\Roman{table}}
 
 % override default toc title with csu format
 \setlength{\cftbeforetoctitleskip}{-3em}
@@ -86,7 +96,7 @@
 % override default bib title with csu format
 \usepackage[square,numbers,sort&compress]{natbib}
 %\usepackage{natbib}
-  \bibliographystyle{unsrtnat}
+  \bibliographystyle{plainnat}
 \newcommand{\mybibname}{REFERENCES}
 \renewcommand\bibsection{%
    \clearpage
@@ -96,32 +106,47 @@
    \markboth{\MakeUppercase{\mybibname}}{\MakeUppercase{\mybibname}}%
   }
 
+% Center page numbers on the physical sheet rather than in the asymmetric
+% text block. The 0.5in correction is divided by the surrounding stretch.
+\makeatletter
+\def\ps@plain{%
+  \let\@mkboth\@gobbletwo
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \def\@oddfoot{\reset@font\hspace*{-0.5in}\hfil\thepage\hfil}%
+  \let\@evenfoot\@oddfoot
+}
+\makeatother
+
 \begin{document}
 \makeatletter
 
 % frontmatter
 \newpage
 \pagenumbering{roman}
+\pagestyle{empty}
 \input{../sections/titlepage}
 \input{../sections/copyright}
 \input{../sections/approval}
 \input{../sections/dedication}
 \input{../sections/acknowledgment}
 
+\pagestyle{plain}
 \addtocontents{toc}{~\hfill Page \par}
 \input{../sections/abstract}
+\makeatother
 
 \newpage
 \tableofcontents
 
 \newpage
 \addcontentsline{toc}{chapter}{LIST OF TABLES}
-\addtocontents{lot}{~\hfill Page \par}
+\addtocontents{lot}{\protect\noindent Table\hfill Page\par}
 \listoftables
 
 \newpage
 \addcontentsline{toc}{chapter}{LIST OF FIGURES}
-\addtocontents{lof}{~\hfill Page \par}
+\addtocontents{lof}{\protect\noindent Figure\hfill Page\par}
 \listoffigures
 
 % mainmatter
@@ -147,7 +172,7 @@
   \bibliography{../sections/references}%
 }
 
-\newpage
+\input{../sections/appendix}
 \input{../sections/appendix_a}
 \input{../sections/appendix_b}
 %\input{../sections/appendix_c}

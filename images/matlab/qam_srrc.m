@@ -1,63 +1,72 @@
-clear
+%% CSD estimates for square-root-raised-cosine M-QAM waveforms
 
-% Initialize Parameters
-Nbits  = 400;
-Rs     = 0.1;
-Ts     = 1/Rs;
-Fs     = 1.0;
-fc     = 0.05;
-Nlags  = 15;
+clear;
+rng(11,'twister');
+
+Nsymbols = 400;
+Rs = 0.1;               % Symbol rate (MBd)
+Fs = 1;                 % Sample rate (samples/us, numerically MHz)
+fc = 0.05;              % Positive center frequency (MHz)
+Nlags = 15;
 Nfreqs = 128;
-alpha  = (0:Rs:Fs/2)/Fs;
-Ncf    = length(alpha);
+smoothing_length = 8;
+alpha = 0:Rs:Fs/2;      % Cycle frequencies in MHz
+Ncf = numel(alpha);
 
-Rolloff = 1.0;
-span    = 6;
-SPS     = Fs/Rs;
-h       = rcosdesign(Rolloff,span,SPS)';
+rolloff = 1;
+span = 6;
+SPS = Fs/Rs;
+assert(abs(SPS-round(SPS)) < eps(Fs));
+SPS = round(SPS);
+h = rcosdesign(rolloff,span,SPS,'sqrt').';
+f = (-Nfreqs/2:Nfreqs/2-1)*(Fs/Nfreqs);
 
-Nsyms = Nbits*SPS+length(h)-SPS;
-n     = (0:Nsyms-1)';
-lo    = exp(-1j*2*pi*fc/Fs*n);
-%% 
-% M-QAM
+[fig, colors] = thesis_figure();
+layout = tiledlayout(fig,2,2,'TileSpacing','compact','Padding','compact');
+plot_colors = [colors.blue;colors.orange;colors.green;colors.purple];
 
-Ni = 4;
-for i = 1:Ni
+for i = 1:4
     M = 2^i;
-    
-    % generate mod syms
-    d = randi([0 M-1],Nbits,1);
-    syms_bb = qammod(d,M);
+
+    d = randi([0 M-1],Nsymbols,1);
+    syms_bb = qammod(d,M,'UnitAveragePower',true);
     syms_srrc = upfirdn(syms_bb,h,SPS);
-    syms_pb = syms_srrc.*lo;
+    n = (0:numel(syms_srrc)-1)';
+    syms_pb = syms_srrc.*exp(1j*2*pi*(fc/Fs)*n);
+    syms_pb = syms_pb/sqrt(mean(abs(syms_pb).^2));
+    assert(abs(mean(abs(syms_pb).^2)-1) < 1e-12);
 
-    % normalize such that the peak tx power is mag 1
-    norm_factor = modnorm(syms_pb,'peakpow',1);
-    syms_pb     = syms_pb*norm_factor;
-    
-    % calc scf
-    Sa = zeros(Ncf,Nfreqs);
-    Saf = (-Nfreqs/2:Nfreqs/2-1)'*(Fs/Nfreqs);
-    
+    % Estimate the symmetric CAF without amplitude-normalizing away its
+    % physical scale, then Fourier-transform along the lag dimension.
+    Ra = zeros(Ncf,2*Nlags+1);
     for k = 1:Ncf
-        % Symmetric half-alpha shifts (Optimized)
-        kernel_A = exp(-1j * pi * alpha(k) / Fs * n);
-        Ra = xcorr(syms_pb .* kernel_A, syms_pb .* conj(kernel_A), Nlags, 'normalized');    
-        
-        % Calculate complex spectrum (abs removed)
-        Sa(k,:) = fftshift(fft(Ra, Nfreqs));
+        half_shift = exp(-1j*pi*(alpha(k)/Fs)*n);
+        Ra(k,:) = xcorr(syms_pb.*half_shift, ...
+            syms_pb.*conj(half_shift),Nlags,'biased').';
     end
+    % Embed lag zero, positive lags, and negative lags at their proper
+    % circular indices before the longer DFT.  This preserves phase for
+    % the complex frequency smoother that follows.
+    Ra_padded = complex(zeros(Ncf,Nfreqs));
+    Ra_padded(:,1:Nlags+1) = Ra(:,Nlags+1:end);
+    Ra_padded(:,end-Nlags+1:end) = Ra(:,1:Nlags);
+    CSD_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
+    CSD = circular_movmean(CSD_raw,smoothing_length,2);
 
-    subplot(Ni-2,2,i)
-    % Take absolute magnitude here for visualization
-    waterfall(Saf,alpha,abs(Sa));
-    colormap([0 0 0])
-    view(225,15)
-    title([num2str(M) '-QAM-SRRC'],'interpreter','latex')
-    xlabel('$f \: (MHz)$','interpreter','latex')
-    ylabel('$\alpha \: (MHz)$','interpreter','latex')
-    zlabel('$S_{x}^{\alpha}(f)$','interpreter','latex')
-    set(gca,'TickLabelInterpreter','latex')
+    [~,symbol_rate_index] = min(abs(alpha-Rs));
+    [~,carrier_index] = max(abs(CSD(symbol_rate_index,:)));
+    assert(abs(f(carrier_index)-fc) <= Fs/Nfreqs);
+
+    ax = nexttile(layout);
+    surface_handle = waterfall(ax,f,alpha,abs(CSD));
+    set(surface_handle,'EdgeColor',plot_colors(i,:), ...
+        'FaceColor','none','LineWidth',0.75);
+    view(ax,225,20);
+    title(ax,sprintf('%d-QAM-SRRC',M));
+    xlabel(ax,'$f\ (\mathrm{MHz})$');
+    ylabel(ax,'$\alpha\ (\mathrm{MHz})$');
+    zlabel(ax,'$|\widehat{S}_{x}^{\alpha}(f)|$');
+    xlim(ax,[f(1),f(end)]);
 end
-print('../plots/qam_srrc', '-dpng')
+
+thesis_export(fig,'qam_srrc');

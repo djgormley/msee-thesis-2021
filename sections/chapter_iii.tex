@@ -1,8 +1,8 @@
 \newpage
-\addcontentsline{toc}{chapter}{\quad \: III \hspace{5pt} IMPLEMENTATION}
+\addcontentsline{toc}{chapter}{\quad \: III. \hspace{5pt} IMPLEMENTATION}
 
 \begin{center}
-  \vspace*{1.75in}
+  \vspace*{1.65in}
   CHAPTER III\\
   IMPLEMENTATION
 \end{center}
@@ -10,9 +10,9 @@
 % background intro
 \bigskip
 
-Our goal is to have the ability to perform spectrum sensing with an on-orbit CubeSat CR.  To accomplish this, the CR must detect all waveform SRs and CFs for a received band.  To differentiate these detected waveforms from noise, CFD is used.  CFD can be realized using what is known as an \textit{SCA}.  Currently, SCAs are deployed for terrestrial applications.  SCAs are computationally complex, so many FFTs are leveraged to increase performance.  Each FFT needs BRAM for both the input and output equal to the number of frequencies $N$ to be evaluated, resulting in high-BRAM use of $4N$.  This high memory use is acceptable for terrestrial receivers, where memory is cheap and plentiful.  In space, however, resources are minimal.  
+This work studies spectrum sensing for a prospective CubeSat cognitive radio (CR).  Within the deliberately limited M-QAM-SRRC model used in this thesis, the receiver searches a specified grid of candidate symbol rates (SRs) and center frequencies (CFs) and uses cyclostationary feature detection (CFD) to distinguish modeled signals from noise.  A spectral correlation analyzer (SCA) can realize this detector.  Conventional FFT-based SCAs obtain high throughput by evaluating many spectral channels in parallel.  Their implementations buffer blocks of complex samples and intermediate transform results, so storage grows with both the capture length and the number of retained channels.  This memory can compete with limited on-chip FPGA block RAM (BRAM) in a CubeSat-class implementation.
 
-Since BRAM is overwhelmingly the limiting factor preventing the application of an SCA onto a CubeSat CR, if we can design an SCA with a low reliance on BRAM, we can perform spectrum sensing on-orbit.  Time-domain processing reduces performance but allows for pipelined sample-by-sample processing techniques.  To offset this speed reduction, instead of detecting all cyclic frequencies for all waveforms, we limit our application to only detect the SR and CF of M-QAM-SRRC waveforms.  For this blind SR-CF estimator, we borrow the communications term \textit{streaming}.  Thus, this design will be referred to as the \textit{streaming-SCA}.
+BRAM capacity is therefore a central design constraint.  Reducing buffered storage improves fit within on-chip memory, while sample-by-sample time-domain processing trades the parallel throughput of an FFT-based analyzer for a deeply pipelined data path.  To limit the resulting search time, the application is restricted to detecting the SR and CF of M-QAM-SRRC waveforms rather than estimating every cyclic feature of an arbitrary waveform.  For this blind SR--CF estimator, we borrow the communications term \textit{streaming}.  Thus, this design will be referred to as the \textit{streaming SCA}.  It is an FPGA architecture study, not a flight-qualified implementation.
 
 
 \clearpage
@@ -24,52 +24,52 @@ Since BRAM is overwhelmingly the limiting factor preventing the application of a
 \addcontentsline{toc}{section}{\quad \: 3.1 \quad Motivation}
 \noindent 3.1  \quad Motivation
 
-Traditional orbital architectures use either a single satellite or a constellation of satellites.  Modern satellites increasingly use distributed orbital architectures such as fractionated, clustered, and trailing formations.  These architectures operate using many coordinated small satellites instead of one large satellite.  The launch of these small satellites, particularly CubeSats becoming increasingly common  \cite{bandyopadhyay-15}.  
+Orbital systems may use a single spacecraft, a constellation, or a distributed architecture such as a fractionated, clustered, or trailing formation.  Distributed architectures coordinate multiple spacecraft, and CubeSats are one relevant small-spacecraft platform \cite{bandyopadhyay-15}.
 
-As space becomes more crowded with CubeSats that utilize crosslink and relay technology, the notion of inter-satellite interference is quickly realized as a concern.  As with terrestrial applications, spectrum sensing is an efficient, low-cost technique to detect and avoid interference automatically.
+Crosslinks and relays create operating scenarios in which inter-satellite interference may need to be monitored.  Spectrum sensing is one candidate mechanism for detecting occupied channels and informing an interference-avoidance response.
 
-As discussed in the previous chapter, SCAs are a fast, reliable, and effective method to perform spectrum sensing \cite{spooner-92}.  One significant weakness of SCAs, as noted in \cite{spooner-92}\cite{liang-20}, is the requirement of large sample sizes, and therefore a large amount of memory to store those samples.  The ability to quickly perform CFD is due to the high utilization of the memory-intensive FFT.  
+As discussed in the previous chapter, SCAs estimate cyclic spectral structure that can be used for spectrum sensing \cite{spooner-92}.  Several efficient digital SCA realizations use FFTs, sample blocks, and intermediate arrays whose storage requirements can be substantial \cite{spooner-92,liang-20}.
 
-For example, if we evaluate the SSCA \cite{spooner-92} for a complex-valued sample with a bit-width of $32b$ and $2^{16}$-point FFTs, we find that we need at least $67Mb$ of memory per cycle frequency evaluated.  Evaluating an nominal CubeSat CR FPGA's resources, the xc7z045fbg676-1, we find that it has $19.2Mb$ of BRAM-- far below the SSCA's memory requirement of $67Mb$.  Thus, a low-memory SCA is in need of design.
+For a concrete scaling example, an SSCA intermediate array with $N=2^{16}$ time samples and $N_p=32$ retained frequency channels contains $NN_p$ complex words \cite{spooner-92}.  At $16$ bits for each in-phase and quadrature component, or $32$ bits per complex word, that array alone requires $2^{16}\times32\times32=67{,}108{,}864$ bits, or $67.1\text{ Mbit}$, before control and buffering overhead.  The recovered 2021 component design reports and project-recreation scripts consistently identify the intended development platform as a ZedBoard with an XC7Z020CLG484-1.  That device provides $4.9\text{ Mbit}$ of block RAM \cite{xilinx-ds190}, so this particular array would not fit wholly in its BRAM without reducing the stored data or changing the architecture.  This establishes the documented component-development target; it does not establish the provenance of the experiment-level resource counts in Chapter IV, whose top-level synthesis report is unavailable.
 
 % 3.2
 %
 \bigskip
-\addcontentsline{toc}{section}{\quad \: 3.2 \quad The Streaming-SCA}
-\noindent 3.2  \quad The Streaming-SCA
+\addcontentsline{toc}{section}{\quad \: 3.2 \quad The Streaming SCA}
+\noindent 3.2  \quad The Streaming SCA
 
-Let us assume that we wish to sense the waveforms present in a channel.  As discussed in Chapter II, the CAF-DFT SCA is desirable because it does not rely on the FFT.  In order to create a design that will fit onto a CubeSat CR, we will alter the CAF-DFT such that it:
+Let us assume that we wish to sense modeled waveforms present in a channel.  As discussed in Chapter II, the single-term CAF-DFT form can evaluate selected frequency candidates without a block FFT.  To create a low-memory design suitable for evaluation on the selected FPGA, we alter the CAF-DFT such that it:
 
 \begin{itemize}
-\item Evaluates only one pipelined $(v,k)$ pair at a time, called a point.  This is equivalent to one branch in Figure \ref{fig:koch_sca}.  If our SCA is well designed, branches are reconfigurable such that if extra resources are available on the platform, many instances can be used in parallel.
+\item Evaluates only one pipelined $(v,k)$ pair at a time, called a point.  This is equivalent to one branch in Figure~\ref{fig:koch_sca}.  If our SCA is well designed, the branches can be reconfigured so that multiple instances can be used in parallel when the platform has extra resources.
 
-\item Utilizes a minimum amount of BRAM.  The CAF-DFT stores samples from the analog to digital converter (ADC) into BRAM.  This is done to ensure every evaluation of a $(v,k)$ pair is consistent when processed.  For this design, we continuously acquire data directly from the ADC.  Sample-by-sample acquisition risks inconsistency from one $(v,k)$ to another, but as long as a signal is reasonably stable, this offers a massive savings of our CRs resources.
+\item Avoids a full-capture BRAM buffer.  A block-based realization buffers a capture so that every $(v,k)$ pair is evaluated on the same samples.  This design instead accepts a continuous input sample stream without retaining the full capture; ADC interfacing is outside the module.  Consequently, different candidate pairs can observe different time intervals, but the design reduces buffered storage when the signal is sufficiently stable over the search.
 
-\item Is designed for FPGA use.  FPGAs offer greater SWaP efficiency, higher determinism and are more resilient in space environments.
+\item Targets FPGA implementation so that the estimator can use deterministic pipelines and configurable parallelism within the platform's resource budget.  FPGA implementation alone does not establish radiation tolerance; device qualification and mitigation are separate design considerations.
 
-\item Does not evaluate the trivial case of $v=0$, which is the spectral density of the conventional AF.
+\item Does not evaluate the zero-cycle-frequency case $\alpha=0$, which corresponds to the ordinary PSD rather than a nontrivial cyclostationary feature.
 
-\item Uses a fixed lowpass-filter (LPF) width of $2$, corresponding to taps $[0.5,0.5]$.  The CAF-DFT utilizes a filter that dynamically changes with $v$.  On an FPGA, this overhead is expensive, and therefore only $2$ taps are used for the streaming-SCA.
+\item Uses a fixed two-tap low-pass filter (LPF), corresponding to taps $[0.5,0.5]$.  Koch's evaluated carrier-frequency detector systematically shifts each segment, dynamically configures the LPF bandwidth to the target symbol rate, and evaluates the CAC at that rate \cite{koch-19}.  The streaming design is a serial hardware adaptation of that sweep; to avoid a reconfigurable coefficient bank, it uses the same two coefficients for every candidate.
 \end{itemize}
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/qam_srrc_rs}
-\caption[Example CSD using the CAF-DFT SCA.]{In this example we reproduce Figure \ref{fig:koch_sca}, with the additional restrictions discussed above.  We find that the peak of $(v,k)$ perfectly matches the true SR and CF of $x(t)$ from Figure \ref{fig:2qam_time}.  Moreover, the peak exceeds the threshold $\gamma = \beta\sigma^{4}_{\eta}$, resulting in correct detection.}
+\caption[Streaming SCA detections for two M-QAM-SRRC signals.]{Streaming SCA test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ for two M-QAM-SRRC signals in a shared noise floor.  The transmitted parameter pairs are $(R_s,f_c)=(100\text{ kBd},50\text{ kHz})$ and $(200\text{ kBd},100\text{ kHz})$.  Both pairs lie on the estimator grid, both row maxima recover the transmitted CF, and both exceed the constant threshold $\gamma=\beta\widehat{P}_{y}^{2}$ with $\beta=10^{-3}$.  Green markers indicate the detected row maxima.}
 \label{fig:qam_srrc_rs}
 \end{center}
 \end{figure}
 
-The streaming-SCA was modeled in MATLAB to produce Figure \ref{fig:qam_srrc_rs}.  We find that the streaming-SCA produces the same results as the TSM-SCA shown in Figure \ref{eq:qam_general} with a scaling factor.  The scaling results from the design choice to ensure the maximum possible value is never above one.  This is necessary to prevent overflow in our digital design.  MATLAB code for the streaming-SCA is provided in Appendix A.
+The streaming SCA was modeled in MATLAB to produce Figure~\ref{fig:qam_srrc_rs}.  The two generated components are scaled so that a single receiver-noise realization gives the requested $E_b/N_0$ values of $14$ dB and $9$ dB.  A common automatic-gain-control (AGC) scale factor then limits the composite waveform without changing either component's carrier-to-noise ratio.  On the $10$ kHz CF grid, the row maxima occur at the transmitted CFs of $50$ kHz and $100$ kHz; their test-statistic-to-threshold ratios are $9.41$ and $2.16$, respectively.  These numerical values are reproducible because the model fixes its random-number seed.  The executable MATLAB model is imported directly in Appendix A.
 
-In exchange for this low-memory utilization, the processing time is increased.  This amounts to a design trade-- parameters are determined depending on the SU's allotted time to move away from the PU.  Delay is proportional to:
+In exchange for this low memory use, the processing time is increased.  With one $(v,k)$ point evaluated at a time, no backpressure, and a sustained rate of one valid sample per clock, an exhaustive search over $N_v$ SR candidates and $N_k$ CF candidates requires approximately $NN_vN_k$ sample clocks, in addition to pipeline and control overhead.  For fixed search spans, the processing delay therefore increases with capture length and with the number of candidates:
 
 \begin{itemize}
-\item SR step size--  A larger step size increases processing speed, but also increases $P_{m}$.
+\item SR step size: A smaller step produces more SR candidates and a longer search, whereas a larger step coarsens the grid and can increase parameter mismatch.
 
-\item CF step size--  A larger step size increases processing speed, but also increases $P_{m}$.
+\item CF step size: A smaller step produces more CF candidates and a longer search, whereas a larger step coarsens the grid and can increase parameter mismatch.
 
-\item Sample size--  A smaller sample size increases processing speed, but also increases $P_{m}$ and $P_{fa}$.
+\item Capture length $N$: A larger capture takes longer to process but provides a longer observation interval; a smaller capture reduces delay at the cost of a less stable finite-record estimate.
 \end{itemize}
 
 %---------------------------------------------------------
@@ -80,24 +80,29 @@ In exchange for this low-memory utilization, the processing time is increased.  
 \addcontentsline{toc}{section}{\quad \: 3.3 \quad Digital Design}
 \noindent 3.3  \quad Digital Design
 
-To describe the implement of the streaming-SCA as a digital circuit, we will walk through each component and its subcomponents.  This design uses no third-party intellectual property, which improves platform portability, reconfigurability, transparency of operation, and troubleshooting.  There are minor references to VHDL functions, such as \texttt{resize()}, however, this chapter is intended to be language agnostic.
+To describe the implementation of the streaming SCA as a digital circuit, we will walk through each component and its subcomponents.  The documented signal-processing datapath uses custom VHDL modules rather than a vendor FFT core.  MATLAB and Xilinx Vivado were nevertheless used for modeling and implementation, and inferred device resources can affect portability.  The tables summarize the configured documentation interface rather than reproducing every literal entity generic or port name; in particular, some propagation-only width and latency generics are omitted, and several arithmetic names are shortened.  The port tables retain the RTL's ready/valid names, but the recovered modules form fixed-latency pipelines rather than a fully elastic ready/valid interface: several data paths and state machines do not stall when \texttt{SampleOutReady} is low.  The characterization therefore assumes continuous, non-backpressured operation with one valid sample per clock and the downstream path held ready.  Supporting arbitrary bubbles or backpressure requires revised control logic and re-verification.
+
+The recovered archive does not contain the exact thesis-era source revision.  Its Git index identifies the later revision \texttt{1972ccba} from July 5, 2022, but the extracted worktree contains tracked divergences and its pre-clone Git object pack is missing, preventing reconstruction of the 2021 history.  A contemporaneous CFE design report explicitly documents a two-tap configuration in which \texttt{TAP\_COUNT=2} produces the coefficients $[0.5,0.5]$.  By contrast, the active later source uses a 41-tap, 128-bank filter.  The archive therefore substantiates the thesis configuration's design intent but cannot establish bit-true conformance of the historical VHDL.  It also contains a later, incomplete top-level wrapper with an FFT-based symbol-rate preprocessor; that unfinished development branch is outside the implementation characterized here.  The discussion occasionally refers to VHDL functions, such as \texttt{resize()}; however, the signal-processing description is otherwise language-agnostic.
 
 %
 % 3.3.1
 %
-\bigskip
+\medskip
 \addcontentsline{toc}{subsection}{\quad 3.3.1 \quad Center Frequency Estimator}
 \noindent 3.3.1  \quad Center Frequency Estimator
 
 % the purpose of the module
-The purpose of the center frequency estimator (CFE) is to produce a sufficient statistic distribution for each SR, CF candidate.  This module produces the estimate of a $(v,k)$ pair, which maps to some $(R_{s},f_{c})$.  Mathematically, this module corresponds to Equation (\ref{eq:koch-sca}), rewritten below, for some $X,v,k,n,$.
+The purpose of the center frequency estimator (CFE) is to produce a test-statistic surface over the SR--CF candidates.  Let $v$ and $k$ index user-defined candidate arrays with physical frequencies $\alpha_v$ and $f_k$, respectively.  For an input sequence $x[n]$, define
 
 \begin{equation*}
-S_{X}^{v}[k] = \frac{1}{N} \sum_{n=0}^{N-1} {|(X[n]e^{-j2\pi kn})*h[n]|}^{2} e^{-j2\pi vn}
+z_k[n]=\left[\left(x[\cdot]e^{-j2\pi f_k(\cdot)/F_s}\right)\ast h[\cdot]\right][n],
+\qquad
+\widehat{C}_{x}(\alpha_v,f_k)=\frac{1}{N}\sum_{n=0}^{N-1}|z_k[n]|^{2}e^{-j2\pi\alpha_v n/F_s}.
 \end{equation*}
 
-The mixer is controlled by $FCW_{k}$, corresponding to the heterodyned expression $X[n]e^{-j2\pi kn}$.  Next, a LPF module smooths the mixed signal with the fixed taps $[0.5, 0.5]$, corresponding to the channelized expression $(X[n]e^{-j2\pi kn})*h[n]$.  After this, the CAF is applied, corresponding to the CFE equation \\
-$S_{X}^{v}[k] = \frac{1}{N} \sum_{n=0}^{N-1} {|(X[n]e^{-j2\pi kn})*h[n]|}^{2} e^{-j2\pi vn}$.  Lastly, the magnitude squared is calculated, resulting in one poiny of the sufficient statistic summation $l={|S^{v}_{x}[k]|}^{2}$ for one set of $X,v,k,n$ values.  
+The center-frequency control word configures a downconverting local oscillator for the factor $e^{-j2\pi f_k n/F_s}$.  Next, in the thesis configuration, an LPF module smooths the mixed signal with the fixed taps $[0.5,0.5]$.  The SRE then evaluates the zero-lag CAF coefficient $\widehat{C}_{x}(\alpha_v,f_k)=\widehat{R}_{z_k}^{\alpha_v}[0]$, and the final magnitude-squared operation produces one point of the test statistic, $T_x(v,k)=|\widehat{C}_{x}(\alpha_v,f_k)|^{2}$.  Thus, $v$ and $k$ are candidate-array indices rather than frequencies themselves.  As explained in Chapter II, $\widehat{C}_{x}$ is a filter-localized cyclic statistic, not literally the CSD value at $f_k$.
+
+For a $W$-bit phase accumulator, a requested frequency $f$ is represented by the integer frequency-control word $\operatorname{round}(2^{W}f/F_s)$, modulo $2^{W}$, so the frequency quantum is $F_s/2^{W}$ and nearest-word error is at most half that quantum.  In the thesis configuration, $W=16$ and $F_s=1\text{ MHz}$, giving a quantum of approximately $15.26\text{ Hz}$.  The center-frequency port is signed to represent the range $-F_s/2$ through $F_s/2-F_s/2^W$.  The symbol-rate port is declared unsigned, but the surviving SRE passes its bit pattern to a signed NCO input; therefore only codes below $2^{W-1}$ retain a positive signed interpretation, while the $2^{W-1}$ code represents the equivalent Nyquist endpoint $-F_s/2$.  The searches in this thesis request rates no greater than $F_s/2$.  Although the RTL exposes width and lookup-phase generics, literal mixer bit slices mean the surviving implementation only evidences the $W=16$ configuration, and the lookup-phase generic is unused.  If the cycle-frequency candidates are restricted to an $N$-point DFT grid, MATLAB's one-based index satisfies $\alpha_v=(v-1)F_s/N$; the hardware frequency-control word also permits candidates that are not on that grid, subject to its quantization.
 
 \begin{figure}[H]
 \begin{center}
@@ -116,46 +121,49 @@ $S_{X}^{v}[k] = \frac{1}{N} \sum_{n=0}^{N-1} {|(X[n]e^{-j2\pi kn})*h[n]|}^{2} e^
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the CFE module.}
-\begin{tabular}[width=\textwidth]{|l|l|l|p{0.4\linewidth} |}
+\caption{Configured CFE interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES         & Generic & natural & Number of samples accumulated. \\
+N\_SAMPLES         & Generic & natural & Requested length; ignored by the accumulator. \\
 \hline
-BIT\_WIDTH         & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
 Clock              & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset              & Input & std\_logic & Asynchronous reset. \\
+Reset              & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady     & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
-SampleInLast       & Input & std\_logic & Delineates between CF, SR pairs being processed. \\
+SampleInLast       & Input & std\_logic & Marks boundaries between CF-SR pairs being processed. \\
 \hline
-CenterFrequencyFcw & Input & signed(16) & CF to estimate. \\
+CenterFrequency\newline Fcw & Input & signed(15 downto 0) & Signed 16-bit CF control word. \\
 \hline
-SymbolRateFcw      & Input & signed(16) & SR to to estimate. \\
+SymbolRateFcw      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady      & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid     & Output & std\_logic & High when output is valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & Delineates between CF, SR pairs being processed. \\
+SampleOutLast      & Output & std\_logic & Marks boundaries between CF-SR pairs being processed. \\
 \hline
-OverflowStatus     & Output & std\_logic\_vector(4) & [3]: CF mixer I \newline [2]: CF mixer Q \newline [1]: SR mixer I \newline [0]: SR mixer Q \\
+OverflowStatus     & Output & std\_logic\_vector(3 \newline downto 0) & [3]: CF mixer I \newline [2]: CF mixer Q \newline [1]: SR mixer I \newline [0]: SR mixer Q \\
 \hline
-SampleOut          & Output & signed(BIT\_WIDTH) & Real-valued result. \\
+SampleOut          & Output & unsigned(\newline 2*BIT\_WIDTH-1 \newline downto 0) & Nonnegative magnitude-squared result. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -167,14 +175,13 @@ SampleOut          & Output & signed(BIT\_WIDTH) & Real-valued result. \\
 \noindent 3.3.2  \quad Symbol Rate Estimator
 
 % purpose
-The purpose of the SR estimator (SRE) is to estimate the correlation between a waveform and the SR cycle frequency $v$.  Mathematically, this module corresponds to the CAF equation evaluated at $\tau=0$.
+The purpose of the SR estimator (SRE) is to estimate the correlation between a waveform and the candidate SR cycle frequency $\alpha_v$.  Up to the fixed-point scaling and archived accumulator limitations described in Section~3.3.9, the target computation is the finite-record CAF estimate evaluated at $\tau=0$:
 
 \begin{equation*}
-R_{X}^{v}[0] = \frac{1}{N} \sum_{n=0}^{N-1} |X[n]|^{2} e^{-j2 \pi vn} dt
+\widehat{R}_{X}^{\alpha_v}[0] = \frac{1}{N} \sum_{n=0}^{N-1} |X[n]|^{2} e^{-j2\pi\alpha_v n/F_s}.
 \end{equation*}
 
-The instantaneous power module corresponds to the magnitude squared $|X[n]|^{2}$.  After, the 
-DFT is applied, corresponding to the CAF $R_{X}^{v}[0] = \frac{1}{N} \sum_{n=0}^{N-1} |X[n]|^{2} e^{-j2 \pi vn} dt$.
+The instantaneous-power module is intended to compute $|X[n]|^{2}$.  The single-frequency Fourier-sum module then evaluates the displayed zero-lag CAF expression at $\alpha_v$.  The surviving SRE snapshot, however, configures the power block to retain unsigned bits 29 through 14 and then reinterprets that 16-bit word as signed at the DFT input.  For 16-bit inputs with 15 fractional bits, powers at or above approximately $0.5$ can therefore acquire a negative signed interpretation, and an ideal power of $1.0$ is carried by a discarded higher bit and maps to zero.  The unsigned-power-to-signed interface and truncation must be corrected and re-verified across the intended input range before the RTL can be considered bit-true to the displayed equation.
 
 \begin{figure}[H]
 \begin{center}
@@ -193,46 +200,49 @@ DFT is applied, corresponding to the CAF $R_{X}^{v}[0] = \frac{1}{N} \sum_{n=0}^
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the SRE module.}
-\begin{tabular}[width=\textwidth]{|l|l|l|p{0.4\linewidth} |}
+\caption{Configured SRE interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES         & Generic & natural & Number of samples accumulated. \\
+N\_SAMPLES         & Generic & natural & Requested length; ignored by the accumulator. \\
 \hline
-BIT\_WIDTH         & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
 Clock              & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset              & Input & std\_logic & Asynchronous reset. \\
+Reset              & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady     & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
-SampleInLast       & Input & std\_logic & Delineates between SRs being processed. \\
+SampleInLast       & Input & std\_logic & Marks boundaries between SRs being processed. \\
 \hline
-OscillatorFcw      & Input & signed(16) & SR to to estimate. \\
+OscillatorFcw      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady      & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid     & Output & std\_logic & High when output is valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & Delineates between SRs being processed. \\
+SampleOutLast      & Output & std\_logic & Marks boundaries between SRs being processed. \\
 \hline
-OverflowStatus     & Output & std\_logic\_vector(2) & [1]: mixer I \newline [0]: mixer Q \\
+OverflowStatus     & Output & std\_logic\_vector(1 \newline downto 0) & [1]: mixer I \newline [0]: mixer Q \\
 \hline
-SampleOut\_I       & Output & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleOut\_I       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of result. \\
 \hline
-SampleOut\_Q       & Output & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of result. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -244,18 +254,18 @@ SampleOut\_Q       & Output & signed(BIT\_WIDTH) & Imaginary component of sample
 \noindent 3.3.3  \quad Discrete Fourier Transform
 
 % purpose
-The DFT is used to perform frequency-domain analysis of discrete-time signals. For this implementation, the below expression is evaluated for one particular $k$ at a time, as opposed to the FFT, which calculates all values of $k$ simultaneously.  The DFT of $X[n]$ is expressed mathematically as:
+The DFT is used to perform frequency-domain analysis of discrete-time signals.  This implementation evaluates a finite-record Fourier sum at one selected physical frequency $f_0$ at a time:
 
 \begin{equation*}
-\hat{X}[k]=\sum_{n=0}^{N-1}X[n]e^{-j2 \pi vn}
+\widehat{X}(f_0)=\sum_{n=0}^{N-1}X[n]e^{-j2\pi f_0n/F_s}.
 \end{equation*}
 	
-Here, $\hat{X}[k]$ is the series of Fourier coefficients of the signal $X[n]$.  The mixer is controlled by $FCW_{k}$, corresponding to the heterodyned expression $X[n]e^{-j2\pi kn}$.  The heterodynes are then accumulated for $N$ samples, corresponding to the DFT $\hat{X}[k]=\sum_{n=0}^{N-1}X[n]e^{-j2 \pi kn}$.
+The standard $N$-point DFT coefficient $\widehat{X}[\ell]$ is the special case $f_0=\ell F_s/N$ for the zero-based bin $0\leq\ell<N$.  In the intended hardware operation, the oscillator frequency-control word selects $f_0$, the mixer forms the complex products $X[n]e^{-j2\pi f_0n/F_s}$, and the accumulator sums $N$ products.  The quarter-wave lookup-table reconstruction can introduce a constant NCO initial-phase factor, but that factor cancels in the final magnitude squared.  For the SRE, $f_0=\alpha_v$; when the candidates lie on the DFT grid, $\ell=v-1$ under MATLAB's one-based indexing.  Section~3.3.9 documents a boundary discrepancy in the surviving accumulator RTL.
 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=\textwidth]{/diagrams/st_dft}
-\caption{Discrete Fourier transform block diagram module.}
+\caption{Block diagram of the discrete Fourier transform module.}
 \label{fig:dft}
 \end{center}
 \end{figure}
@@ -269,46 +279,49 @@ Here, $\hat{X}[k]$ is the series of Fourier coefficients of the signal $X[n]$.  
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the DFT module.}
-\begin{tabular}[width=\textwidth]{|l|l|l|p{0.4\linewidth} |}
+\caption{Configured DFT interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES         & Generic & natural & Number of samples accumulated. \\
+N\_SAMPLES         & Generic & natural & Requested length; ignored by the accumulator. \\
 \hline
-BIT\_WIDTH         & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
 Clock              & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset              & Input & std\_logic & Asynchronous reset. \\
+Reset              & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady     & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline 
-SampleInLast       & Input & std\_logic & Delineates between frequencies being processed. \\
+SampleInLast       & Input & std\_logic & Marks boundaries between frequencies being processed. \\
 \hline
-OscillatorFcw      & Input & signed(16) & Frequency to estimate. \\
+OscillatorFcw      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady      & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid     & Output & std\_logic & High when output is valid. \\
 \hline
-SampleOutLast      & Output & std\_logic & Delineates between frequencies being processed. \\
+SampleOutLast      & Output & std\_logic & Marks boundaries between frequencies being processed. \\
 \hline
-OverflowStatus     & Output & std\_logic\_vector(2) & [1]: mixer I \newline [0]: mixer Q \\
+OverflowStatus     & Output & std\_logic\_vector(1 \newline downto 0) & [1]: mixer I \newline [0]: mixer Q \\
 \hline
-SampleOut\_I       & Output & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleOut\_I       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of result. \\
 \hline
-SampleOut\_Q       & Output & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of result. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -320,11 +333,14 @@ SampleOut\_Q       & Output & signed(BIT\_WIDTH) & Imaginary component of sample
 \noindent 3.3.4  \quad Frequency Mixer
 
 % purpose
-A \textit{heterodyne} is a signal frequency that is produced by mixing the frequencies of two signals.  In this context, frequency mixing is performed by element-wise multiplication of an signal with a digital numerically controlled local oscillator (NCO).  The frequency mixer is mathematically expressed as:
+Frequency translation is performed by multiplying the input by a complex local oscillator generated by a numerically controlled oscillator (NCO).  For a positive-frequency component at $f_1$, multiplication by the downconverting oscillator at $f_{\mathrm{LO}}$ gives
 
 \begin{equation*}
-e^{-j2 \pi (k_{1}+k_{2})n} = e^{-j2 \pi k_{1} n} \cdot e^{-j2 \pi k_{2} n}
+e^{j2\pi f_1n/F_s}\,e^{-j2\pi f_{\mathrm{LO}}n/F_s}
+=e^{j2\pi(f_1-f_{\mathrm{LO}})n/F_s}.
 \end{equation*}
+
+When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The implementation generates the oscillator with a phase accumulator and a sine/cosine lookup table; the frequency-control word sets its phase increment.  In the archived mixer RTL, the phase accumulator advances on every clock rather than only on accepted \texttt{SampleInValid} transactions.  The implemented model therefore assumes one accepted sample per clock.  If a low-valid clock represents a genuinely elapsed but unobserved sample interval, the phase advance is physically consistent but the accepted samples are no longer consecutively indexed as in the equations; if it represents a stalled sample, the phase update must instead be gated with the sample-accept event.
 
 \begin{figure}[H]
 \begin{center}
@@ -343,62 +359,65 @@ e^{-j2 \pi (k_{1}+k_{2})n} = e^{-j2 \pi k_{1} n} \cdot e^{-j2 \pi k_{2} n}
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the frequency mixer module.}
-\begin{tabular}[width=\textwidth]{|l|l|l|p{0.4\linewidth} |}
+\caption{Configured frequency-mixer interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-BIT\_WIDTH         & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
 Clock              & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset              & Input & std\_logic & Asynchronous reset. \\
+Reset              & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady     & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady     & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast       & Input & std\_logic & Pass through. \\
 \hline
-OscillatorFcw      & Input & signed(16) & Frequency to estimate. \\
+OscillatorFcw      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
 \hline
-SampleIn\_I        & Input & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
-SampleIn\_Q        & Input & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleIn\_Q        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
 \hline
-SampleInReady      & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady      & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid     & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast      & Output & std\_logic & Pass through. \\
 \hline
-OverflowStatus     & Output & std\_logic\_vector(2) & [1]: I \newline [0]: Q \\
+OverflowStatus     & Output & std\_logic\_vector(1 \newline downto 0) & [1]: I \newline [0]: Q \\
 \hline
-SampleOut\_I       & Output & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleOut\_I       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of mixed sample. \\
 \hline
-SampleOut\_Q       & Output & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleOut\_Q       & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of mixed sample. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
 %
 % 3.3.5
 %
-\bigskip
+\smallskip
 \addcontentsline{toc}{subsection}{\quad 3.3.5 \quad Low-Pass Filter}
 \noindent 3.3.5  \quad Low-Pass Filter
 
 % purpose
-A finite impulse response (FIR) is a filter whose response to any finite-duration input settles to zero in a finite amount of time. Filter coefficients are calculated given the desired properties of the filter in MATLAB or python. The FIR implements the convolution sum as defined by the equation:
+A finite impulse response (FIR) filter has a finite-duration impulse response.  Filter coefficients are calculated from the desired properties of the filter in MATLAB or Python.  An $L$-tap FIR implements the convolution sum
 
 \begin{equation*}
-Y[n]=\sum_{i=0}^{N-1}b[i]X[n-i]
+Y[n]=\sum_{i=0}^{L-1}b[i]X[n-i].
 \end{equation*}
 
-Here, $b[k]$ are the filter coefficients for an $N^{th}$-order filter with $0 \le i < N$ and $X[n]$ is the series of input samples.  For this design a fixed tap length of $2$ is used, which corresponds to the low-pass filter coefficients $b[0]=0.5$, $b[1]=0.5$.
+Here, $b[i]$ are the $L$ coefficients, and $X[n]$ is the input sequence.  A causal FIR with $L$ taps has order $L-1$.  This design uses the two-tap, first-order moving-average low-pass filter $b[0]=b[1]=0.5$.
 
 \begin{figure}[H]
 \begin{center}
@@ -417,46 +436,50 @@ Here, $b[k]$ are the filter coefficients for an $N^{th}$-order filter with $0 \l
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the low-pass filter module.}
-\begin{tabular}[width=\textwidth]{|l|l|l|p{0.4\linewidth} |}
+\caption{Configured low-pass-filter interface.}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-TAP\_COUNT     & Generic & natural & Number of Coeffs. \\
+TAP\_COUNT     & Config. & natural & Number of coefficients. \\
 \hline
-TAP\_WIDTH     & Generic & natural & Format of coeffecients is s0.(TAP\_WIDTH-1) \\
+TAP\_WIDTH     & Config. & natural & Coefficient width: one sign bit and TAP\_WIDTH-1 fractional bits. \\
 \hline
-BIT\_WIDTH     & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+BIT\_WIDTH     & Config. & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
 Clock          & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset          & Input & std\_logic & Asynchronous reset. \\
+Reset          & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-Coeffs         & Input & signed array(TAP\_LENGTH) & Fixed-values of $b[0]=0.5$, $b[1]=0.5$ for this application.\\
+Coeffs         & Input & CoeffArray(\newline TAP\_COUNT-1 \newline downto 0) & TAP\_COUNT signed coefficients, with $b[0]=b[1]=0.5$ in this application. \\
 \hline
-SampleOutReady & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid  & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast   & Input & std\_logic & Pass through. \\
 \hline
-SampleIn\_I    & Input & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleIn\_I    & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
-SampleIn\_Q    & Input & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleIn\_Q    & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of sample. \\
 \hline
-SampleInReady  & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady  & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast  & Output & std\_logic & Pass through. \\
 \hline
-SampleOut\_I   & Output & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleOut\_I   & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of filtered sample. \\
 \hline
-SampleOut\_Q   & Output & signed(BIT\_WIDTH) & Imaginary component of sample. \\
+SampleOut\_Q   & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Imaginary component of filtered sample. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -468,15 +491,15 @@ SampleOut\_Q   & Output & signed(BIT\_WIDTH) & Imaginary component of sample. \\
 \noindent 3.3.6  \quad Instantaneous Power
 
 % purpose
-This module serves as a special case of the AF for $\tau=0$.  This special case is equivalent to one index of Parseval's theorem $|X[n]|^{2}$, which is expressed as the magnitude squared.  This is mathematically expressed as:
+This module computes the pointwise magnitude squared of a complex sample.  It supplies the $\tau=0$ product $X[n]X^{*}[n]$ used by the zero-lag AF and CAF:
 
 \begin{align*}
-P_{X}[n] &= |X[n]|^{2} \\
-		 &= ((\Re{\{X[n]\}}^{2} + \Im{\{X[n]\}}^{2})^{\frac{1}{2}})^{2} \\
-		 &= \Re{\{X[n]\}}^{2} + \Im{\{X[n]\}}^{2}
+P_{X}[n] &= X[n]X^{*}[n] \\
+          &= |X[n]|^{2} \\
+          &= \Re\{X[n]\}^{2}+\Im\{X[n]\}^{2}.
 \end{align*}
 
-Here, the real and imaginary components are squared in parallel and then added.
+The real and imaginary components are squared in parallel and then added.  This pointwise identity is not Parseval's theorem, which instead relates a sum or integral of squared magnitudes in the time domain to one in the frequency domain.  For compactness, the following arithmetic-module tables use the documentation labels LEN\_A, LEN\_B, TRUNC, and RND for the VHDL generics \texttt{LengthA}, \texttt{LengthB}, \texttt{BitstoTrunc}, and \texttt{BitstoRound}, respectively.
 
 \begin{figure}[H]
 \begin{center}
@@ -495,45 +518,50 @@ Here, the real and imaginary components are squared in parallel and then added.
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the instantaneous power module.}
-\begin{tabular}[width=\textwidth]{|l|l|p{0.3\linewidth}|p{0.3\linewidth} |}
+\caption{Configured instantaneous-power interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 
-BIT\_WIDTH     & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+LEN\_A         & Generic & natural & Bit width of the real input. \\
 \hline
-LATENCY        & Generic & natural & Control total latency of operation. \\
+LEN\_B         & Generic & natural & Bit width of the imaginary input. \\
 \hline
-TRUNC          & Generic & natural & Remove extraneous MSBs. \\
+LATENCY        & Generic & natural & Controls the total operation latency. \\
 \hline
-RND            & Generic & natural & Round LSB. \\
+TRUNC          & Generic & natural & Number of most-significant bits truncated. \\
+\hline
+RND            & Generic & natural & Number of least-significant bits removed after rounding. \\
 \hline
 Clock          & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset          & Input & std\_logic & Asynchronous reset. \\
+Reset          & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid  & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast   & Input & std\_logic & Pass through. \\
 \hline
-SampleIn\_I    & Input & signed(BIT\_WIDTH) & Real component of sample.  \\
+SampleIn\_A    & Input & signed(LEN\_A-1 \newline downto 0) & Real component of sample.  \\
 \hline
-SampleIn\_Q    & Input & signed(BIT\_WIDTH) & Imaginary component of sample.  \\
+SampleIn\_B    & Input & signed(LEN\_B-1 \newline downto 0) & Imaginary component of sample.  \\
 \hline
-SampleInReady  & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady  & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast  & Output & std\_logic & Pass through. \\
 \hline
-SampleOut      & Output & signed(2*BIT\_WIDTH \newline -RND-TRUNC) & Real-valued output. \\
+SampleOut      & Output & unsigned(\newline 2*max(LEN\_A, \newline LEN\_B)-1-RND- \newline TRUNC downto 0) & Nonnegative magnitude-squared output. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -547,9 +575,9 @@ SampleOut      & Output & signed(2*BIT\_WIDTH \newline -RND-TRUNC) & Real-valued
 The product of two complex numbers can be expressed in terms of pairs of real and imaginary components as follows:
 
 \begin{align*}
-X_{1}[n]X_{2}[n]          &= (A+Bj)(C+Dj) \\
+X_{1}[n]X_{2}[n]          &= (A+jB)(C+jD) \\
 \Re \{X_{1}[n]X_{2}[n] \} &= AC-BD \\
-\Im \{X_{1}[n]X_{2}[n] \} &= AD+BC                                         
+\Im \{X_{1}[n]X_{2}[n] \} &= AD+BC.
 \end{align*}
 
 Here, the multiplication of complex values $X_{1}[n]X_{2}[n]$ simplifies to four real multiplications, one real addition, and one real subtraction.
@@ -571,53 +599,56 @@ Here, the multiplication of complex values $X_{1}[n]X_{2}[n]$ simplifies to four
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of complex multiplier module.}
-\begin{tabular}[width=\textwidth]{|l|l|p{0.2\linewidth}|p{0.4\linewidth} |}
+\caption{Configured complex-multiplier interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 
-LEN\_A          & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+LEN\_A          & Generic & natural & Operand-A component width. \\
 \hline
-LEN\_B          & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+LEN\_B          & Generic & natural & Operand-B component width. \\
 \hline
-LATENCY         & Generic & natural & Control total latency of operation. \\
+LATENCY         & Generic & natural & Total operation latency. \\
 \hline
-TRUNC           & Generic & natural & Remove extraneous MSBs. \\
+TRUNC           & Generic & natural & Most-significant bits truncated. \\
 \hline
-RND             & Generic & natural & Round LSB. \\
+RND             & Generic & natural & Least-significant bits removed after rounding. \\
 \hline
 Clock           & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset           & Input & std\_logic & Asynchronous reset. \\
+Reset           & Input & std\_logic & Active-high synchronous reset. \\
 \hline
-SampleOutReady  & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady  & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
-SampleInValid   & Input & std\_logic & High when input is valid. \\
+SampleInValid   & Input & std\_logic & Input is valid. \\
 \hline
 SampleInLast    & Input & std\_logic & Pass through. \\
 \hline
-SampleIn\_I\_A  & Input & signed(LEN\_A) & Real component of sample A.  \\
+SampleIn\_I\_A  & Input & signed(LEN\_A-1 \newline downto 0) & Operand-A real component.  \\
 \hline
-SampleIn\_Q\_A  & Input & signed(LEN\_A) & Imaginary component of sample A.  \\
+SampleIn\_Q\_A  & Input & signed(LEN\_A-1 \newline downto 0) & Operand-A imaginary component.  \\
 \hline
-SampleIn\_I\_B  & Input & signed(LEN\_B) & Real component of sample B.  \\
+SampleIn\_I\_B  & Input & signed(LEN\_B-1 \newline downto 0) & Operand-B real component.  \\
 \hline
-SampleIn\_Q\_B  & Input & signed(LEN\_B) & Imaginary component of sample B.  \\
+SampleIn\_Q\_B  & Input & signed(LEN\_B-1 \newline downto 0) & Operand-B imaginary component.  \\
 \hline
-SampleInReady   & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady   & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
-SampleOutValid  & Output & std\_logic & High when output is valid. \\
+SampleOutValid  & Output & std\_logic & Output is valid. \\
 \hline
 SampleOutLast   & Output & std\_logic & Pass through. \\
 \hline
-SampleOut\_I    & Output & signed(LEN\_A \newline +LEN\_B \newline -RND-TRUNC+1) & Real component of sample. \\
+SampleOut\_I    & Output & signed(\newline LEN\_A+LEN\_B-RND- \newline TRUNC downto 0) & Real component of product. \\
 \hline
-SampleOut\_Q    & Output & signed(LEN\_A \newline +LEN\_B \newline -RND-TRUNC+1)) & Imaginary component of sample. \\
+SampleOut\_Q    & Output & signed(\newline LEN\_A+LEN\_B-RND- \newline TRUNC downto 0) & Imaginary component of product. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -628,10 +659,10 @@ SampleOut\_Q    & Output & signed(LEN\_A \newline +LEN\_B \newline -RND-TRUNC+1)
 \addcontentsline{toc}{subsection}{\quad 3.3.8 \quad Multiplier}
 \noindent 3.3.8  \quad Multiplier
 
-There are many real multipliers used throughout this design.  Although multipliers exist as a primitive operation in HDL languages, a module is used to ensure proper timing, handshaking, bit-widths, delays, fixed-point control, and rounding.  Mathematically, this module performs the multiplication of two real values, expressed as:
+There are many real multipliers used throughout this design.  Although multiplication is an HDL operation, the module provides a fixed-latency pipeline together with explicit bit-width, truncation, saturation, and rounding controls.  Its ready/valid signals delay interface metadata but do not stall the arithmetic pipeline, so it is not a backpressure-capable handshake implementation.  Mathematically, this module performs the multiplication of two real values, expressed as:
 
 \begin{equation}
-Y[n]=X_{1}[n]X_{2}[n]
+Y[n]=X_{1}[n]X_{2}[n].
 \end{equation}
 
 \begin{figure}[H]
@@ -651,46 +682,49 @@ Y[n]=X_{1}[n]X_{2}[n]
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of multiplier module.}
-\begin{tabular}[width=\textwidth]{|l|l|p{0.2\linewidth}|p{0.4\linewidth} |}
+\caption{Configured multiplier interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-LEN\_A         & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+LEN\_A         & Generic & natural & Bit width of operand A. \\
 \hline
-LEN\_B         & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+LEN\_B         & Generic & natural & Bit width of operand B. \\
 \hline
-LATENCY        & Generic & natural & Control total latency of operation. \\
+LATENCY        & Generic & natural & Controls the total operation latency. \\
 \hline
-TRUNC          & Generic & natural & Remove extraneous MSBs. \\
+TRUNC          & Generic & natural & Number of most-significant bits truncated. \\
 \hline
-RND            & Generic & natural & Round LSB. \\
+RND            & Generic & natural & Number of least-significant bits removed after rounding. \\
 \hline
 Clock          & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset          & Input & std\_logic & Asynchronous reset. \\
+Reset          & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid  & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast   & Input & std\_logic & Pass through. \\
 \hline
-SampleIn\_A    & Input & signed(LEN\_A) & Real-valued sample A.  \\
+SampleIn\_A    & Input & signed(LEN\_A-1 \newline downto 0) & Real-valued operand A.  \\
 \hline
-SampleIn\_B    & Input & signed(LEN\_B) & Real-valuedsample B.  \\
+SampleIn\_B    & Input & signed(LEN\_B-1 \newline downto 0) & Real-valued operand B.  \\
 \hline
-SampleInReady  & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady  & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast  & Output & std\_logic & Pass through. \\
 \hline
-SampleOut      & Output & signed(LEN\_A \newline +LEN\_B-RND \newline -TRUNC) & Real-valued sample out. \\
+SampleOut      & Output & signed(\newline LEN\_A+LEN\_B-1 \newline -RND-TRUNC downto 0) & Real-valued product. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 
@@ -702,19 +736,21 @@ SampleOut      & Output & signed(LEN\_A \newline +LEN\_B-RND \newline -TRUNC) & 
 \noindent 3.3.9  \quad Accumulator
 
 % purpose
-The accumulator is the most important module in the design concerning flow control.  This module has three core functions:  Acting as the summation component of all previous modules, acting as the normalization component of all previous components, and acting as the reset between sample sets.  Mathematically, the accumulator is expressed as the difference equation:
+The accumulator implements the running sum used by each single-frequency Fourier evaluation and participates in the integrate-and-dump flow control between sample sets.  For a sequence whose first accepted sample has local index $n=0$, the intended recurrence is
 
 \begin{equation}
-Y[n] = \left\{
+S[n] = \left\{
        \begin{array}{ll}
-         Y[n] = X[n],          & if \: n=0 \\
-         Y[n] = Y[n-1] + X[n], & otherwise
+         X[n],          & n=0, \\
+         S[n-1]+X[n],   & n>0
       \end{array}
       \right.
+      .
 \end{equation}
 
-\noindent Where $X[n]$ and $Y[n]$ are the input and output, respectively, at the discrete point in time $n$, and $Y[n-1]$ is the sum of all previous discrete samples in $X[n]$.
-This implementation accumulates discrete samples until a control signal is received, instructing the accumulator to reset the running sum. Notably, this is performed with a zero-clock delay between the last sample of one sequence and the first sample of the following sequence.
+\noindent Here, $X[n]$ is an accepted input sample and $S[n]$ is the running sum within the current sequence.  The module itself is real-valued; the DFT instantiates separate accumulators for the in-phase and quadrature components.  The VHDL presents a fixed-width slice of its wider internal sum, so this step performs fixed-point scaling and truncation rather than an exact arithmetic division by $N$.  With the default $28$-bit sum and $16$-bit output, \texttt{Sum(27 downto 12)} is effectively a $12$-bit right shift; for $N=2^{16}$, it is not the $16$-bit shift corresponding to division by $N$.
+
+The archived RTL and testbench do not implement the intended boundary recurrence exactly.  In the RTL, \texttt{N\_SAMPLES} is unused and the internal width \texttt{NORM\_FACTOR} is fixed at $28$ bits.  On a clock for which \texttt{SampleInLast} is asserted, \texttt{SampleOut} receives the pre-edge sum while the internal sum is loaded with the marked input.  Because the archived testbench asserts \texttt{SampleInLast} on sample $N-1$, the emitted closing sum excludes the marked sample, which instead seeds the next block.  Moreover, an overflow-free sum of $2^{16}$ arbitrary $16$-bit signed inputs requires $16+\log_2(2^{16})=32$ bits in the worst case, so the fixed $28$-bit internal width cannot guarantee overflow-free accumulation.  When \texttt{SampleInValid} is low, the process leaves \texttt{SampleInReady}, \texttt{SampleOutValid}, and \texttt{SampleOutLast} unchanged, so asserted status can persist rather than forming one-cycle handshake events.  The boundary, scaling, width, and interface-control logic therefore require correction and re-verification before the RTL is reused.
 
 \begin{figure}[H]
 \begin{center}
@@ -727,46 +763,47 @@ This implementation accumulates discrete samples until a control signal is recei
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=\textwidth]{/timing/4_accumulator}
-\caption{Timing diagram of the accumulator module.}
+\caption{Intended timing of the accumulator module; the archived RTL differs as described in the text.}
 \label{fig:4_accumulator}
 \end{center}
 \end{figure}
 
 \begin{table}[H]
-\scriptsize
+\singlespacing
+\normalsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{center}
-\caption{Pinout of the accumulator module.}
-\begin{tabular}[width=\textwidth]{|l|l|l|p{0.4\linewidth} |}
+\caption{Configured accumulator interface.}
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
 \textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-N\_SAMPLES     & Generic & natural & Number of samples accumulated. \\
+N\_SAMPLES     & Generic & natural & Requested length; unused by the archived RTL. \\
 \hline
-BIT\_WIDTH     & Generic & natural & Format of samples is s0.(BIT\_WIDTH-1) \\
+BIT\_WIDTH     & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
 Clock          & Input & std\_logic & Synchronous clock. \\
 \hline
-Reset          & Input & std\_logic & Asynchronous reset. \\
+Reset          & Input & std\_logic & Synchronous, active-high reset. \\
 \hline
-SampleOutReady & Input & std\_logic & Asserted when downstream module is ready to accept input. \\
+SampleOutReady & Input & std\_logic & Nominal downstream-ready input; does not stall. \\
 \hline
 SampleInValid  & Input & std\_logic & High when input is valid. \\
 \hline
-SampleInLast   & Input & std\_logic & Delineates between CF, SR pairs being processed. \\
+SampleInLast   & Input & std\_logic & Marks a sequence boundary. \\
 \hline
-SampleIn\_I    & Input & signed(BIT\_WIDTH) & Real component of sample. \\
+SampleIn       & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real-valued input sample. \\
 \hline
-SampleIn\_Q    & Input & signed(BIT\_WIDTH) & Imaginary component of sample. \\
-\hline
-SampleInReady  & Output & std\_logic & Asserted when module is ready to accept input. \\
+SampleInReady  & Output & std\_logic & Nominal upstream-ready output; no acceptance handshake. \\
 \hline
 SampleOutValid & Output & std\_logic & High when output is valid. \\
 \hline
-SampleOutLast  & Output & std\_logic & Delineates between CF, SR pairs being processed. \\
+SampleOutLast  & Output & std\_logic & Propagated sequence-boundary marker. \\
 \hline
-SampleOut      & Output & signed(BIT\_WIDTH) & Real-valued result. \\
+SampleOut      & Output & signed(BIT\_WIDTH-1 \newline downto 0) & Scaled running-sum output. \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 \end{table}
 

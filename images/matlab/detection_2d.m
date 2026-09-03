@@ -1,38 +1,68 @@
 clear;
 
-m1 = 40;
-m2 = 60;
+% Equal-prior binary detection with equal-variance Gaussian observations.
+mu0 = 40;
+mu1 = 60;
+sigma = 10;
+y_threshold = (mu0 + mu1) / 2;
+gamma_lr = 1; % equal priors and equal decision costs
 
-N = 500;
-s = 10;
-x = linspace(m1-4*s,m2+4*s,N);
+% An odd number of samples puts the analytical threshold exactly on the
+% observation grid (x(threshold_idx) == y_threshold).
+num_points = 501;
+x = linspace(mu0 - 4*sigma, mu1 + 4*sigma, num_points);
+threshold_idx = find(x == y_threshold, 1);
 
-% Gaussian PDFs for H0 and H1 with equal variance.
-y1 = 1/(s*sqrt(2*pi))*exp(-(x-m1).^2/(2*s^2));
-y2 = 1/(s*sqrt(2*pi))*exp(-(x-m2).^2/(2*s^2));
+p_y_h0 = exp(-0.5*((x - mu0)/sigma).^2) / (sigma*sqrt(2*pi));
+p_y_h1 = exp(-0.5*((x - mu1)/sigma).^2) / (sigma*sqrt(2*pi));
 
-% For the equal-prior, equal-variance illustration, the likelihood-ratio
-% threshold occurs midway between the means.
-gamma = (m1+m2)/2;
-[~, threshold_idx] = min(abs(x-gamma));
+% Analytical operating probabilities for the rule H1 when y > y_threshold.
+p_fa = 0.5 * erfc((y_threshold - mu0)/(sigma*sqrt(2)));
+p_d  = 0.5 * erfc((y_threshold - mu1)/(sigma*sqrt(2)));
+assert(abs(p_fa-0.158655253931457) < 1e-12);
+assert(abs(p_d-0.841344746068543) < 1e-12);
 
-hold on
-grid on
+[fig, colors] = thesis_figure();
+ax = axes(fig);
+hold(ax, 'on');
 
-% Probability regions.
-area(x(1:threshold_idx), y1(1:threshold_idx), 'FaceAlpha', 0.1, 'LineStyle', 'none') % Pcr
-area(x(threshold_idx:end), y1(threshold_idx:end), 'FaceAlpha', 0.1, 'LineStyle', 'none') % Pfa
-area(x(1:threshold_idx), y2(1:threshold_idx), 'FaceAlpha', 0.1, 'LineStyle', 'none') % Pm
-area(x(threshold_idx:end), y2(threshold_idx:end), 'FaceAlpha', 0.1, 'LineStyle', 'none') % Pd
+left = 1:threshold_idx;
+right = threshold_idx:num_points;
 
-% PDFs and decision threshold.
-plot(x,y1);
-plot(x,y2);
-plot([gamma gamma], [0 max([y1 y2])]);
+% Fill the four mutually interpreted areas under the two conditional PDFs.
+h_cr = fill(ax, [x(left), fliplr(x(left))], ...
+    [p_y_h0(left), zeros(size(left))], colors.sky, ...
+    'FaceAlpha', 0.28, 'EdgeColor', 'none');
+h_fa = fill(ax, [x(right), fliplr(x(right))], ...
+    [p_y_h0(right), zeros(size(right))], colors.red, ...
+    'FaceAlpha', 0.28, 'EdgeColor', 'none');
+h_m = fill(ax, [x(left), fliplr(x(left))], ...
+    [p_y_h1(left), zeros(size(left))], colors.purple, ...
+    'FaceAlpha', 0.24, 'EdgeColor', 'none');
+h_d = fill(ax, [x(right), fliplr(x(right))], ...
+    [p_y_h1(right), zeros(size(right))], colors.green, ...
+    'FaceAlpha', 0.24, 'EdgeColor', 'none');
 
-legend('$P_{CR}$','$P_{FA}$','$P_{M}$','$P_{D}$', ...
-    '$H_{0}$','$H_{1}$','$\gamma$', ...
-    'interpreter', 'latex')
+h_h0 = plot(ax, x, p_y_h0, 'Color', colors.blue, 'LineWidth', 2.0);
+h_h1 = plot(ax, x, p_y_h1, 'Color', colors.orange, 'LineWidth', 2.0);
+h_threshold = xline(ax, y_threshold, '--', '$y_{\mathrm{th}}$', ...
+    'Color', colors.gray, 'LineWidth', 1.6, ...
+    'LabelVerticalAlignment', 'middle', ...
+    'LabelHorizontalAlignment', 'left', ...
+    'Interpreter', 'latex');
 
-set(gca,'TickLabelInterpreter','latex')
-print('../plots/error_probabilities', '-dpng')
+xlabel(ax, 'Observation, $y$');
+ylabel(ax, 'Conditional density, $p_{Y\mid H_i}(y)$');
+title(ax, 'Binary hypothesis decision regions');
+xlim(ax, [x(1), x(end)]);
+ylim(ax, [0, 1.08*max([p_y_h0, p_y_h1])]);
+
+legend(ax, [h_cr, h_fa, h_m, h_d, h_h0, h_h1, h_threshold], ...
+    {'$P_{CR}$', '$P_{FA}$', '$P_M$', '$P_D$', ...
+     '$p_{Y\mid H_0}$', '$p_{Y\mid H_1}$', '$y_{\mathrm{th}}$'}, ...
+    'Location', 'northoutside', 'NumColumns', 4);
+
+fprintf(['Observation threshold y_th = %.1f (grid sample %d) corresponds ' ...
+    'to gamma_LR = %.1f; P_FA = %.6f; P_D = %.6f\n'], ...
+    y_threshold, threshold_idx, gamma_lr, p_fa, p_d);
+thesis_export(fig, 'error_probabilities');

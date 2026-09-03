@@ -1,33 +1,33 @@
 \newpage
-\addcontentsline{toc}{chapter}{\quad \: IV \hspace{5pt} PERFORMANCE CHARACTERIZATION}
+\addcontentsline{toc}{chapter}{\quad \: IV. \hspace{5pt} PERFORMANCE CHARACTERIZATION}
 
 \begin{center}
-  \vspace*{1.75in}
+  \vspace*{1.65in}
   CHAPTER IV\\
   PERFORMANCE CHARACTERIZATION
 \end{center}
 
 % background intro
 \bigskip
-This chapter will characterize the performance of the streaming SCA's ability to correctly sense and classify the CF and SR of signals in a monitored spectrum.  First, we generate a transmit M-QAM-SRRC waveform in software using python.  The waveform is then passed through a software channel and saved to a file in a fixed-point format using python.  The receiver is a VHDL testbench that reads the file, processes the in-phase and quadrature (IQ) samples using the streaming SCA, then saves CSD results to a new file.  We then plot the CSD in MATLAB, along with its corresponding threshold.  A detected SR is any spectral slice $v$ above the threshold.  A detected CF is a peak $k$ for a detected SR slice.  Finally, these bins are mapped to their true values $(R_{s},f_{c})$, respectively.
+This chapter characterizes the streaming SCA's ability to sense and estimate the CF and SR of signals in a monitored spectrum.  First, a Python model generates an $M$-QAM-SRRC waveform, applies the software channel, quantizes the in-phase and quadrature (IQ) samples, and saves them to a file.  A VHDL testbench reads that file, evaluates the channelized zero-lag CAF statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ over user-defined requested SR and CF candidate grids $\mathcal{R}$ and $\mathcal{F}$, and saves the results.  MATLAB then plots the statistic and the constant threshold $\gamma=\beta\widehat{P}_{y}^{\,2}$.  For each rate candidate $\alpha_v\in\mathcal{R}$, the CF candidate is the $f_k\in\mathcal{F}$ having the largest statistic, and that row exceeds the threshold only when its maximum is greater than $\gamma$.  Table~\ref{tab:perf} gives a corrected reconstruction of the selected peak pair or pairs: legacy normalized plot coordinates are converted to nominal physical units, and entries inconsistent with the plots and experiment definitions are corrected.  It does not list every above-threshold row.  Thus, $v$ and $k$ are candidate-array indices, not physical frequencies or automatically detected bins.
 
 %
 % 4.1
 %
 \bigskip
-\addcontentsline{toc}{subsection}{\quad 4.1 \quad Experiments}
+\addcontentsline{toc}{section}{\quad \: 4.1 \quad Experiments}
 \noindent 4.1  \quad Experiments
 
-Characterization is performed by first establishing baseline parameters for the transmitter and receiver.  While baseline parameters provide results that are easy to be accurately detected, they may not reflect real-world constraints such as hardware restrictions or channel impairments.  Each subsequent experiment is a parametric analysis of the effect of modifying a given parameter.  The parameters evaluated are shown in Table \ref{tab:tx} and Table \ref{tab:rx}.
+Characterization is performed by first establishing baseline parameters for the transmitter and receiver.  Although the baseline parameters yield a clear threshold crossing in the archived single-trial result, they may not reflect practical constraints such as hardware restrictions or channel impairments.  Each subsequent experiment varies one listed parameter relative to the baseline.  The parameters evaluated are shown in Table~\ref{tab:tx} and Table~\ref{tab:rx}.
 
 \begin{table}[H]
 \begin{center}
-\caption[Python transmitter \& channel.]{Python transmitter \& channel \\
-\scriptsize Here, $f_{s}=1MHz$ for all experiments, and $r$ is rolloff.}
+\caption[Python transmitter and channel.]{Python transmitter and channel. \\
+Here, $F_{s}=1\text{ MHz}$ except in Experiment VII, where $F_s=10\text{ MHz}$; $r$ is the roll-off factor.  In the two-signal Experiments XII and XIII, the scalar $E_b/N_0$ applies to both components.}
 \label{tab:tx}
-\begin{tabular}{|l|c|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Expt.} & $\bm{M}$ & $\bm{r}$ & $\bm{R_{s} \: (MBd)}$ & $\bm{f_{c} \: (MHz)}$ & $\bm{\frac{E_{b}}{N_{0}} \: (dB)}$ \\
+\textbf{Expt.} & $\bm{M}$ & $\bm{r}$ & $\bm{R_{s}}$ \textbf{(MBd)} & $\bm{f_{c}}$ \textbf{(MHz)} & $\bm{\frac{E_{b}}{N_{0}}}$ \textbf{(dB)} \\
 \hline
 I    & $4$        & $0.35$         & $0.10$         & $0.05$          & $14.00$ \\
 \hline
@@ -62,48 +62,53 @@ XIII & $4$; $16$  & $0.35$; $0.35$ & $0.10$; $0.25$ & $0.05$; $0.10$  & $14.00$ 
 %
 \begin{table}[H]
 \begin{center}
-\caption[VHDL receiver.]{VHDL receiver  \\
-\scriptsize Here, $BW$ is bit-width, $(v,k)$ are the search space.}
+\caption[VHDL receiver.]{VHDL receiver. \\
+Here, $BW$ is the bit width, and $\mathcal{R}$ and $\mathcal{F}$ are inclusive requested (nominal) physical search grids.  The notation $[a:s:b]$ means values from $a$ through $b$ in steps of $s$.}
 \label{tab:rx}
-\begin{tabular}{|l|c|c|c|c|c|c|}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Expt.} & $\bm{f_{s} \: (MHz)}$ & $\bm{N}$ & $\bm{BW}$ & $\bm{v}$ & $\bm{k}$ \\
+\textbf{Expt.} & $\bm{F_{s}}$ \textbf{(MHz)} & $\bm{N}$ & $\bm{BW}$ & $\bm{\mathcal{R}}$ \textbf{(MBd)} & $\bm{\mathcal{F}}$ \textbf{(MHz)} \\
 \hline
-I    & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+I    & $1.00$  & $2^{16}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-II   & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+II   & $1.00$  & $2^{16}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-III  & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+III  & $1.00$  & $2^{16}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-IV   & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+IV   & $1.00$  & $2^{16}$ & 16 & $[0.01:0.01:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-V    & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+V    & $1.00$  & $2^{16}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-VI   & $1.00$  & $2^{16}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+VI   & $1.00$  & $2^{16}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-VII  & $10.00$ & $2^{16}$ & 16 & $[1MHz:1MHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:50kHz:\frac{F_{s}}{2}]$   \\
+VII  & $10.00$ & $2^{16}$ & 16 & $[1.00:1.00:5.00]$ & $[-5.00:0.05:5.00]$ \\
 \hline
-VIII & $1.00$  & $2^{12}$ & 16 & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+VIII & $1.00$  & $2^{12}$ & 16 & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-IX   & $1.00$  & $2^{16}$ & 8  & $[R_{s}:R_{s}:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:f_{c}:\frac{F_{s}}{2}]$   \\
+IX   & $1.00$  & $2^{16}$ & 8  & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-X    & $1.00$  & $2^{16}$ & 16 & $R_{s}$                         & $[-\frac{F_{s}}{2}:10kHz:\frac{F_{s}}{2}]$   \\
+X    & $1.00$  & $2^{16}$ & 16 & $\{0.10\}$ & $[-0.50:0.01:0.50]$ \\
 \hline
-XI   & $1.00$  & $2^{16}$ & 16 & $[99.9kHz:1Hz:100.1kHz]$        & $f_{c}$                                      \\
+XI   & $1.00$  & $2^{16}$ & 16 & $[0.0999:10^{-6}:0.1001]$ & $\{0.05\}$ \\
 \hline
-XII  & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:50kHz:\frac{F_{s}}{2}]$    \\
+XII  & $1.00$  & $2^{16}$ & 16 & $[0.05:0.05:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
-XIII & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s}}{2}:50kHz:\frac{F_{s}}{2}]$    \\
+XIII & $1.00$  & $2^{16}$ & 16 & $[0.05:0.05:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
 
+The legacy plots display the requested physical candidates normalized by the sample rate: their horizontal coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample.  Although the axes are labeled $v$ and $k$, those plotted coordinates are not the one-based candidate-array indices defined in Chapter III.  Likewise, the black curves are the nonnegative test statistic $T_y(v,k)=|\widehat{C}_{y}(\alpha_v,f_k)|^2$ even though the legacy legends label them as $S_x^v[k]$.  The requested CF grids reproduce both Nyquist endpoints, but $-F_s/2$ and $+F_s/2$ are the same discrete-time frequency and map to the same signed control word; consequently, those two requests are not distinct oscillator settings.
+
+Experiment XI requested 201 symbol-rate values at 1-Hz intervals, but the 16-bit control word at $F_s=1\text{ MHz}$ has a frequency quantum of $F_s/2^{16}=15.2588\text{ Hz}$.  Nearest-word quantization maps the requests to only 14 distinct settings, so the plot does not demonstrate 1-Hz hardware resolution.
+
 % baseline
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.75]{characterization/exp1}
-\caption{CSD estimate plot for experiment I}
+\caption{Streaming-SCA test-statistic plot for Experiment I.}
 \end{figure}
 
 
@@ -113,32 +118,32 @@ XIII & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp2}
+    \includegraphics[width=0.98\linewidth]{characterization/exp2}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp3}
+    \includegraphics[width=0.98\linewidth]{characterization/exp3}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp4}
+    \includegraphics[width=0.98\linewidth]{characterization/exp4}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp5}
+    \includegraphics[width=0.98\linewidth]{characterization/exp5}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp6}
+    \includegraphics[width=0.98\linewidth]{characterization/exp6}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp7}
+    \includegraphics[width=0.98\linewidth]{characterization/exp7}
 \end{subfigure}
 
-\caption{CSD estimate plots for experiments II-VII}
+\caption{Streaming-SCA test-statistic plots for Experiments II--VII.}
 \end{figure}
 
 \clearpage
@@ -149,32 +154,32 @@ XIII & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp8}
+    \includegraphics[width=0.98\linewidth]{characterization/exp8}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp9}
+    \includegraphics[width=0.98\linewidth]{characterization/exp9}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp10}
+    \includegraphics[width=0.98\linewidth]{characterization/exp10}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp11}
+    \includegraphics[width=0.98\linewidth]{characterization/exp11}
 \end{subfigure}
 
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55]{characterization/exp12}
+    \includegraphics[width=0.98\linewidth]{characterization/exp12}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
     \centering
-    \includegraphics[scale=0.55 ]{characterization/exp13}
+    \includegraphics[width=0.98\linewidth]{characterization/exp13}
 \end{subfigure}
 
-\caption{CSD estimate plots for experiments VIII-XIII}
+\caption{Streaming-SCA test-statistic plots for Experiments VIII--XIII.}
 \end{figure}
 
 \clearpage
@@ -183,45 +188,50 @@ XIII & $1.00$  & $2^{16}$ & 16 & $[50kHz:50kHz:\frac{F_{s}}{2}]$ & $[-\frac{F_{s
 % 4.2
 %
 \bigskip
-\addcontentsline{toc}{subsection}{\quad 4.2 \quad Results}
+\addcontentsline{toc}{section}{\quad \: 4.2 \quad Results}
 \noindent 4.2  \quad Results
 
-From our experimentation, we were able to produce the results shown in Table \ref{tab:perf} and Table \ref{tab:ru}.  We find that every test surpasses the threshold and is successfully detected.
+The corrected reconstruction of the archived results is summarized in Table~\ref{tab:perf}, and Table~\ref{tab:ru} reproduces the reported resource counts.  Every single-trial plot contains at least one statistic above the selected threshold, but a threshold crossing does not establish a probability of detection or guarantee correct parameter recovery.  After conversion from the normalized plot coordinates to nominal physical units, eleven experiments report the transmitted pair or pairs.  The reconstruction corrects Experiment IV's rate to $0.01\text{ MBd}$ and Experiment XIII's second CF to $0.10\text{ MHz}$, matching the experiment definitions and plotted peaks.  Experiment VII reports $R_s=1.00\text{ MBd}$ for a $0.10\text{ MBd}$ input because the receiver's coarsest rate candidate was $1.00\text{ MBd}$.  Experiment X reports $f_c=0.04\text{ MHz}$, one 10-kHz search step below the transmitted $0.05\text{ MHz}$.  The exact thesis-era RTL revision and the top-level synthesis, utilization, and timing reports were not retained.  The recovered 2022 checkout contains the accumulator, power-format, and flow-control discrepancies documented in Chapter III, so it cannot independently establish that these archived simulations are bit-true to the ideal statistic.
+
+The recovered component design reports and project-recreation scripts explicitly associate their module-level resource tables with a ZedBoard XC7Z020CLG484-1 and Vivado 2019.2.1 using the default 2019 synthesis and implementation strategies.  They do not link the experiment-level counts in Table~\ref{tab:ru} to that setup.  Metadata elsewhere in the later archive conflicts: most component source headers name an XC7Z045, later top-level and threshold headers name an XCKU025, and an unrelated out-of-context FFT checkpoint names an XCKU5P.  Therefore the target, exact settings, and BRAM primitive-count convention behind Table~\ref{tab:ru} remain unresolved.
+
+At one valid sample per clock, the nominal sample-processing time of a serial sweep is $N|\mathcal{R}||\mathcal{F}|/F_s$, excluding pipeline and control overhead.  The raw timing logs are unavailable, so most listed delays remain unverified archival values; the retained values do not fall below the calculated lower bound.  A retained CFE testbench nevertheless provides one independent cross-check: its configuration matches Experiment VIII with $N=4096$, five SR candidates, 21 CF candidates, and a $1\text{-MHz}$ sample clock.  The resulting sample-processing lower bound is $0.430080\text{ s}$, only $161\,\mu\text{s}$ below the reported $0.430241\text{ s}$ and thus consistent with finite pipeline and control overhead.  Experiment VII's reported delay duplicates the baseline value despite its different sample rate and grid and is therefore anomalous.  Experiment IV's copied value also equals the baseline time even though its 50-rate grid is ten times larger; its nominal sample-processing time alone is $68.8128\text{ s}$, so Table~\ref{tab:perf} omits the unavailable delay.
 
 \begin{table}[H]
 \begin{center}
-\caption[Performance results.]{Performance Results \\
-\scriptsize Here, $\beta=10^{-4}$. $(R_{s},f_{c})$ are detected waveforms.}
+\caption[Performance results.]{Corrected summary of archived performance results. \\
+Here, $\gamma=\beta\widehat{P}_{y}^{\,2}$ with $\beta=10^{-4}$; $\widehat{P}_{y}^{\,2}$ is dimensionless after input normalization and is rounded to six significant digits.  Each tuple is one reconstructed nominal $(R_s,f_c)$ pair in (MBd, MHz).}
 \label{tab:perf}
-\begin{tabular}{|l|c|c|c|c|c|}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{|l|c|c|c|}
 \hline
-\textbf{Expt.} & $\bm{Delay \: (ns)}$ & $\bm{\sigma^{4}_{\eta}}$ & $\bm{R_{s} \: (MBd)}$ & $\bm{f_{c} \: (MHz)}$ \\
+\textbf{Expt.} & \textbf{Reported delay (s)} & $\bm{\widehat{P}_{y}^{\,2}}$ & \textbf{Nominal pair(s)} \\
 \hline
-I    & $6881440500$  & $0.0390605536703082500 $ & $0.1$          & $0.05$        \\
+I    & $6.881441$  & $0.0390606$ & $(0.10,\ 0.05)$ \\
 \hline
-II   & $6881440500$  & $0.0398833126975169200 $ & $0.1$          & $0.05$        \\
+II   & $6.881441$  & $0.0398833$ & $(0.10,\ 0.05)$ \\
 \hline
-III  & $6881440500$  & $0.0298027449329316400 $ & $0.1$          & $0.05$        \\
+III  & $6.881441$  & $0.0298027$ & $(0.10,\ 0.05)$ \\
 \hline
-IV   & $6881440500$  & $0.0117707270580887540 $ & $0.1$          & $0.05$        \\
+IV   & ---         & $0.0117707$ & $(0.01,\ 0.05)$ \\
 \hline
-V    & $6881440500$  & $0.0296904514781464350 $ & $0.1$          & $-0.05$       \\
+V    & $6.881441$  & $0.0296905$ & $(0.10,\ {-}0.05)$ \\
 \hline
-VI   & $6881440500$  & $0.0230728422450306340 $ & $0.1$          & $0.05$        \\
+VI   & $6.881441$  & $0.0230728$ & $(0.10,\ 0.05)$ \\
 \hline
-VII  & $6881440500$  & $0.0394264003727182250 $ & $0.1$          & $0.05$        \\
+VII  & $6.881441$  & $0.0394264$ & $(1.00,\ 0.05)$ \\
 \hline
-VIII & $430240500$   & $0.0613674210127828100 $ & $0.1$          & $0.05$        \\
+VIII & $0.430241$  & $0.0613674$ & $(0.10,\ 0.05)$ \\
 \hline
-IX   & $6881440500$  & $0.0323822252535604900 $ & $0.1$          & $0.05$        \\
+IX   & $6.881441$  & $0.0323822$ & $(0.10,\ 0.05)$ \\
 \hline
-X    & $6619200500$  & $0.0390605536703082500 $ & $0.1$          & $0.04$        \\
+X    & $6.619201$  & $0.0390606$ & $(0.10,\ 0.04)$ \\
 \hline
-XI   & $13243153500$ & $0.0390605536703082500 $ & $0.1$          & $0.05$        \\
+XI   & $13.243154$ & $0.0390606$ & $(0.10,\ 0.05)$ \\
 \hline
-XII  & $13762840500$ & $0.0353091800682484900 $ & $0.1$; $0.25$ & $-0.2$; $0.2$  \\
+XII  & $13.762841$ & $0.0353092$ & $(0.10,\ {-}0.20)$; $(0.25,\ 0.20)$ \\
 \hline
-XIII & $13762840500$ & $0.034193338983871176 $ & $0.1$; $0.25$ & $0.05$; $0.25$ \\
+XIII & $13.762841$ & $0.0341933$ & $(0.10,\ 0.05)$; $(0.25,\ 0.10)$ \\
 \hline
 \end{tabular}
 \end{center}
@@ -229,11 +239,11 @@ XIII & $13762840500$ & $0.034193338983871176 $ & $0.1$; $0.25$ & $0.05$; $0.25$ 
 
 \begin{table}[H]
 \begin{center}
-\caption{Resource Utilization Results}
+\caption[Archived experiment-level resource counts.]{Archived experiment-level resource counts; target and settings are unresolved.}
 \label{tab:ru}
 \begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
-\textbf{Expt.} & $\bm{LUT}$ & $\bm{LUTRAM}$ & $\bm{FF}$ & $\bm{BRAM}$ & $\bm{DSP}$ & $\bm{IO}$ \\
+\textbf{Expt.} & \textbf{LUT} & \textbf{LUTRAM} & \textbf{FF} & \textbf{BRAM} & \textbf{DSP} & \textbf{I/O} \\
 \hline
 I    & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
 \hline
@@ -249,7 +259,7 @@ VI   & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
 \hline
 VII  & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
 \hline
-VII  & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
+VIII & $814$  & $3$ & $391$ & $15$ & $16$ & $108$       \\
 \hline
 IX   & $674$  & $3$ & $319$ & $15$ & $16$ & $100$       \\
 \hline

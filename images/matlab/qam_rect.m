@@ -1,122 +1,128 @@
-%% 
-% Dylan J. Gormley (NASA GRC/LCI) - 2020
+%% Spectral and cyclostationary estimates for rectangular-pulse 2-QAM
 
-clear
+clear;
+rng(7,'twister');
 
-% Initialize parameters
-Nbits  = 400;
-Rs     = 0.1;
-Ts     = 1/Rs;
-fc     = 0.05;
-M      = 2;
-Nlags  = 15;
+Nsymbols = 400;
+Rs = 0.1;               % Symbol rate (MBd)
+fc = 0.05;              % Positive center frequency (MHz)
+Fs = 1;                 % Sample rate (samples/us, numerically MHz)
+M = 2;
+Nlags = 15;
 Nfreqs = 128;
-Fs     = 1.0;
-T      = 1/Fs;
-alpha  = (0:Rs:Fs/2)/Fs;
-Na     = length(alpha);
-
-% Create binary data sequence
-d = randi([0 M-1],Nbits,1);
-
-% Modulate Data
-syms_bb = qammod(d,M);
-norm_factor = modnorm(syms_bb,'peakpow',1);
-syms_bb = syms_bb*norm_factor;
-
-% Upsample and Rectangular Filter
+smoothing_length = 8;   % Rectangular frequency-smoothing window (bins)
 SPS = Fs/Rs;
-syms_rect = rectpulse(syms_bb, SPS);
-norm_factor = modnorm(syms_rect,'peakpow',1);
-syms_rect = syms_rect*norm_factor;
+assert(abs(SPS-round(SPS)) < eps(Fs));
+SPS = round(SPS);
 
-% Upconvert to passband
-Nsyms = length(syms_rect);
-n = (0:Nsyms-1)';
-lo = exp(-1j*2*pi*fc/Fs*n);
-syms_pb = syms_rect.*lo;
-norm_factor = modnorm(syms_pb,'peakpow',1);
-syms_pb = syms_pb*norm_factor;
+alpha = 0:Rs:Fs/2;      % Cycle frequencies in MHz
+Na = numel(alpha);
 
-% Time series
-plot(0:199,imag(syms_pb(1:200)),'k')
-xlabel('$t \: (\mu s)$','interpreter','latex')
-ylabel('$x(t)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-grid on
-print('../plots/2qam_time','-dpng')
-%% 
-% acf - autocorrelogram
+% Unit-average-power symbols and a rectangular pulse shape.
+d = randi([0 M-1],Nsymbols,1);
+syms_bb = qammod(d,M,'UnitAveragePower',true);
+syms_rect = rectpulse(syms_bb,SPS);
 
-[R,Rtau] = xcorr(syms_pb,Nlags,'biased');
-Rtau = Rtau';
+% A positive complex exponential places the analytic signal at +fc.
+n = (0:numel(syms_rect)-1)';
+time_us = n/Fs;
+syms_pb = syms_rect.*exp(1j*2*pi*(fc/Fs)*n);
 
-plot(Rtau,abs(R),'k')
-xlabel('$\tau \: (\mu s)$','interpreter','latex')
-ylabel('$R_{x}(\tau)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-grid on
-print('../plots/autocorrelogram','-dpng')
-%% 
-% psd - periodogram
+%% Time series
+[fig, colors] = thesis_figure();
+plot(time_us(1:200),real(syms_pb(1:200)), ...
+    'Color',colors.blue,'LineWidth',1.25);
+xlabel('$t\ (\mu\mathrm{s})$');
+ylabel('$\mathrm{Re}\{x(t)\}$');
+xlim([time_us(1),time_us(200)]);
+ylim([-1.15,1.15]);
+thesis_export(fig,'2qam_time');
 
-P = fftshift(fft(syms_pb,Nfreqs))/Nfreqs;
-Pf = (-Nfreqs/2:Nfreqs/2-1)'*(Fs/Nfreqs);
+%% Biased autocorrelation estimate
+[R,lags] = xcorr(syms_pb,Nlags,'biased');
+tau_us = lags/Fs;
 
-plot(Pf,abs(P),'k');
-xlabel('$f (MHz)$','interpreter','latex')
-ylabel('$P_{x}(f)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-grid on
-print('../plots/periodogram', '-dpng')
-%% 
-% psd - smoothed periodogram
+[fig, colors] = thesis_figure();
+plot(tau_us,abs(R),'Color',colors.blue,'LineWidth',1.8);
+xlabel('$\tau\ (\mu\mathrm{s})$');
+ylabel('$|\widehat{R}_{x}(\tau)|$');
+xlim([tau_us(1),tau_us(end)]);
+thesis_export(fig,'autocorrelogram');
 
-[S, Sf] = pwelch(syms_pb,8,[],Nfreqs,Fs,"centered");
+%% Correctly scaled squared-magnitude periodogram
+x_segment = syms_pb(1:Nfreqs);
+X = fftshift(fft(x_segment,Nfreqs));
+P = abs(X).^2/(Fs*Nfreqs);
+f = (-Nfreqs/2:Nfreqs/2-1)'*(Fs/Nfreqs);
 
-plot(Sf, abs(S),'k');
-xlabel('$f \: (MHz)$','interpreter','latex')
-ylabel('$S_{x}(f)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-grid on
-print('../plots/psd','-dpng')
-%%
-% caf - cyclic autocorrelogram
+% The integral of the periodogram equals the segment's average power.
+assert(abs(sum(P)*(Fs/Nfreqs)-mean(abs(x_segment).^2)) < 1e-12);
+
+[fig, colors] = thesis_figure();
+plot(f,P,'Color',colors.blue,'LineWidth',1.5);
+xlabel('$f\ (\mathrm{MHz})$');
+ylabel('$\widehat{P}_{x}(f)$');
+xlim([f(1),f(end)]);
+thesis_export(fig,'periodogram');
+
+%% Frequency-smoothed periodogram
+% Smooth eight adjacent frequency bins with a unit-area rectangular window,
+% as described in the thesis, rather than applying an eight-sample Welch
+% time-domain window.
+S = circular_movmean(P,smoothing_length,1);
+
+[fig, colors] = thesis_figure();
+plot(f,S,'Color',colors.blue,'LineWidth',1.8);
+xlabel('$f\ (\mathrm{MHz})$');
+ylabel('$\widehat{S}_{x}(f)$');
+xlim([f(1),f(end)]);
+thesis_export(fig,'psd');
+
+%% Symmetric cyclic autocorrelation estimate
 Ra = zeros(Na,2*Nlags+1);
 for k = 1:Na
-    % Apply +/- half-alpha shifts to get symmetric cyclic autocorrelation (Optimized)
-    kernel_A = exp(-1j * pi * alpha(k) / Fs * n);
-    [Ra(k,:),Ratau] = xcorr(syms_pb .* kernel_A, syms_pb .* conj(kernel_A), Nlags, "biased");   
-end
-Ratau = Ratau';
-
-waterfall(Ratau,alpha,abs(Ra));
-colormap([0 0 0])
-view(225,15)
-xlim([-15 15])
-xlabel('$\tau \: (\mu s)$','interpreter','latex')
-ylabel('$\alpha \: (MHz)$','interpreter','latex')
-zlabel('$R_{x}^{\alpha}(\tau)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-grid on
-print('../plots/cyclic_autocorrelogram','-dpng')
-%% 
-% scf - smoothed cyclic periodogram
-
-Sa = zeros(Na,Nfreqs);
-Saf = (-Nfreqs/2:Nfreqs/2-1)'*(Fs/Nfreqs);
-
-for k = 1:Na
-    Sa(k,:) = fftshift(fft(Ra(k,:),Nfreqs));
+    % Multiplying by opposite half-cycle-frequency shifts implements the
+    % symmetric CAF: x(t+tau/2)x*(t-tau/2)exp(-j2*pi*alpha*t).
+    half_shift = exp(-1j*pi*(alpha(k)/Fs)*n);
+    Ra(k,:) = xcorr(syms_pb.*half_shift, ...
+        syms_pb.*conj(half_shift),Nlags,'biased').';
 end
 
-waterfall(Saf,alpha,abs(Sa));
+[fig, colors] = thesis_figure();
+surface_handle = waterfall(tau_us,alpha,abs(Ra));
+set(surface_handle,'EdgeColor',colors.blue,'FaceColor','none','LineWidth',0.9);
+view(225,20);
+xlabel('$\tau\ (\mu\mathrm{s})$');
+ylabel('$\alpha\ (\mathrm{MHz})$');
+zlabel('$|\widehat{R}_{x}^{\alpha}(\tau)|$');
+xlim([tau_us(1),tau_us(end)]);
+thesis_export(fig,'cyclic_autocorrelogram');
 
-colormap([0 0 0])
-view(225,15)
-xlabel('$f \: (MHz)$','interpreter','latex')
-ylabel('$\alpha \: (MHz)$','interpreter','latex')
-zlabel('$S_{x}^{\alpha}(f)$','interpreter','latex')
-set(gca,'TickLabelInterpreter','latex')
-grid on
-print('../plots/csd', '-dpng')
+%% Frequency-smoothed cyclic spectral-density estimate
+% Embed the contiguous -Nlags:Nlags sequence in its proper circular-lag
+% positions before zero-padding.  This keeps lag zero at DFT index zero,
+% positive lags at the beginning, and negative lags at the end.  Merely
+% applying ifftshift before a longer FFT would strand the negative lags in
+% the middle of the padded record; leaving the sequence contiguous would
+% introduce a linear phase that corrupts the subsequent complex smoother.
+Ra_padded = complex(zeros(Na,Nfreqs));
+Ra_padded(:,1:Nlags+1) = Ra(:,Nlags+1:end);
+Ra_padded(:,end-Nlags+1:end) = Ra(:,1:Nlags);
+CSD_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
+CSD = circular_movmean(CSD_raw,smoothing_length,2);
+
+% The nontrivial alpha=Rs slice should identify the injected carrier to
+% within one DFT bin.
+[~,symbol_rate_index] = min(abs(alpha-Rs));
+[~,carrier_index] = max(abs(CSD(symbol_rate_index,:)));
+assert(abs(f(carrier_index)-fc) <= Fs/Nfreqs);
+
+[fig, colors] = thesis_figure();
+surface_handle = waterfall(f,alpha,abs(CSD));
+set(surface_handle,'EdgeColor',colors.blue,'FaceColor','none','LineWidth',0.9);
+view(225,20);
+xlabel('$f\ (\mathrm{MHz})$');
+ylabel('$\alpha\ (\mathrm{MHz})$');
+zlabel('$|\widehat{S}_{x}^{\alpha}(f)|$');
+xlim([f(1),f(end)]);
+thesis_export(fig,'csd');

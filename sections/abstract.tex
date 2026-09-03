@@ -1,5 +1,4 @@
 \clearpage
-\newpage
 \addcontentsline{toc}{chapter}{ABSTRACT}
 
 \begin{center}
@@ -7,10 +6,10 @@
   \bigskip
   \MakeUppercase{\@author}\\
   \bigskip
-  \textbf{ABSTRACT}\\
+  ABSTRACT\\
 \end{center}
 
 \bigskip
-Cyclostationary signal processing (CSP) provides the ability to estimate received waveforms' statistical features blindly.  Quadrature amplitude modulated (QAM) waveforms, when filtered by the square-root-raised cosine (SRRC) pulse shape function, have cyclic features that CSP can exploit to detect waveform parameters such as symbol rate (SR) and center frequency (CF).  The estimation of these SR-CF pairs enables a cognitive radio (CR) to perform spectrum sensing techniques such as spectrum sharing and interference mitigation.  Here, we investigate a field-programmable gate array (FPGA) application of a blind symbol rate-center frequency estimator.  First, this study provides a background on the theory behind the cyclic spectral density function (CSD), spectral correlation analyzers (SCA), and spectrum sensing.  Following this is a discussion on the motivation for CubeSat spectrum sensing.  An SCA implementation for low-memory devices, such as FPGA-based CubeSat, is then describes.  The paper concludes by reporting the performance characteristics of the newly developed streaming-based SCA.
+Cyclostationary signal processing (CSP) can reveal periodic statistical features in received waveforms without prior synchronization.  This thesis investigates an FPGA-targeted VHDL architecture for blind symbol-rate and center-frequency estimation of $M$-ary quadrature amplitude modulation (QAM) waveforms shaped by a square-root-raised-cosine (SRRC) pulse, with resource-constrained CubeSat cognitive radios as the target platform.  The proposed streaming spectral correlation analyzer processes samples one at a time: it mixes each candidate center frequency to baseband, applies a two-tap finite-impulse-response filter, estimates the zero-lag cyclic autocorrelation at a candidate symbol rate, and compares the resulting magnitude-squared statistic with an empirically selected, power-scaled threshold.  MATLAB models reproduce the expected cyclic features, and fixed-point VHDL simulations driven by a Python transmitter and channel model characterize modulation order, pulse-shape roll-off, requested search-grid spacing, capture length, word length, noise, sample rate, and two-signal cases.  Every one of the thirteen archived single-trial plots contains at least one threshold crossing.  Eleven experiments report the transmitted symbol-rate--center-frequency pair or pairs; Experiment VII reports a 1.00-MBd symbol rate for a 0.10-MBd input, and Experiment X reports a 0.04-MHz center frequency for a 0.05-MHz input.  The sample-by-sample datapath avoids an FFT sample buffer by construction.  Its serial search time grows with the capture length and the number of evaluated candidate pairs, while its effective frequency spacing is limited by the numerically controlled oscillator's frequency-control-word width.  Recovered 2021 component reports and project scripts identify a ZedBoard XC7Z020CLG484-1 and Vivado 2019.2.1, but no top-level synthesis report links the archived experiment-level resource counts to that setup or documents their BRAM-count convention.  A recovered, source-divergent 2022 checkout also contains accumulator, power-format, and flow-control discrepancies, so it cannot independently establish bit-true conformance of the thesis-era simulations to the ideal statistic.  These results are simulations and reported resource counts, not flight-hardware measurements.
 \vfill
 
