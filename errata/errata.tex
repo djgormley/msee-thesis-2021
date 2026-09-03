@@ -1,0 +1,289 @@
+\documentclass[12pt]{article}
+
+\usepackage[doublespacing]{setspace}
+\usepackage[
+  letterpaper,
+  left=1.5in,
+  right=1in,
+  top=1in,
+  bottom=1in,
+  footskip=0.5in
+]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{array,booktabs,tabularx}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage[hidelinks]{hyperref}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setlist[itemize]{leftmargin=0.28in,itemsep=0.35em,topsep=0.35em}
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+\setcounter{secnumdepth}{0}
+
+\makeatletter
+\def\ps@plain{%
+  \let\@mkboth\@gobbletwo
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \def\@oddfoot{\reset@font\hspace*{-0.5in}\hfil\thepage\hfil}%
+  \let\@evenfoot\@oddfoot
+}
+\makeatother
+\pagestyle{plain}
+
+\hypersetup{
+  pdftitle={Errata: A Low-Memory Spectral-Correlation Analyzer for Digital QAM-SRRC Waveforms},
+  pdfauthor={Dylan Jacob Gormley},
+  pdfsubject={Corrections to the May 2021 master's thesis}
+}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\vspace*{0.9in}
+{\large ERRATA\par}
+\vspace{0.55in}
+{\large A LOW-MEMORY SPECTRAL-CORRELATION ANALYZER\par}
+\vspace{0.08in}
+{\large FOR DIGITAL QAM-SRRC WAVEFORMS\par}
+\vfill
+{\large DYLAN JACOB GORMLEY\par}
+\vfill
+Original thesis submitted in partial fulfillment of the requirements for the degree of\par
+MASTER OF SCIENCE IN ELECTRICAL ENGINEERING\par
+at\par
+CLEVELAND STATE UNIVERSITY\par
+MAY 2021
+\vfill
+Errata revision: September 3, 2026
+\end{center}
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+\pagenumbering{arabic}
+
+\begin{center}
+ERRATA
+\end{center}
+
+\noindent\textbf{Use of this document.}
+This errata records substantive corrections to the original May 2021 thesis. The corrected repository edition incorporates these corrections directly. Page references and Arabic table numbers below use the deposited thesis's printed pagination and labels (OhioLINK accession \texttt{csu1622636550863441}); the corrected edition formats Tables 10--13 as Tables X--XIII. Section, equation, figure, and table identifiers control if pagination differs in another copy. Minor typographical, grammatical, citation-style, and production changes are summarized at the end rather than itemized word by word.
+
+\section{Abstract and evidentiary scope}
+
+\noindent\textbf{Affected location:} Abstract, p.~vii.
+
+The original abstract does not state the evidentiary limits of the characterization and surviving implementation records precisely enough. The following qualifications apply:
+
+\begin{itemize}
+  \item The thirteen archived plots are single trials. Every plot has at least one threshold crossing, but only eleven report the transmitted symbol-rate--center-frequency pair or pairs after reconstruction of the plotted coordinates.
+  \item Experiment VII reports a $1.00$-MBd rate for a $0.10$-MBd input. Experiment X reports a $0.04$-MHz center frequency for a $0.05$-MHz input.
+  \item The work demonstrates an FPGA-targeted architecture through models, simulations, and archived resource counts. It does not report measurements from deployed or flight hardware.
+  \item Recovered component design documents label their module-level resource tables as ZedBoard XC7Z020\hspace{0pt}CLG484-1 and Vivado 2019.2.1, but no retained top-level report ties the experiment-level resource counts to that setup.
+\end{itemize}
+
+\section{Random-process and spectral definitions}
+
+\noindent\textbf{Affected locations:} Sections 2.1--2.2, pp.~4--14.
+
+The following definitions replace the corresponding original descriptions.
+
+\begin{itemize}
+  \item A random process is a collection of random variables indexed by time. One outcome gives a sample path. For a real-valued process with a marginal density, its mean is the ensemble expectation at fixed time, for example
+  \[
+    \mu_X(t)=E\{X(t)\}=\int_{-\infty}^{\infty}x\,p_{X(t)}(x)\,dx
+  \]
+  when the marginal density exists. This ensemble average is not generally a time average along one record.
+
+  \item A finite-second-moment process is wide-sense stationary when its mean is constant and its autocorrelation is invariant to a common time shift, so
+  \[
+    R_X(\tau)=E\!\left\{X\!\left(t+\frac{\tau}{2}\right)
+      X^*\!\left(t-\frac{\tau}{2}\right)\right\}.
+  \]
+  A sample-path time average equals this ensemble quantity only under the relevant ergodicity condition.
+
+  \item For a second-order cyclostationary process, the autocorrelation is periodic in absolute time. Its cyclic autocorrelation is the corresponding Fourier-series coefficient. A single-record time-average estimator requires the appropriate cycloergodicity assumption; it is not the population definition itself.
+
+  \item Energy spectral density, power spectral density, and the periodogram are distinct. For an energy signal, the energy spectral density is $|X(f)|^2$. For a wide-sense stationary power process, the power spectral density is the Fourier transform of its autocorrelation. A periodogram is a finite-record estimate and is not a consistent power-spectral-density estimator without suitable averaging or smoothing. \mbox{Parseval's} relation equates total time-domain energy with integrated spectral energy; it does not identify a pointwise spectrum with power.
+
+  \item The cyclic spectral density describes second-order periodic correlation. It does not recover a process's complete probability law. Its $\alpha=0$ slice is the ordinary power spectral density under the same conventions.
+
+  \item The linear-modulation expression is
+  \[
+    X(t)=\sum_{k=-\infty}^{\infty}a_k p(t-kT_0-t_0)
+    e^{j(2\pi f_c t+\theta_0)},
+  \]
+  where $T_0=1/R_s$. The phase offset belongs inside the exponential. Under the MATLAB convention used in the thesis, 2-QAM is an antipodal constellation equivalent to BPSK. The corrected QAM-SRRC derivation retains the symmetric-lag pulse product and the corresponding frequency shifts $P(f-f_c+\alpha/2)P^*(f-f_c-\alpha/2)$.
+\end{itemize}
+
+\section{Spectral-correlation analyzer and detector}
+
+\noindent\textbf{Affected locations:} Sections 2.3--2.4, pp.~15--25; Chapter IV opening and plot captions, pp.~49 and 52--54.
+
+\begin{itemize}
+  \item Gardner's baseline time-smoothing analyzer shifts the spectral components centered at $f+\alpha/2$ and $f-\alpha/2$ to baseband, low-pass filters them, correlates the two outputs, and takes the ordered time and bandwidth limits. It should not be described as an FFT of the cyclic autocorrelation.
+
+  \item Koch's method first uses a thresholded Welch spectrum to form signal segments. Its cyclic-autocorrelation FFT applies an FFT to $|x[n]|^2$ to select candidate rates. For each selected rate, its implemented carrier detector sweeps a centered segment over frequency offsets, applies a rate-dependent low-pass filter, evaluates one cyclic-autocorrelation coefficient, and thresholds the normalized peak. A separate preliminary center-frequency preprocessor was not used in the reported system.
+
+  \item For the serial architecture in this thesis, let
+  \[
+    z_k[n]=\sum_m h[m]y[n-m]
+      e^{-j2\pi f_k(n-m)/F_s} .
+  \]
+  Its estimated zero-lag cyclic-autocorrelation coefficient and nonnegative test statistic are
+  \[
+    \widehat C_y(\alpha_v,f_k)=\frac{1}{N}\sum_{n=0}^{N-1}|z_k[n]|^2
+      e^{-j2\pi\alpha_v n/F_s},
+    \qquad
+    T_y(v,k)=|\widehat C_y(\alpha_v,f_k)|^2.
+  \]
+  This is a channelized, filter-localized cyclic statistic, not literally a point value of the cyclic spectral density.
+
+  \item The symbols $v$ and $k$ are array indices. The physical candidates are $\alpha_v$ and $f_k$ in hertz, and $F_s$ must appear in the discrete-time exponential. The archived plot coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample despite the legacy axis labels.
+
+  \item For the archived Chapter IV characterization, the plotted post-processing decision threshold is
+  \[
+    \gamma=\beta\widehat P_y^{\,2},\qquad \beta=10^{-4},
+  \]
+  where $\widehat P_y^{\,2}$ is the normalized sample-power-squared quantity that was mislabeled $\sigma_\eta^4$ in Table 12. The retained CFE testbench writes the statistic; the threshold overlay and decision are performed in post-processing. The value of $\beta$ was empirical. The retained receiver-operating-characteristic notebook terminates with an execution error and does not establish a calibrated probability of detection or false-alarm rate.
+
+  \item A cyclostationary feature detector can reject ideal stationary noise at nonzero cycle frequency in the population model, but this does not make finite-record detection automatically immune to noise, uncertainty, leakage, or model mismatch. Adjacent grid crossings near one feature are correlated responses and should not automatically be counted as independent false alarms.
+
+  \item The regenerated MATLAB illustrations now use a genuinely constant threshold and independently impose the requested $E_b/N_0$ on both signals in the two-signal example. These are corrections to explanatory figures; they do not alter the archived Chapter IV VHDL result plots.
+\end{itemize}
+
+\section{Architecture, memory, and numerical behavior}
+
+\noindent\textbf{Affected locations:} Sections 3.1--3.3, pp.~27--48.
+
+\begin{itemize}
+  \item The cited strip spectral correlation analyzer intermediate array requires
+  \[
+    (2^{16})(32)(32\ \text{bits})=67{,}108{,}864\ \text{bits}
+  \]
+  for the stated $N=2^{16}$, $N_p=32$, and 32-bit complex-word assumptions. This exceeds the approximately $4.9$ Mbit of block RAM listed for the XC7Z020 in Xilinx DS190. The comparison is an order-of-magnitude architectural motivation, not a synthesis result for the streaming design.
+
+  \item Avoiding an FFT capture array does not mean that the implementation contains no memory or buffering. The streaming design uses state, delay elements, lookup tables, and pipeline registers. At one accepted sample per clock, a fully serial sweep over $N_v$ rate candidates and $N_k$ center-frequency candidates requires approximately $NN_vN_k$ sample clocks plus control and pipeline overhead.
+
+  \item A $W$-bit numerically controlled oscillator represents a requested frequency with the nearest frequency-control word, giving quantum $F_s/2^W$. With $W=16$ and $F_s=1$ MHz, the quantum is $15.2588$ Hz. Therefore the requested 1-Hz grid in Experiment XI does not demonstrate 1-Hz hardware resolution: its 201 requests map to only 14 distinct settings. The two discrete-time endpoints $-F_s/2$ and $+F_s/2$ also alias to the same oscillator setting.
+
+  \item Contemporaneous component documentation supports the thesis design intent of a fixed two-tap filter with coefficients $[0.5,0.5]$. A later recovered active source tree contains a 41-tap, 128-bank filter and cannot be used as the historical RTL implementation of that two-tap description.
+
+  \item The recovered modules are fixed-latency pipelines, not a fully elastic ready/valid interface. Several paths and state machines do not stall when the downstream ready signal is low. The documented characterization therefore assumes continuous operation with one valid sample per clock and a ready downstream path.
+\end{itemize}
+
+\section{Recovered-RTL limitations}
+
+\noindent\textbf{Affected locations:} Sections 3.3.2, 3.3.4, 3.3.6, 3.3.8, and 3.3.9, pp.~32, 36, 40, and 44--48.
+
+The exact thesis-era RTL revision is unavailable. The following observations apply to a later, source-divergent recovered checkout and therefore do not prove that the thesis-era simulations contained the same defects. They do prevent that checkout from independently establishing bit-true agreement with the equations.
+
+\begin{itemize}
+  \item The instantaneous-power path retains unsigned bits 29 through 14 and then reinterprets the resulting 16-bit word as signed. For 16-bit inputs with 15 fractional bits, powers at or above approximately $0.5$ can therefore appear negative, and an ideal power of $1.0$ is carried by a discarded upper bit and maps to zero.
+
+  \item In the recovered accumulator, the sample-count generic is unused and the internal width is fixed at 28 bits. The 16-bit output slice \texttt{Sum(27 downto 12)} applies a 12-bit right shift, not division by $N=2^{16}$. A worst-case overflow-free sum of $2^{16}$ signed 16-bit samples requires 32 bits.
+
+  \item When the end-of-block marker is asserted on sample $N-1$, the emitted sum excludes that marked sample, which instead seeds the next block. Several status signals can also remain asserted across invalid cycles rather than forming one-cycle handshake events. Boundary, scaling, width, and interface control require correction and re-verification before this checkout is reused.
+\end{itemize}
+
+\section{Chapter IV experiments and results}
+
+\noindent\textbf{Affected locations:} Chapter IV opening, p.~49; Tables 10--13, pp.~50--56; Figures 35--37, pp.~52--54.
+
+Table 10 must state that $F_s=1$ MHz except in Experiment VII, where $F_s=10$ MHz, and that the single $E_b/N_0$ value in Experiments XII and XIII applies to both signals. In Table 11, the columns labeled $v$ and $k$ are requested physical grids and must instead be labeled $\mathcal R$ (MBd) and $\mathcal F$ (MHz). Figures 35--37 show the streaming-SCA test statistic, not a direct cyclic-spectral-density estimate.
+
+\begin{center}
+\singlespacing
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{@{}L{1.45in}L{2.20in}Y@{}}
+\toprule
+\textbf{Experiments} & $\boldsymbol{\mathcal R}$ \textbf{(MBd)} & $\boldsymbol{\mathcal F}$ \textbf{(MHz)} \\
+\midrule
+I--III, V, VI, VIII, IX & $[0.10:0.10:0.50]$ & $[-0.50:0.05:0.50]$ \\
+IV & $[0.01:0.01:0.50]$ & $[-0.50:0.05:0.50]$ \\
+VII & $[1.00:1.00:5.00]$ & $[-5.00:0.05:5.00]$ \\
+X & $\{0.10\}$ & $[-0.50:0.01:0.50]$ \\
+XI & $[0.0999:10^{-6}:0.1001]$ & $\{0.05\}$ \\
+XII--XIII & $[0.05:0.05:0.50]$ & $[-0.50:0.05:0.50]$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{table}[H]
+\centering
+\singlespacing
+\caption{Corrected interpretation of the Chapter IV result entries. Pairs are $(R_s,f_c)$ in (MBd, MHz).}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}L{0.55in}L{1.20in}L{1.25in}Y@{}}
+\toprule
+\textbf{Expt.} & \textbf{Input pair(s)} & \textbf{Reported pair(s)} & \textbf{Correction or qualification} \\
+\midrule
+IV & $(0.01,0.05)$ & $(0.01,0.05)$ & The original result table printed $0.10$ MBd. Its copied delay is invalid; the sample-processing lower bound alone is $68.8128$ s, so the delay is unavailable. \\
+VII & $(0.10,0.05)$ & $(1.00,0.05)$ & The original result table repeated the input rate. The receiver grid begins at $1.00$ MBd, so the trial does not recover the transmitted rate. Its duplicated baseline delay is anomalous and unverified. \\
+VIII & $(0.10,0.05)$ & $(0.10,0.05)$ & The $0.430241$-s reported delay is independently consistent with the $0.430080$-s sample-processing lower bound; the difference is approximately $161\,\mu$s. \\
+X & $(0.10,0.05)$ & $(0.10,0.04)$ & The center frequency is one 10-kHz search step below the input value and must not be reported as exact recovery. \\
+XIII & $(0.10,0.05)$; $(0.25,0.10)$ & $(0.10,0.05)$; $(0.25,0.10)$ & The original result table printed $0.25$ MHz for the second center frequency. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For readability, the corrected edition expresses the Table 12 delays in seconds by dividing the original nanosecond values by $10^9$. These are archival serial-sweep simulation times, not per-sample detector latencies. Except for the Experiment VIII lower-bound consistency check and the contradiction of Experiment IV's copied value, the remaining timing and power entries are unverified archival transcriptions because the raw timing logs and complete result matrices do not survive. A single trial per condition cannot estimate detection or false-alarm probabilities.
+
+In Table 13, the second row labeled Experiment VII must be Experiment VIII. The counts are retained as archival resource figures only. Their synthesis target, exact settings, timing closure, and block-RAM counting convention cannot be established from the surviving thesis or recovered-archive records.
+
+\section{Source provenance and implementation target}
+
+\noindent\textbf{Affected locations:} Chapter III, pp.~26--48; Section 4.2, p.~55; Table 13, p.~56; Chapter V, pp.~57--58.
+
+The exact RTL revision used for the thesis simulations and resource results cannot be established from the recovered archive. The surviving repository metadata identifies a later indexed revision, \texttt{1972ccba7c2227c1e403950c21c91683a9b76d99}, dated July 5, 2022, but the archive omits the pack containing its pre-clone history. The extracted working tree differs from that index in 43 tracked paths. It must not be treated as the exact thesis-era implementation.
+
+Contemporaneous design documents contain transcribed resource tables for individual components. The tables name Vivado 2019.2.1 and a ZedBoard with part XC7Z020CLG484-1. Separate project-recreation Tcl scripts target that board and part and select the ``Vivado Synthesis Defaults'' and ``Vivado Implementation Defaults'' strategies. These artifacts do not prove that the document tables were generated by those scripts or settings, and they do not establish the target or settings used for Table 13.
+
+Other metadata in the later archive conflicts. Most production-RTL headers name an XC7Z045 and Vivado 2019.1.3; later top-level and threshold headers name an XCKU025, while the threshold header names Vivado 2020.2.2. A later out-of-context FFT checkpoint for the symbol-rate preprocessor names an XCKU5P and Vivado 2019.1.3; it is not evidence for the Table 13 streaming-SCA results. No raw top-level synthesis, utilization, or timing report associated with Table 13 survives. Accordingly, that table is an unverified archival record rather than a reproducible synthesis result.
+
+\section{Conclusions and claims of support}
+
+\noindent\textbf{Affected location:} Chapter V, pp.~57--58.
+
+The conclusion must be limited to an FPGA-targeted architecture, MATLAB models, archived VHDL simulations, and reported resource counts. The work does not demonstrate a deployed flight implementation. The serial processing time grows with the capture length and the number of candidate pairs. Koch's preprocessing does not guarantee a fixed reduction in work, and adding it would require spectral segmentation, filtering, block storage, an FFT, and validation.
+
+Any future decimation must be preceded by an anti-alias low-pass filter and must preserve the occupied bandwidth and required cyclic frequencies. The factor is not generally $F_s/R_s$. The Chapter IV fixed-point VHDL characterization tests only 4-QAM-SRRC and 16-QAM-SRRC inputs. Passing other waveform samples through the same datapath does not establish useful features, thresholds, or reliable support for FSK, OOK, MSK, DSSS, DPSK, Manchester coding, or other pulse shapes.
+
+\section{Editorial, figure, and reproducibility amendments}
+
+The corrected edition also makes the following non-substantive or production-oriented changes:
+
+\begin{itemize}
+  \item It corrects spelling, grammar, punctuation, capitalization, units, mathematical notation, cross-references, table labels, and bibliographic metadata throughout.
+  \item It regularizes front-matter order, margins, page-number placement, chapter and contents formatting, and the presentation of figures and tables.
+  \item It repairs the MATLAB plotting scripts, uses fixed random seeds where stochastic examples are shown, corrects formulas and search grids, and regenerates the figures with a shared font, size, line-weight, and color specification.
+  \item It replaces the stale Appendix A code transcription with the maintained MATLAB source included by the document build.
+\end{itemize}
+
+\section{Principal verification sources}
+
+The corrections above were checked against the thesis source, the archived experiment plots and component records, the recovered repository metadata, and the following primary technical sources already represented in the corrected thesis bibliography:
+
+\begin{itemize}
+  \item W. A. Gardner, \textit{Introduction to Random Processes with Applications to Signals and Systems}, 2nd ed., McGraw-Hill, 1990.
+  \item W. A. Gardner, A. Napolitano, and L. Paura, ``Cyclostationarity: Half a Century of Research,'' \textit{Signal Processing}, vol.~86, no.~4, pp.~639--697, 2006.\\
+  \href{https://doi.org/10.1016/j.sigpro.2005.06.016}{doi:10.1016/j.sigpro.2005.06.016}.
+  \item M. V. Koch and J. A. Downey, \textit{Interference Mitigation Using Cyclic Autocorrelation and Multi-Objective Optimization}, NASA/TM--2019-220226, 2019.
+  \item Xilinx, Inc., \textit{Zynq-7000 SoC Data Sheet: Overview}, DS190, version 1.11.1, 2018.
+\end{itemize}
+
+\vfill
+\begin{center}
+\singlespacing
+End of errata
+\end{center}
+
+\end{document}

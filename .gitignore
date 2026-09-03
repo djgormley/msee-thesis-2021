@@ -17,6 +17,12 @@
 /main/main.log
 /main/main.lot
 /main/main.toc
+/errata/errata.aux
+/errata/errata.fdb_latexmk
+/errata/errata.fls
+/errata/errata.log
+/errata/errata.out
+/errata/errata.pdf
 
 # Local review and intermediate outputs
 /tmp/
