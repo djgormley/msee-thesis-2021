@@ -1,46 +1,37 @@
-\begin{tikzpicture}[x=9.5mm,y=5mm]
-  \foreach \x in {0,...,12}
-    \draw[timing/grid] (\x,-0.15) -- (\x,7.55);
-
-  \node[timing/rowlabel] at (-0.25,7.2) {sample clock};
-  \node[timing/rowlabel] at (-0.25,6) {\TimingInputName};
-  \node[timing/rowlabel] at (-0.25,5) {input valid};
-  \node[timing/rowlabel] at (-0.25,4) {input last};
-  \node[timing/rowlabel] at (-0.25,3) {\TimingOutputName};
-  \node[timing/rowlabel] at (-0.25,2) {output valid};
-  \node[timing/rowlabel] at (-0.25,1) {output last};
-  \node[timing/rowlabel] at (-0.25,0) {ready signals};
-
-  \foreach \x in {0,...,11}
-    \draw[timing/wave] (\x,7) -- (\x,7.4) -- ({\x+0.5},7.4) -- ({\x+0.5},7) -- ({\x+1},7);
-
-  \draw[timing/wave] (0,6) -- (1,6) (5,6) -- (12,6);
-  \path[timing/bus] (1,5.65) rectangle (2,6.35);
-  \path[timing/bus] (2,5.65) rectangle (3,6.35);
-  \path[timing/bus] (3,5.65) rectangle (4,6.35);
-  \path[timing/bus] (4,5.65) rectangle (5,6.35);
-  \node[timing/text] at (1.5,6) {\TimingInputZero};
-  \node[timing/text] at (2.5,6) {\TimingInputOne};
-  \node[timing/text] at (3.5,6) {$\cdots$};
-  \node[timing/text] at (4.5,6) {\TimingInputLast};
-
-  \draw[timing/wave] (0,4.8) -- (1,4.8) -- (1,5.2) -- (5,5.2) -- (5,4.8) -- (12,4.8);
-  \draw[timing/wave] (0,3.8) -- (4,3.8) -- (4,4.2) -- (5,4.2) -- (5,3.8) -- (12,3.8);
-
-  \draw[timing/wave] (0,3) -- (7,3) (11,3) -- (12,3);
-  \path[timing/bus] (7,2.65) rectangle (8,3.35);
-  \path[timing/bus] (8,2.65) rectangle (9,3.35);
-  \path[timing/bus] (9,2.65) rectangle (10,3.35);
-  \path[timing/bus] (10,2.65) rectangle (11,3.35);
-  \node[timing/text] at (7.5,3) {\TimingOutputZero};
-  \node[timing/text] at (8.5,3) {\TimingOutputOne};
-  \node[timing/text] at (9.5,3) {$\cdots$};
-  \node[timing/text] at (10.5,3) {\TimingOutputLast};
-
-  \draw[timing/wave] (0,1.8) -- (7,1.8) -- (7,2.2) -- (11,2.2) -- (11,1.8) -- (12,1.8);
-  \draw[timing/wave] (0,0.8) -- (10,0.8) -- (10,1.2) -- (11,1.2) -- (11,0.8) -- (12,0.8);
-  \draw[timing/wave] (0,0.2) -- (12,0.2);
-  \node[timing/text, anchor=west, fill=white, inner sep=1pt] at (0.2,0.2) {high throughout the record};
-
-  \draw[<->, >=Latex, line width=0.5pt] (1,-0.45) -- node[timing/text, fill=white, inner sep=1pt] {fixed latency \TimingLatency} (7,-0.45);
-\end{tikzpicture}
+\begin{tikztimingtable}[
+  timing/.style={x=9.5mm, y=2.4mm, line width=0.7pt},
+  x=9.5mm,
+  timing/rowdist=5mm,
+  timing/coldist=4mm,
+  timing/slope=0,
+  timing/dslope=0.12,
+  timing/zslope=0.06,
+  timing/name/.style={font=\scriptsize\linespread{1}\selectfont},
+  timing/d/background/.style={fill=black!6},
+  timing/d/text/.style={font=\scriptsize\linespread{1}\selectfont},
+  timing/z/.style={black},
+  timing/text format={\strut}
+]
+  sample clock       & 24{c} \\
+  \TimingInputName   & 1Z 1D{\TimingInputZero} 1D{\TimingInputOne}
+                         1D{$\cdots$} 1D{\TimingInputLast} 7Z \\
+  input valid        & 1L 4H 7L \\
+  input last         & 4L 1H 7L \\
+  \TimingOutputName  & 7Z 1D{\TimingOutputZero} 1D{\TimingOutputOne}
+                         1D{$\cdots$} 1D{\TimingOutputLast} 1Z \\
+  output valid       & 7L 4H 1L \\
+  output last        & 10L 1H 1L \\
+  ready signals      & 12H \\
+\extracode
+  \begin{pgfonlayer}{background}
+    \vertlines[timing/grid]{0,...,12}
+  \end{pgfonlayer}
+  \node[timing/text, fill=white, inner sep=1pt] at (row8.mid)
+    {high throughout the record};
+  \coordinate (latencybase) at ($(row8.south)+(0,-3mm)$);
+  \draw[<->, >=Latex, line width=0.5pt]
+    (1,0 |- latencybase) --
+    node[timing/text, fill=white, inner sep=1pt]
+      {fixed latency \TimingLatency}
+    (7,0 |- latencybase);
+\end{tikztimingtable}

@@ -1,11 +1,12 @@
 \begin{tikzpicture}[node distance=4mm]
   \node[arch/label] (xin) {$x[n]$};
   \node[arch/block, right=of xin] (buffer) {capture\\buffer};
-  \node[arch/block, right=of buffer] (mix) {$\times e^{-j2\pi f_k n/F_s}$};
+  \node[dsp/mult, right=of buffer] (mix) {$\times$};
   \node[arch/block, right=of mix] (filt) {$h[n]$\\channel filter};
   \node[arch/smallblock, right=of filt] (pwr) {$|z_k[n]|^2$};
-  \node[arch/block, right=of pwr] (corr) {$\times e^{-j2\pi\alpha_v n/F_s}$\\sum $N$ samples};
-  \node[arch/smallblock, right=of corr] (norm) {$\div N$};
+  \node[dsp/mult, right=of pwr] (corr) {$\times$};
+  \node[dsp/reg, align=center, right=of corr] (sum) {$N$-sample\\accumulator};
+  \node[arch/smallblock, right=of sum] (norm) {$\div N$};
   \node[arch/smallblock, right=of norm] (mag) {$|\cdot|^2$};
   \node[arch/label, right=of mag] (out) {$T_x(v,k)$};
 
@@ -14,14 +15,15 @@
   \draw[arch/wire] (mix) -- (filt);
   \draw[arch/wire] (filt) -- (pwr);
   \draw[arch/wire] (pwr) -- (corr);
-  \draw[arch/wire] (corr) -- (norm);
+  \draw[arch/wire] (corr) -- (sum);
+  \draw[arch/wire] (sum) -- (norm);
   \draw[arch/wire] (norm) -- (mag);
   \draw[arch/wire] (mag) -- (out);
 
-  \node[arch/tinylabel, above=8mm of mix] (fk) {CF candidate $f_k$};
-  \node[arch/tinylabel, above=8mm of corr] (av) {cycle-frequency candidate $\alpha_v$};
+  \node[arch/tinylabel, above=8mm of mix] (fk) {CF candidate $f_k$\\$e^{-j2\pi f_kn/F_s}$};
+  \node[arch/tinylabel, above=8mm of corr] (av) {cycle-frequency candidate $\alpha_v$\\$e^{-j2\pi\alpha_vn/F_s}$};
   \draw[arch/control] (fk) -- (mix.north);
   \draw[arch/control] (av) -- (corr.north);
   \node[arch/group, fit=(mix)(filt), label={[arch/tinylabel]below:channelizer $k$}] {};
-  \node[arch/tinylabel, below=10mm of pwr] {$k=0,\ldots,N_k-1$ parallel lanes in the buffered reference realization};
+  \node[arch/tinylabel, below=10mm of pwr] {$k=0,\ldots,N_k-1$ parallel channelizer lanes};
 \end{tikzpicture}

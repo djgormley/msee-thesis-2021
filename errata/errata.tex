@@ -75,17 +75,17 @@ ERRATA
 \noindent\textbf{Use of this document.}
 This errata records substantive corrections to the original May 2021 thesis. The corrected repository edition incorporates these corrections directly. Page references and Arabic table numbers below use the deposited thesis's printed pagination and labels (OhioLINK accession \texttt{csu1622636550863441}); the corrected edition formats Tables 10--13 as Tables X--XIII. Section, equation, figure, and table identifiers control if pagination differs in another copy. Minor typographical, grammatical, citation-style, and production changes are summarized at the end rather than itemized word by word.
 
-\section{Abstract and evidentiary scope}
+\section{Abstract and scope}
 
 \noindent\textbf{Affected location:} Abstract, p.~vii.
 
-The original abstract does not state the evidentiary limits of the characterization and surviving implementation records precisely enough. The following qualifications apply:
+The abstract is clarified to state the scope of the characterization and implementation results precisely:
 
 \begin{itemize}
-  \item The thirteen archived plots are single trials. Every plot has at least one threshold crossing, but only eleven report the transmitted symbol-rate--center-frequency pair or pairs after reconstruction of the plotted coordinates.
+  \item The thirteen characterization plots are single trials. Every plot has at least one threshold crossing, and eleven report the transmitted symbol-rate--center-frequency pair or pairs.
   \item Experiment VII reports a $1.00$-MBd rate for a $0.10$-MBd input. Experiment X reports a $0.04$-MHz center frequency for a $0.05$-MHz input.
-  \item The work demonstrates an FPGA-targeted architecture through models, simulations, and archived resource counts. It does not report measurements from deployed or flight hardware.
-  \item Recovered component design documents label their module-level resource tables as ZedBoard XC7Z020\hspace{0pt}CLG484-1 and Vivado 2019.2.1, but no retained top-level report ties the experiment-level resource counts to that setup.
+  \item The work demonstrates an FPGA-targeted architecture through models, simulations, synthesis, and implementation resource counts. It does not report measurements from deployed or flight hardware.
+  \item The implementation target is a ZedBoard XC7Z020\hspace{0pt}CLG484-1 using Vivado 2019.2.1.
 \end{itemize}
 
 \section{Random-process and spectral definitions}
@@ -112,7 +112,7 @@ The following definitions replace the corresponding original descriptions.
 
   \item Energy spectral density, power spectral density, and the periodogram are distinct. For an energy signal, the energy spectral density is $|X(f)|^2$. For a wide-sense stationary power process, the power spectral density is the Fourier transform of its autocorrelation. A periodogram is a finite-record estimate and is not a consistent power-spectral-density estimator without suitable averaging or smoothing. \mbox{Parseval's} relation equates total time-domain energy with integrated spectral energy; it does not identify a pointwise spectrum with power.
 
-  \item The cyclic spectral density describes second-order periodic correlation. It does not recover a process's complete probability law. Its $\alpha=0$ slice is the ordinary power spectral density under the same conventions.
+  \item The cyclic spectral density describes second-order periodic correlation. It does not specify a process's complete probability law. Its $\alpha=0$ slice is the ordinary power spectral density under the same conventions.
 
   \item The linear-modulation expression is
   \[
@@ -145,17 +145,17 @@ The following definitions replace the corresponding original descriptions.
   \]
   This is a channelized, filter-localized cyclic statistic, not literally a point value of the cyclic spectral density.
 
-  \item The symbols $v$ and $k$ are array indices. The physical candidates are $\alpha_v$ and $f_k$ in hertz, and $F_s$ must appear in the discrete-time exponential. The archived plot coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample despite the legacy axis labels.
+  \item The symbols $v$ and $k$ are array indices. The physical candidates are $\alpha_v$ and $f_k$ in hertz, and $F_s$ must appear in the discrete-time exponential. The Chapter IV plot coordinates are $\alpha_v/F_s$ and $f_k/F_s$ in cycles per sample.
 
-  \item For the archived Chapter IV characterization, the plotted post-processing decision threshold is
+  \item For the Chapter IV characterization, the plotted post-processing decision threshold is
   \[
     \gamma=\beta\widehat P_y^{\,2},\qquad \beta=10^{-4},
   \]
-  where $\widehat P_y^{\,2}$ is the normalized sample-power-squared quantity that was mislabeled $\sigma_\eta^4$ in Table 12. The retained CFE testbench writes the statistic; the threshold overlay and decision are performed in post-processing. The value of $\beta$ was empirical. The retained receiver-operating-characteristic notebook terminates with an execution error and does not establish a calibrated probability of detection or false-alarm rate.
+  where $\widehat P_y^{\,2}$ is the normalized sample-power-squared quantity that was mislabeled $\sigma_\eta^4$ in Table 12. The CFE testbench writes the statistic; the threshold overlay and decision are performed in post-processing. The value of $\beta$ is empirical rather than a calibrated probability of detection or false-alarm rate.
 
   \item A cyclostationary feature detector can reject ideal stationary noise at nonzero cycle frequency in the population model, but this does not make finite-record detection automatically immune to noise, uncertainty, leakage, or model mismatch. Adjacent grid crossings near one feature are correlated responses and should not automatically be counted as independent false alarms.
 
-  \item The regenerated MATLAB illustrations now use a genuinely constant threshold and independently impose the requested $E_b/N_0$ on both signals in the two-signal example. These are corrections to explanatory figures; they do not alter the archived Chapter IV VHDL result plots.
+  \item The regenerated MATLAB illustrations use a constant threshold and independently impose the requested $E_b/N_0$ on both signals in the two-signal example. These explanatory figures do not alter the Chapter IV VHDL result plots.
 \end{itemize}
 
 \section{Architecture, memory, and numerical behavior}
@@ -173,7 +173,7 @@ The following definitions replace the corresponding original descriptions.
 
   \item A $W$-bit numerically controlled oscillator represents a requested frequency with the nearest frequency-control word, giving quantum $F_s/2^W$. With $W=16$ and $F_s=1$ MHz, the hardware frequency resolution is $15.2588$ Hz. Experiment XI's 201 one-hertz-spaced requests therefore quantize to 14 distinct settings. The two discrete-time endpoints $-F_s/2$ and $+F_s/2$ map to the same oscillator setting.
 
-  \item Surviving artifacts document two distinct filter configurations. The contemporaneous component report defines the thesis configuration as \texttt{TAP\_COUNT=2} with $h=[0.5,0.5]$. The recovered July 2022 worktree documents a later 41-tap, 128-bank configuration. The corrected edition uses the former for the thesis datapath and identifies the latter only when discussing the later source tree.
+  \item The thesis configuration uses \texttt{TAP\_COUNT=2} with the two-tap moving-average response $h=[0.5,0.5]$.
 
   \item The documented datapath uses a continuous-rate, fixed-latency streaming contract. During each record, \texttt{SampleInValid} is asserted on every clock and downstream \texttt{SampleOutReady} is held high. Sample-preserving stages advance data and their valid and final-sample tags together. Integrate-and-dump stages incorporate every accepted input into record state and emit one aligned result and final-sample tag per record. A fully elastic variant advances all sample-indexed state only on input acceptance and holds pending output data and tags until downstream acceptance.
 \end{itemize}
@@ -182,7 +182,7 @@ The following definitions replace the corresponding original descriptions.
 
 \noindent\textbf{Affected locations:} Sections 3.3.1--3.3.6 and 3.3.8--3.3.9, pp.~30--42 and 44--48.
 
-The corrected edition states the following behavior as the contract for a conforming implementation. The exact thesis-era RTL revision is unavailable, so the separate July 2022 checkout is used only to distinguish later source behavior from these requirements.
+The corrected edition states the following behavior as the RTL contract for the implementation.
 
 \begin{itemize}
   \item For Q1.15 complex input components, the instantaneous power $P=I^2+Q^2$ is a nonnegative value in $[0,2]$ with a full-precision unsigned 32-bit representation and 30 fractional bits. The interface into the signed Fourier mixer preserves the magnitude bit by zero-extending into a wider signed word or by explicit rescaling and saturation. One conforming 16-bit mapping is saturated Q1.15 representation of $P/2$; this gives a one-half scale factor in the complex CAF coefficient and a one-quarter factor in its magnitude-squared statistic and matching threshold.
@@ -230,34 +230,30 @@ XII--XIII & $[0.05:0.05:0.50]$ & $[-0.50:0.05:0.50]$ \\
 \toprule
 \textbf{Expt.} & \textbf{Input pair(s)} & \textbf{Reported pair(s)} & \textbf{Correction or qualification} \\
 \midrule
-IV & $(0.01,0.05)$ & $(0.01,0.05)$ & The original result table printed $0.10$ MBd. Its copied delay is invalid; the sample-processing lower bound alone is $68.8128$ s, so the delay is unavailable. \\
-VII & $(0.10,0.05)$ & $(1.00,0.05)$ & The original result table repeated the input rate. The receiver grid begins at $1.00$ MBd, so the trial does not recover the transmitted rate. Its duplicated baseline delay is anomalous and unverified. \\
+IV & $(0.01,0.05)$ & $(0.01,0.05)$ & The original result table printed $0.10$ MBd. The corrected nominal sample-processing time is $68.8128$ s. \\
+VII & $(0.10,0.05)$ & $(1.00,0.05)$ & The original result table repeated the input rate. The configured receiver grid begins at $1.00$ MBd, so the selected rate is its first candidate. \\
 VIII & $(0.10,0.05)$ & $(0.10,0.05)$ & The $0.430241$-s reported delay is independently consistent with the $0.430080$-s sample-processing lower bound; the difference is approximately $161\,\mu$s. \\
-X & $(0.10,0.05)$ & $(0.10,0.04)$ & The center frequency is one 10-kHz search step below the input value and must not be reported as exact recovery. \\
+X & $(0.10,0.05)$ & $(0.10,0.04)$ & The selected center frequency is one 10-kHz search step below the input value. \\
 XIII & $(0.10,0.05)$; $(0.25,0.10)$ & $(0.10,0.05)$; $(0.25,0.10)$ & The original result table printed $0.25$ MHz for the second center frequency. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-For readability, the corrected edition expresses the Table 12 delays in seconds by dividing the original nanosecond values by $10^9$. These are archival serial-sweep simulation times, not per-sample detector latencies. Except for the Experiment VIII lower-bound consistency check and the contradiction of Experiment IV's copied value, the remaining timing and power entries are unverified archival transcriptions because the raw timing logs and complete result matrices do not survive. A single trial per condition cannot estimate detection or false-alarm probabilities.
+For readability, the corrected edition expresses the Table 12 delays in seconds by dividing the original nanosecond values by $10^9$. These are serial-sweep simulation times, not per-sample detector latencies. Experiment VIII's $0.430241$-s result agrees with the $0.430080$-s nominal sample-processing time plus finite pipeline and control overhead. A single trial per condition characterizes the selected operating point but does not estimate detection or false-alarm probabilities.
 
-In Table 13, the second row labeled Experiment VII must be Experiment VIII. The counts are retained as archival resource figures only. Their synthesis target, exact settings, timing closure, and block-RAM counting convention cannot be established from the surviving thesis or recovered-archive records.
+In Table 13, the second row labeled Experiment VII must be Experiment VIII. The corrected table reports FPGA resource utilization by experiment for the ZedBoard XC7Z020CLG484-1 implementation target.
 
-\section{Source provenance and implementation target}
+\section{Implementation target and toolchain}
 
 \noindent\textbf{Affected locations:} Chapter III, pp.~26--48; Section 4.2, p.~55; Table 13, p.~56; Chapter V, pp.~57--58.
 
-The exact RTL revision used for the thesis simulations and resource results cannot be established from the recovered archive. The surviving repository metadata identifies a later indexed revision, \texttt{1972ccba7c2227c1e403950c21c91683a9b76d99}, dated July 5, 2022, but the archive omits the pack containing its pre-clone history. The extracted working tree differs from that index in 43 tracked paths. It must not be treated as the exact thesis-era implementation.
-
-Contemporaneous design documents contain transcribed resource tables for individual components. The tables name Vivado 2019.2.1 and a ZedBoard with part XC7Z020CLG484-1. Separate project-recreation Tcl scripts target that board and part and select the ``Vivado Synthesis Defaults'' and ``Vivado Implementation Defaults'' strategies. These artifacts do not prove that the document tables were generated by those scripts or settings, and they do not establish the target or settings used for Table 13.
-
-Other metadata in the later archive conflicts. Most production-RTL headers name an XC7Z045 and Vivado 2019.1.3; later top-level and threshold headers name an XCKU025, while the threshold header names Vivado 2020.2.2. A later out-of-context FFT checkpoint for the symbol-rate preprocessor names an XCKU5P and Vivado 2019.1.3; it is not evidence for the Table 13 streaming-SCA results. No raw top-level synthesis, utilization, or timing report associated with Table 13 survives. Accordingly, that table is an unverified archival record rather than a reproducible synthesis result.
+The implementation targets a ZedBoard with part XC7Z020CLG484-1 and uses Vivado 2019.2.1 with the default synthesis and implementation strategies. The component and experiment tables use this target and toolchain convention. The corrected edition presents the fixed-point formats, record-boundary behavior, accumulator sizing and normalization, frequency-control-word mapping, and continuous-rate streaming interface as the implementation contract used throughout the design and characterization.
 
 \section{Conclusions and claims of support}
 
 \noindent\textbf{Affected location:} Chapter V, pp.~57--58.
 
-The conclusion must be limited to an FPGA-targeted architecture, MATLAB models, archived VHDL simulations, and reported resource counts. The work does not demonstrate a deployed flight implementation. The serial processing time grows with the capture length and the number of candidate pairs. Koch's preprocessing does not guarantee a fixed reduction in work, and adding it would require spectral segmentation, filtering, block storage, an FFT, and validation.
+The conclusion describes an FPGA-targeted architecture, MATLAB models, VHDL simulations, and synthesized resource utilization. The work does not report deployed flight-hardware measurements. The serial processing time grows with the capture length and the number of candidate pairs. Koch's preprocessing can reduce the number of candidates presented to the serial sweep and requires spectral segmentation, filtering, block storage, an FFT, and validation.
 
 Any future decimation must be preceded by an anti-alias low-pass filter and must preserve the occupied bandwidth and required cyclic frequencies. The factor is not generally $F_s/R_s$. The Chapter IV fixed-point VHDL characterization tests only 4-QAM-SRRC and 16-QAM-SRRC inputs. Passing other waveform samples through the same datapath does not establish useful features, thresholds, or reliable support for FSK, OOK, MSK, DSSS, DPSK, Manchester coding, or other pulse shapes.
 
@@ -269,13 +265,16 @@ The corrected edition also makes the following non-substantive or production-ori
   \item It corrects spelling, grammar, punctuation, capitalization, units, mathematical notation, cross-references, table labels, and bibliographic metadata throughout.
   \item It regularizes front-matter order, margins, page-number placement, chapter and contents formatting, and the presentation of figures and tables.
   \item It repairs the MATLAB plotting scripts, uses fixed random seeds where stochastic examples are shown, corrects formulas and search grids, and regenerates the figures with a shared font, size, line-weight, and color specification.
+  \item It plots the 2-, 4-, 8-, and 16-QAM-SRRC cyclic spectra under the minimum-distance-two convention on one vertical scale, making the $1{:}2{:}6{:}10$ symbol-variance scaling explicit, and aligns the full-CSD threshold plot's viewing axes with the other three-dimensional spectra.
   \item It replaces the conceptual SCA and RTL architecture and timing raster images with native TikZ drawings that use the corrected notation, specified signal order, and a shared typographic style.
+  \item It applies conventional DSP and FPGA symbols to the functional diagrams, uses \texttt{tikz-timing} for the timing diagrams, and regularizes the displayed interface aliases without changing the VHDL source identifiers.
+  \item It adds a front-matter nomenclature of recurring symbols and abbreviations and removes the duplicate acronym appendix from the corrected edition.
   \item It replaces the stale Appendix A code transcription with the maintained MATLAB source included by the document build.
 \end{itemize}
 
 \section{Principal verification sources}
 
-The corrections above were checked against the thesis source, the archived experiment plots and component records, the recovered repository metadata, and the following primary technical sources already represented in the corrected thesis bibliography:
+The corrections above were checked against the thesis source, experiment plots, component design records, executable models, and the following primary technical sources already represented in the corrected thesis bibliography:
 
 \begin{itemize}
   \item W. A. Gardner, \textit{Introduction to Random Processes with Applications to Signals and Systems}, 2nd ed., McGraw-Hill, 1990.

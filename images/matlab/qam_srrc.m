@@ -3,7 +3,7 @@
 clear;
 rng(11,'twister');
 
-Nsymbols = 400;
+Nsymbols = 4000;
 Rs = 0.1;               % Symbol rate (MBd)
 Fs = 1;                 % Sample rate (samples/us, numerically MHz)
 fc = 0.05;              % Positive center frequency (MHz)
@@ -24,17 +24,31 @@ f = (-Nfreqs/2:Nfreqs/2-1)*(Fs/Nfreqs);
 [fig, colors] = thesis_figure();
 layout = tiledlayout(fig,2,2,'TileSpacing','compact','Padding','compact');
 plot_colors = [colors.blue;colors.orange;colors.green;colors.purple];
+modulation_orders = 2.^(1:4);
+expected_symbol_variances = [1,2,6,10];
+symbol_variances = zeros(size(modulation_orders));
+csd_peaks = zeros(size(modulation_orders));
+axes_handles = gobjects(size(modulation_orders));
 
-for i = 1:4
-    M = 2^i;
+for i = 1:numel(modulation_orders)
+    M = modulation_orders(i);
 
-    d = randi([0 M-1],Nsymbols,1);
-    syms_bb = qammod(d,M,'UnitAveragePower',true);
+    % Use every constellation point equally often so that the finite record
+    % has the exact symbol variance of a minimum-distance-two constellation.
+    d = repmat((0:M-1).',Nsymbols/M,1);
+    d = d(randperm(Nsymbols));
+    syms_bb = qammod(d,M,'UnitAveragePower',false);
+    reference_constellation = qammod((0:M-1).',M, ...
+        'UnitAveragePower',false);
+    symbol_variances(i) = mean(abs(reference_constellation).^2);
+    assert(abs(symbol_variances(i)-expected_symbol_variances(i)) < ...
+        100*eps(expected_symbol_variances(i)));
+    assert(abs(mean(abs(syms_bb).^2)-symbol_variances(i)) < ...
+        100*eps(symbol_variances(i)));
+
     syms_srrc = upfirdn(syms_bb,h,SPS);
     n = (0:numel(syms_srrc)-1)';
     syms_pb = syms_srrc.*exp(1j*2*pi*(fc/Fs)*n);
-    syms_pb = syms_pb/sqrt(mean(abs(syms_pb).^2));
-    assert(abs(mean(abs(syms_pb).^2)-1) < 1e-12);
 
     % Estimate the symmetric CAF without amplitude-normalizing away its
     % physical scale, then Fourier-transform along the lag dimension.
@@ -52,12 +66,14 @@ for i = 1:4
     Ra_padded(:,end-Nlags+1:end) = Ra(:,1:Nlags);
     CSD_raw = fftshift(fft(Ra_padded,[],2),2)/Fs;
     CSD = circular_movmean(CSD_raw,smoothing_length,2);
+    csd_peaks(i) = max(abs(CSD),[],'all');
 
     [~,symbol_rate_index] = min(abs(alpha-Rs));
     [~,carrier_index] = max(abs(CSD(symbol_rate_index,:)));
     assert(abs(f(carrier_index)-fc) <= Fs/Nfreqs);
 
     ax = nexttile(layout);
+    axes_handles(i) = ax;
     surface_handle = waterfall(ax,f,alpha,abs(CSD));
     set(surface_handle,'EdgeColor',plot_colors(i,:), ...
         'FaceColor','none','LineWidth',0.75);
@@ -68,5 +84,23 @@ for i = 1:4
     zlabel(ax,'$|\widehat{S}_{x}^{\alpha}(f)|$');
     xlim(ax,[f(1),f(end)]);
 end
+
+% Use one vertical scale so that the sigma_a^2 amplitude dependence remains
+% visible instead of being hidden by independent subplot autoscaling.
+shared_zmax = 1.05*max(csd_peaks);
+for i = 1:numel(axes_handles)
+    zlim(axes_handles(i),[0,shared_zmax]);
+end
+
+normalized_peaks = csd_peaks./symbol_variances;
+assert(max(abs(normalized_peaks/mean(normalized_peaks)-1)) < 0.08, ...
+    'The CSD shapes do not exhibit the expected symbol-variance scaling.');
+fprintf('Symbol variances:');
+fprintf(' %.6f',symbol_variances);
+fprintf('\nCSD peaks:');
+fprintf(' %.6f',csd_peaks);
+fprintf('\nCSD peak / symbol variance:');
+fprintf(' %.6f',normalized_peaks);
+fprintf('\n');
 
 thesis_export(fig,'qam_srrc');

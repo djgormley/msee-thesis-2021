@@ -82,7 +82,11 @@ In exchange for this low memory use, the processing time is increased.  With one
 
 To describe the implementation of the streaming SCA as a digital circuit, we will walk through each component and its subcomponents.  The signal-processing datapath uses custom VHDL modules and selected-frequency arithmetic in place of a vendor FFT core.  MATLAB and Xilinx Vivado support modeling, simulation, synthesis, and implementation.  The tables define the configured external interfaces used by the architecture; propagation-only width and latency parameters remain internal to their corresponding pipeline stages.
 
-The datapath uses a continuous-rate, fixed-latency streaming interface.  During each $N$-sample record, \texttt{SampleInValid} is asserted on every clock and downstream \texttt{SampleOutReady} is held high.  In sample-preserving stages, data and their valid and final-sample tags advance together at a fixed latency.  At an integrate-and-dump boundary, every accepted input contributes to the record state and one result, valid tag, and final-sample tag are emitted after the terminal input reaches that boundary.  The ready ports provide latency-aligned status and continuous throughput for the operating mode characterized in Chapter IV.
+\begin{samepage}
+\noindent\textit{Interface and naming conventions.}  The interface tables use descriptive labels: \texttt{I\_\allowbreak WIDTH} and \texttt{Q\_\allowbreak WIDTH} for real and imaginary component widths, \texttt{A\_\allowbreak WIDTH} and \texttt{B\_\allowbreak WIDTH} for multiplier-operand widths, and \texttt{MSB\_\allowbreak TRUNC\_\allowbreak BITS} and \texttt{LSB\_\allowbreak ROUND\_\allowbreak BITS} for the bit counts removed at each end of a fixed-point word.  These labels correspond to the VHDL generics \texttt{LengthA}, \texttt{LengthB}, \texttt{BitstoTrunc}, and \texttt{BitstoRound}.  References to source identifiers retain their exact spelling; displayed frequency-control-word names consistently use \texttt{FCW}.
+\end{samepage}
+
+The stream signal roles mirror AXI4-Stream: data, valid, and the final-sample tag travel downstream, while ready travels upstream.  The datapath specializes those roles to a continuous-rate, fixed-latency interface.  During each $N$-sample record, \texttt{SampleInValid} is asserted on every clock and downstream \texttt{SampleOutReady} is held high.  In sample-preserving stages, data and their valid and final-sample tags advance together at a fixed latency.  At an integrate-and-dump boundary, every accepted input contributes to the record state and one result, valid tag, and final-sample tag are emitted after the terminal input reaches that boundary.  The module-local \texttt{SampleIn} and \texttt{SampleOut} names identify this continuous-rate core interface; an elastic AXI4-Stream wrapper can map them to \texttt{s\_axis} and \texttt{m\_axis} channels while supplying stall-hold behavior at the protocol boundary.
 
 The configured CFE datapath uses \texttt{TAP\_COUNT=2}, giving the moving-average response $h=[0.5,0.5]$.  Its selected-frequency symbol-rate stage follows the streaming architecture described below, while the arithmetic and control interfaces are implemented as custom VHDL pipelines.  The discussion occasionally refers to VHDL functions, such as \texttt{resize()}; however, the signal-processing description is otherwise language-agnostic.
 
@@ -128,12 +132,12 @@ The thesis configuration specializes the NCO to a 16-bit phase accumulator with 
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured CFE interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 N\_SAMPLES         & Generic & natural & Configured record length; \texttt{SampleInLast} marks sample $N-1$. \\
 \hline
@@ -149,9 +153,9 @@ SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-CenterFrequency\newline Fcw & Input & signed(15 downto 0) & Signed 16-bit CF control word. \\
+CenterFrequency\newline FCW & Input & signed(15 downto 0) & Signed 16-bit CF control word. \\
 \hline
-SymbolRateFcw      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
+SymbolRateFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
 \hline
 SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
@@ -207,12 +211,12 @@ The instantaneous-power module computes the nonnegative value $|X[n]|^{2}$, and 
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured SRE interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 N\_SAMPLES         & Generic & natural & Configured record length; \texttt{SampleInLast} marks sample $N-1$. \\
 \hline
@@ -228,7 +232,7 @@ SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-OscillatorFcw      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
+OscillatorFCW      & Input & unsigned(15 downto 0) & Unsigned 16-bit SR control word. \\
 \hline
 SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
@@ -286,12 +290,12 @@ The corresponding normalized $N$-point DFT coefficient $\widehat{X}[\ell]$ is th
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured DFT interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 N\_SAMPLES         & Generic & natural & Configured record length; \texttt{SampleInLast} marks sample $N-1$. \\
 \hline
@@ -307,7 +311,7 @@ SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline 
 SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-OscillatorFcw      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
+OscillatorFCW      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
 \hline
 SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
@@ -366,12 +370,12 @@ When $f_{\mathrm{LO}}=f_1$, the component is translated to zero frequency.  The 
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured frequency-mixer interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 BIT\_WIDTH         & Generic & natural & Sample width: one sign bit and BIT\_WIDTH-1 fractional bits. \\
 \hline
@@ -385,7 +389,7 @@ SampleInValid      & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast       & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-OscillatorFcw      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
+OscillatorFCW      & Input & signed(15 downto 0) & Signed 16-bit frequency control word. \\
 \hline
 SampleIn\_I        & Input & signed(BIT\_WIDTH-1 \newline downto 0) & Real component of sample. \\
 \hline
@@ -443,13 +447,13 @@ Here, $b[i]$ are the $L$ coefficients, and $X[n]$ is the input sequence.  A caus
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured low-pass-filter interface.}
 \setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 TAP\_COUNT     & Config. & natural & Number of coefficients. \\
 \hline
@@ -503,7 +507,7 @@ P_{X}[n] &= X[n]X^{*}[n] \\
           &= \Re\{X[n]\}^{2}+\Im\{X[n]\}^{2}.
 \end{align*}
 
-The real and imaginary components are squared in parallel and then added.  This pointwise identity is not Parseval's theorem, which instead relates a sum or integral of squared magnitudes in the time domain to one in the frequency domain.  For compactness, the following arithmetic-module tables use the documentation labels LEN\_A, LEN\_B, TRUNC, and RND for the VHDL generics \texttt{LengthA}, \texttt{LengthB}, \texttt{BitstoTrunc}, and \texttt{BitstoRound}, respectively.
+The real and imaginary components are squared in parallel and then added.  This pointwise identity is not Parseval's theorem, which instead relates a sum or integral of squared magnitudes in the time domain to one in the frequency domain.
 
 \begin{figure}[H]
 \begin{center}
@@ -525,23 +529,23 @@ The real and imaginary components are squared in parallel and then added.  This 
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured instantaneous-power interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 
-LEN\_A         & Generic & natural & Bit width of the real input. \\
+I\_WIDTH       & Generic & natural & Bit width of the real input. \\
 \hline
-LEN\_B         & Generic & natural & Bit width of the imaginary input. \\
+Q\_WIDTH       & Generic & natural & Bit width of the imaginary input. \\
 \hline
-LATENCY        & Generic & natural & Controls the total operation latency. \\
+LATENCY        & Generic & natural & Pipeline latency in clock cycles. \\
 \hline
-TRUNC          & Generic & natural & Number of most-significant bits truncated. \\
+MSB\_TRUNC\_BITS & Generic & natural & Number of most-significant bits truncated. \\
 \hline
-RND            & Generic & natural & Number of least-significant bits removed after rounding. \\
+LSB\_ROUND\_BITS & Generic & natural & Number of least-significant bits removed after rounding. \\
 \hline
 Clock          & Input & std\_logic & Synchronous clock. \\
 \hline
@@ -553,9 +557,9 @@ SampleInValid  & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast   & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_A    & Input & signed(LEN\_A-1 \newline downto 0) & Real component of sample.  \\
+SampleIn\_I    & Input & signed(I\_WIDTH-1 \newline downto 0) & Real component of sample.  \\
 \hline
-SampleIn\_B    & Input & signed(LEN\_B-1 \newline downto 0) & Imaginary component of sample.  \\
+SampleIn\_Q    & Input & signed(Q\_WIDTH-1 \newline downto 0) & Imaginary component of sample.  \\
 \hline
 SampleInReady  & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
 \hline
@@ -563,7 +567,7 @@ SampleOutValid & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast  & Output & std\_logic & End-of-record tag aligned with the associated output. \\
 \hline
-SampleOut      & Output & unsigned(\newline 2*max(LEN\_A, \newline LEN\_B)-1-RND- \newline TRUNC downto 0) & Nonnegative magnitude-squared output. \\
+SampleOut      & Output & unsigned(\newline 2*max(I\_WIDTH, \newline Q\_WIDTH)-1- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Nonnegative magnitude-squared output. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -576,15 +580,14 @@ SampleOut      & Output & unsigned(\newline 2*max(LEN\_A, \newline LEN\_B)-1-RND
 \addcontentsline{toc}{subsection}{\quad 3.3.7 \quad Complex Multiplier}
 \noindent 3.3.7  \quad Complex Multiplier
 
-The product of two complex numbers can be expressed in terms of pairs of real and imaginary components as follows:
+Let the two complex operands be $X_A[n]=I_A[n]+jQ_A[n]$ and $X_B[n]=I_B[n]+jQ_B[n]$.  Their product can be expressed in terms of the corresponding real and imaginary components as follows:
 
 \begin{align*}
-X_{1}[n]X_{2}[n]          &= (A+jB)(C+jD) \\
-\Re \{X_{1}[n]X_{2}[n] \} &= AC-BD \\
-\Im \{X_{1}[n]X_{2}[n] \} &= AD+BC.
+\Re \{X_A[n]X_B[n] \} &= I_A[n]I_B[n]-Q_A[n]Q_B[n], \\
+\Im \{X_A[n]X_B[n] \} &= I_A[n]Q_B[n]+Q_A[n]I_B[n].
 \end{align*}
 
-Here, the multiplication of complex values $X_{1}[n]X_{2}[n]$ simplifies to four real multiplications, one real addition, and one real subtraction.
+Thus, the multiplication of $X_A[n]$ and $X_B[n]$ requires four real multiplications, one real addition, and one real subtraction.
 
 \begin{figure}[H]
 \begin{center}
@@ -606,23 +609,23 @@ Here, the multiplication of complex values $X_{1}[n]X_{2}[n]$ simplifies to four
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured complex-multiplier interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 
-LEN\_A          & Generic & natural & Operand-A component width. \\
+A\_WIDTH        & Generic & natural & Operand-A component width. \\
 \hline
-LEN\_B          & Generic & natural & Operand-B component width. \\
+B\_WIDTH        & Generic & natural & Operand-B component width. \\
 \hline
-LATENCY         & Generic & natural & Total operation latency. \\
+LATENCY         & Generic & natural & Pipeline latency in clock cycles. \\
 \hline
-TRUNC           & Generic & natural & Most-significant bits truncated. \\
+MSB\_TRUNC\_BITS & Generic & natural & Most-significant bits truncated. \\
 \hline
-RND             & Generic & natural & Least-significant bits removed after rounding. \\
+LSB\_ROUND\_BITS & Generic & natural & Least-significant bits removed after rounding. \\
 \hline
 Clock           & Input & std\_logic & Synchronous clock. \\
 \hline
@@ -634,13 +637,13 @@ SampleInValid   & Input & std\_logic & Input is valid. \\
 \hline
 SampleInLast    & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_I\_A  & Input & signed(LEN\_A-1 \newline downto 0) & Operand-A real component.  \\
+SampleIn\_A\_I  & Input & signed(A\_WIDTH-1 \newline downto 0) & Operand-A real component.  \\
 \hline
-SampleIn\_Q\_A  & Input & signed(LEN\_A-1 \newline downto 0) & Operand-A imaginary component.  \\
+SampleIn\_A\_Q  & Input & signed(A\_WIDTH-1 \newline downto 0) & Operand-A imaginary component.  \\
 \hline
-SampleIn\_I\_B  & Input & signed(LEN\_B-1 \newline downto 0) & Operand-B real component.  \\
+SampleIn\_B\_I  & Input & signed(B\_WIDTH-1 \newline downto 0) & Operand-B real component.  \\
 \hline
-SampleIn\_Q\_B  & Input & signed(LEN\_B-1 \newline downto 0) & Operand-B imaginary component.  \\
+SampleIn\_B\_Q  & Input & signed(B\_WIDTH-1 \newline downto 0) & Operand-B imaginary component.  \\
 \hline
 SampleInReady   & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
 \hline
@@ -648,9 +651,9 @@ SampleOutValid  & Output & std\_logic & Output is valid. \\
 \hline
 SampleOutLast   & Output & std\_logic & End-of-record tag aligned with the associated output. \\
 \hline
-SampleOut\_I    & Output & signed(\newline LEN\_A+LEN\_B-RND- \newline TRUNC downto 0) & Real component of product. \\
+SampleOut\_I    & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Real component of product. \\
 \hline
-SampleOut\_Q    & Output & signed(\newline LEN\_A+LEN\_B-RND- \newline TRUNC downto 0) & Imaginary component of product. \\
+SampleOut\_Q    & Output & signed(\newline A\_WIDTH+B\_WIDTH- \newline LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Imaginary component of product. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -689,22 +692,22 @@ Y[n]=X_{1}[n]X_{2}[n].
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured multiplier interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
-LEN\_A         & Generic & natural & Bit width of operand A. \\
+A\_WIDTH       & Generic & natural & Bit width of operand A. \\
 \hline
-LEN\_B         & Generic & natural & Bit width of operand B. \\
+B\_WIDTH       & Generic & natural & Bit width of operand B. \\
 \hline
-LATENCY        & Generic & natural & Controls the total operation latency. \\
+LATENCY        & Generic & natural & Pipeline latency in clock cycles. \\
 \hline
-TRUNC          & Generic & natural & Number of most-significant bits truncated. \\
+MSB\_TRUNC\_BITS & Generic & natural & Number of most-significant bits truncated. \\
 \hline
-RND            & Generic & natural & Number of least-significant bits removed after rounding. \\
+LSB\_ROUND\_BITS & Generic & natural & Number of least-significant bits removed after rounding. \\
 \hline
 Clock          & Input & std\_logic & Synchronous clock. \\
 \hline
@@ -716,9 +719,9 @@ SampleInValid  & Input & std\_logic & High when input is valid. \\
 \hline
 SampleInLast   & Input & std\_logic & End-of-record tag asserted with the final input sample. \\
 \hline
-SampleIn\_A    & Input & signed(LEN\_A-1 \newline downto 0) & Real-valued operand A.  \\
+SampleIn\_A    & Input & signed(A\_WIDTH-1 \newline downto 0) & Real-valued operand A.  \\
 \hline
-SampleIn\_B    & Input & signed(LEN\_B-1 \newline downto 0) & Real-valued operand B.  \\
+SampleIn\_B    & Input & signed(B\_WIDTH-1 \newline downto 0) & Real-valued operand B.  \\
 \hline
 SampleInReady  & Output & std\_logic & Latency-aligned upstream status for the continuous-rate interface. \\
 \hline
@@ -726,7 +729,7 @@ SampleOutValid & Output & std\_logic & High when output is valid. \\
 \hline
 SampleOutLast  & Output & std\_logic & End-of-record tag aligned with the associated output. \\
 \hline
-SampleOut      & Output & signed(\newline LEN\_A+LEN\_B-1 \newline -RND-TRUNC downto 0) & Real-valued product. \\
+SampleOut      & Output & signed(\newline A\_WIDTH+B\_WIDTH-1 \newline -LSB\_ROUND\_BITS- \newline MSB\_TRUNC\_BITS downto 0) & Real-valued product. \\
 \hline
 \end{tabularx}
 \end{center}
@@ -783,12 +786,12 @@ A 16-bit, 4096-sample configuration therefore uses a 28-bit sum and a 12-bit nor
 \singlespacing
 \small
 \setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{1.05}
+\renewcommand{\arraystretch}{0.95}
 \begin{center}
 \caption{Configured accumulator interface.}
 \begin{tabularx}{\textwidth}{|L{0.24\textwidth}|L{0.13\textwidth}|L{0.28\textwidth}|Y|}
 \hline
-\textbf{Port Name} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
+\textbf{Interface Item} & \textbf{Direction} & \textbf{Data Type} & \textbf{Description} \\
 \hline
 N\_SAMPLES     & Generic & natural & Record length used for counting, width, and normalization. \\
 \hline

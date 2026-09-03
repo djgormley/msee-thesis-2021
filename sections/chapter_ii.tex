@@ -88,10 +88,10 @@ Many digitally modulated communication waveforms are not WSS but instead exhibit
 An $M$-QAM waveform has the following mathematical representation:
 
 \begin{equation}\label{eq:qam_general}
-X(t)=\sum^{\infty}_{k=-\infty} a_{k}p(t-kT_{0}-t_{0})e^{j(2 \pi f_{c}t+\theta_{0})},
+X(t)=\sum^{\infty}_{i=-\infty} a_{i}p(t-iT_{0}-t_{0})e^{j(2 \pi f_{c}t+\theta_{0})},
 \end{equation}
 
-\noindent where $a_{k}$ is the $k$th data symbol, $p(t)$ is the pulse shape, $T_{0}=1/R_s$ is the symbol period, $t_{0}$ is the timing offset, $f_{c}$ is the CF, and $\theta_{0}$ is the carrier-phase offset.  This linear-modulation model includes QAM and phase-shift keying (PSK) waveforms.  Adaptive modulation and Nyquist pulse shaping are widely used communication techniques.  This thesis narrows its investigation to the M-QAM-SRRC class of waveforms.
+\noindent where $a_{i}$ is the $i$th data symbol, $p(t)$ is the pulse shape, $T_{0}=1/R_s$ is the symbol period, $t_{0}$ is the timing offset, $f_{c}$ is the CF, and $\theta_{0}$ is the carrier-phase offset.  This linear-modulation model includes QAM and phase-shift keying (PSK) waveforms.  Adaptive modulation and Nyquist pulse shaping are widely used communication techniques.  This thesis narrows its investigation to the M-QAM-SRRC class of waveforms.
 
 To conclude this section, Figure~\ref{fig:autocorrelogram} plots $|\widehat{R}_{x}(\tau)|$ versus $\tau$ in what is known as an \textit{autocorrelogram}.
 
@@ -289,12 +289,12 @@ Although the SCA shown in Figure~\ref{fig:gardner_sca} applies to an arbitrary w
 
 Several common SCAs, such as the FSM, TSM, SSCA, and FAM, are discussed in \cite{spooner-92}.  Efficient digital implementations of several of these techniques use FFTs and block buffering, which can make them memory-intensive.  Although larger memory allocations may be acceptable for terrestrial receivers, we must prioritize memory conservation for a CubeSat CR and explore alternative SCA designs.
 
-Koch's CAC-FFT uses peaks in the DFT of $|x[n]|^2$ to estimate candidate symbol rates \cite{koch-19}.  In the CAF-DFT used here, that operation is applied after channelization over candidate center frequencies.  The relevant QAM-SRRC cycle-frequency structure follows from the linear-modulation model in Equation~(\ref{eq:qam_general}) \cite{gardner-90}.  Assume the data symbols are zero-mean and uncorrelated, with $E\{a_k a_m^*\}=\sigma_a^2\delta_{km}$, and assume zero timing and carrier-phase offsets.  The symmetric AF is then
+Koch's CAC-FFT uses peaks in the DFT of $|x[n]|^2$ to estimate candidate symbol rates \cite{koch-19}.  In the CAF-DFT used here, that operation is applied after channelization over candidate center frequencies.  The relevant QAM-SRRC cycle-frequency structure follows from the linear-modulation model in Equation~(\ref{eq:qam_general}) \cite{gardner-90}.  Assume the data symbols are zero-mean and uncorrelated, with $E\{a_i a_m^*\}=\sigma_a^2\delta_{im}$, and assume zero timing and carrier-phase offsets.  The symmetric AF is then
 
 \begin{equation}\label{eq:lms_af}
-R_{X}(t,\tau)=\sigma_a^{2}e^{j2\pi f_c\tau}\sum_{k=-\infty}^{\infty}
-p\left(t+\frac{\tau}{2}-kT_{0}\right)
-p^{*}\left(t-\frac{\tau}{2}-kT_{0}\right).
+R_{X}(t,\tau)=\sigma_a^{2}e^{j2\pi f_c\tau}\sum_{i=-\infty}^{\infty}
+p\left(t+\frac{\tau}{2}-iT_{0}\right)
+p^{*}\left(t-\frac{\tau}{2}-iT_{0}\right).
 \end{equation}
 
 Because Equation~(\ref{eq:lms_af}) is periodic with $T_{0}$, we can express the CAF as follows:
@@ -305,7 +305,7 @@ e^{j2\pi f_c\tau}
 \int_{-\infty}^{\infty}
 p\left(u+\frac{\tau}{2}\right)
 p^{*}\left(u-\frac{\tau}{2}\right)e^{-j2\pi\alpha u}\,du,
-\qquad \alpha=\frac{n}{T_0},\;n\in\mathbb{Z}.
+\qquad \alpha=\frac{\nu}{T_0},\;\nu\in\mathbb{Z}.
 \end{equation}
 
 The corresponding CSD is:
@@ -314,7 +314,7 @@ The corresponding CSD is:
 S_{X}^{\alpha}(f) = \frac{\sigma_a^{2}}{T_{0}}
 P\left(f-f_c+\frac{\alpha}{2}\right)
 P^{*}\left(f-f_c-\frac{\alpha}{2}\right),
-\qquad \alpha=\frac{n}{T_0}.
+\qquad \alpha=\frac{\nu}{T_0}.
 \end{equation}
 
 Here, $P(f)$ is the Fourier transform of $p(t)$.  If $p(t)$ is an SRRC pulse with positive roll-off, the nontrivial cycle frequencies for this CSD occur at $\alpha=\pm R_s$, in addition to the ordinary $\alpha=0$ component.  Since this implementation searches only positive cycle frequencies, it evaluates candidates near $S^{R_s}_{X}(f)$.  In the ideal model, the peak coordinates estimate $(R_s,f_c)$ to within the estimator's cycle- and spectral-frequency resolutions.  This behavior is illustrated in Figure~\ref{fig:qam_srrc}.
@@ -322,7 +322,7 @@ Here, $P(f)$ is the Fourier transform of $p(t)$.  If $p(t)$ is an SRRC pulse wit
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.75]{plots/qam_srrc}
-\caption[CSD of QAM-SRRC for various values of $M$.]{CSD magnitude estimates for independently generated $2$-, $4$-, $8$-, and $16$-QAM-SRRC waveforms with $R_s=0.1\text{ MBd}$ and $f_c=0.05\text{ MHz}$.  The $\alpha=0$ slice is the ordinary PSD.  For each modulation order, the nontrivial $\alpha=R_s$ slice has its maximum within one $7.8125$-kHz DFT bin of $f_c$.}
+\caption[CSD of QAM-SRRC for various values of $M$.]{CSD magnitude estimates for independently generated $2$-, $4$-, $8$-, and $16$-QAM-SRRC waveforms with $R_s=0.1\text{ MBd}$ and $f_c=0.05\text{ MHz}$.  The minimum-distance-two constellations have symbol variances $\sigma_a^2=1$, $2$, $6$, and $10$, respectively.  The common vertical scale shows the shared second-order CSD shape and its amplitude proportional to $\sigma_a^2$.  The $\alpha=0$ slice is the ordinary PSD, and each nontrivial $\alpha=R_s$ slice has its maximum within one $7.8125$-kHz DFT bin of $f_c$.}
 \label{fig:qam_srrc}
 \end{center}
 \end{figure}
@@ -475,10 +475,10 @@ These equalities describe the ideal nonzero-cycle feature.  A finite-sample esti
 \addcontentsline{toc}{subsection}{\quad 2.4.3 \quad Test Statistic and Detection Threshold}
 \noindent 2.4.3 \quad Test Statistic and Detection Threshold
 
-In a spectrum-sensing environment, the receiver may lack prior information about the signal and its activity probability \cite{liang-20}.  For the illustrative detector used here, define a nonnegative pointwise test statistic $\ell(\widehat{Q}_{y}(\alpha_v,f_k))$, or simply $\ell$, for each candidate $(\alpha_v,f_k)$ pair:
+In a spectrum-sensing environment, the receiver may lack prior information about the signal and its activity probability \cite{liang-20}.  For the illustrative detector used here, define the nonnegative pointwise test statistic $T_y(v,k)$ for each candidate $(\alpha_v,f_k)$ pair:
 
 \begin{equation}\label{eq:caf_l}
-  \ell={|\widehat{Q}_{y}(\alpha_v,f_k)|}^{2}.
+  T_y(v,k)={|\widehat{Q}_{y}(\alpha_v,f_k)|}^{2}.
 \end{equation}
 
 The statistic still requires a threshold $\gamma$.  Noise power is difficult to estimate in a realistic spectrum-sensing environment \cite{liang-20}, so this demonstration instead normalizes the threshold to the estimated average received power,

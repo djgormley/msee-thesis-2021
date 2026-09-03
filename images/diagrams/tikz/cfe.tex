@@ -3,7 +3,7 @@
   \node[arch/block, right=of xin] (mix) {complex\\mixer};
   \node[arch/block, right=of mix] (fir) {two-tap FIR\\$h=[0.5,0.5]$};
   \node[arch/smallblock, right=of fir] (pwr) {$|z_k[n]|^2$};
-  \node[arch/block, right=of pwr] (sum) {selected-frequency\\sum, $N$ samples};
+  \node[dsp/reg, align=center, right=of pwr] (sum) {selected-frequency\\accumulator\\$N$ samples};
   \node[arch/smallblock, right=of sum] (norm) {$\div N$};
   \node[arch/smallblock, right=of norm] (mag) {$|\cdot|^2$};
   \node[arch/label, right=of mag] (out) {$T_x(v,k)$};

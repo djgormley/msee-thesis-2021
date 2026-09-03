@@ -1,18 +1,26 @@
 \begin{tikzpicture}[node distance=6mm and 8mm]
   \node[arch/label] (xin) {$X[n]$};
-  \node[arch/sum, right=8mm of xin] (mult) {$\times$};
-  \node[arch/block, above right=8mm and 16mm of mult] (acci) {I sum core\\$W_{\rm acc}$ bits};
-  \node[arch/block, below right=8mm and 16mm of mult] (accq) {Q sum core\\$W_{\rm acc}$ bits};
+  \node[dsp/mult, right=8mm of xin] (mult) {$\times$};
+  \node[dsp/junction, right=5mm of mult] (split) {};
+  \node[dsp/add, above right=8mm and 11mm of split] (addi) {$+$};
+  \node[dsp/add, below right=8mm and 11mm of split] (addq) {$+$};
+  \node[dsp/reg, align=center, right=7mm of addi] (acci) {I sum\\register\\$W_{\rm acc}$ bits};
+  \node[dsp/reg, align=center, right=7mm of addq] (accq) {Q sum\\register\\$W_{\rm acc}$ bits};
   \coordinate (accmid) at ($(acci.east)!0.5!(accq.east)$);
-  \node[arch/group, fit=(acci)(accq), label={[arch/tinylabel]above:one-record I/Q accumulation}] (accgroup) {};
+  \node[arch/group, fit=(addi)(addq)(acci)(accq)] (accgroup) {};
   \node[arch/block, right=12mm of accmid] (quant) {normalize by $N$\\round, saturate,\\and resize};
   \node[arch/label, right=8mm of quant] (out) {$\widehat X(f_0)$};
   \node[arch/block, below left=15mm and 1mm of mult] (nco) {phase accumulator\\and sine/cosine LUT};
 
   \draw[arch/wire] (xin) -- (mult);
   \draw[arch/wire] (nco.north) -- node[arch/tinylabel, right] {$e^{-j2\pi f_0n/F_s}$} (mult.south);
-  \draw[arch/wire] (mult.east) |- (acci.west);
-  \draw[arch/wire] (mult.east) |- (accq.west);
+  \draw[line width=0.7pt] (mult.east) -- (split);
+  \draw[arch/wire] (split) |- node[arch/tinylabel, near end, above] {I} (addi.west);
+  \draw[arch/wire] (split) |- node[arch/tinylabel, near end, below] {Q} (addq.west);
+  \draw[arch/wire] (addi) -- (acci);
+  \draw[arch/wire] (addq) -- (accq);
+  \draw[arch/wire] (acci.north) -- ++(0,6mm) -| (addi.north);
+  \draw[arch/wire] (accq.south) -- ++(0,-6mm) -| (addq.south);
   \draw[arch/wire] (acci.east) -| ($(quant.west)+(0,2mm)$);
   \draw[arch/wire] (accq.east) -| ($(quant.west)+(0,-2mm)$);
   \draw[arch/wire] (quant) -- (out);

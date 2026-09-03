@@ -80,7 +80,7 @@ peak_handle = scatter3(ax, detected_frequency/1e3, detected_alpha/1e3, ...
     detected_peaks, 55, colors.green, 'filled', ...
     'MarkerEdgeColor', 'white', 'LineWidth', 0.8);
 
-view(ax, -35, 24);
+view(ax, 225, 20);
 xlabel(ax, 'Spectral frequency, $f$ (kHz)');
 ylabel(ax, 'Cycle frequency, $\alpha$ (kHz)');
 zlabel(ax, '$T_y^{\alpha}(f)=|S_y^{\alpha}(f)|^2$');

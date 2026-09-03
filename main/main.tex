@@ -24,6 +24,7 @@
 \usepackage{needspace} % keep subsection headings with their opening text
 \usepackage{anyfontsize} % fractional font sizes
 \usepackage{tabularx} % wrapped, full-width tables
+\usepackage{longtable} % page-breaking nomenclature tables
   \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
   \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
@@ -34,6 +35,7 @@
   \definecolor{mauve}  {rgb}{0.58, 0.0, 0.82}
 \usepackage{tikz}
   \usetikzlibrary{arrows.meta, calc, fit, matrix, positioning, shapes.geometric}
+\usepackage{tikz-timing}
   \tikzset{
     arch/block/.style={
       draw=black,
@@ -61,6 +63,53 @@
     arch/group/.style={draw=black, dashed, rounded corners=1.5pt, inner sep=5pt},
     arch/label/.style={font=\footnotesize\linespread{1}\selectfont, align=center},
     arch/tinylabel/.style={font=\scriptsize\linespread{1}\selectfont, align=center},
+    dsp/operator/.style={
+      circle,
+      draw=black,
+      line width=0.6pt,
+      fill=white,
+      minimum size=8mm,
+      inner sep=0pt,
+      font=\footnotesize\linespread{1}\selectfont
+    },
+    dsp/add/.style={dsp/operator},
+    dsp/sub/.style={dsp/operator},
+    dsp/mult/.style={dsp/operator},
+    dsp/delay/.style={
+      rectangle,
+      draw=black,
+      line width=0.6pt,
+      fill=white,
+      minimum width=10mm,
+      minimum height=8mm,
+      inner sep=2pt,
+      font=\footnotesize\linespread{1}\selectfont
+    },
+    dsp/reg/.style={dsp/delay},
+    dsp/gain/.style={
+      regular polygon,
+      regular polygon sides=3,
+      shape border rotate=-90,
+      draw=black,
+      line width=0.6pt,
+      fill=white,
+      minimum size=9mm,
+      inner sep=1pt,
+      font=\scriptsize\linespread{1}\selectfont
+    },
+    dsp/mux/.style={
+      trapezium,
+      trapezium left angle=70,
+      trapezium right angle=110,
+      draw=black,
+      line width=0.6pt,
+      fill=white,
+      minimum width=11mm,
+      minimum height=10mm,
+      inner sep=2pt,
+      font=\scriptsize\linespread{1}\selectfont
+    },
+    dsp/junction/.style={circle, fill=black, draw=black, minimum size=1.6mm, inner sep=0pt},
     timing/rowlabel/.style={font=\scriptsize\linespread{1}\selectfont, anchor=east},
     timing/text/.style={font=\scriptsize\linespread{1}\selectfont, align=center},
     timing/grid/.style={draw=black!22, densely dotted, line width=0.35pt},
@@ -185,6 +234,9 @@
 \addtocontents{lof}{\protect\noindent Figure\hfill Page\par}
 \listoffigures
 
+\newpage
+\input{../sections/nomenclature}
+
 % mainmatter
 \newpage
 \pagenumbering{arabic}
@@ -210,7 +262,5 @@
 
 \input{../sections/appendix}
 \input{../sections/appendix_a}
-\input{../sections/appendix_b}
-%\input{../sections/appendix_c}
 
 \end{document}

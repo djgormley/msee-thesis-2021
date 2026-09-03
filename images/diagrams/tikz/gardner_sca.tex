@@ -1,18 +1,18 @@
 \begin{tikzpicture}[node distance=6mm and 8mm]
   \node[arch/label] (xin) {$x(t)$};
-  \coordinate[right=4mm of xin] (split);
-  \node[arch/sum, above right=7mm and 8mm of split] (mixp) {$\times$};
-  \node[arch/sum, below right=7mm and 8mm of split] (mixm) {$\times$};
+  \node[dsp/junction, right=4mm of xin] (split) {};
+  \node[dsp/mult, above right=7mm and 8mm of split] (mixp) {$\times$};
+  \node[dsp/mult, below right=7mm and 8mm of split] (mixm) {$\times$};
   \node[arch/block, right=8mm of mixp] (lpfp) {$h_{\Delta f}(t)$};
   \node[arch/block, right=8mm of mixm] (lpfm) {$h_{\Delta f}(t)$};
   \node[arch/smallblock, right=6mm of lpfm] (conj) {conjugate};
   \coordinate (branchmid) at ($(lpfp.east)!0.5!(conj.east)$);
-  \node[arch/sum, right=12mm of branchmid] (prod) {$\times$};
+  \node[dsp/mult, right=12mm of branchmid] (prod) {$\times$};
   \node[arch/block, right=8mm of prod] (avg) {$T$-second\\time average};
-  \node[arch/smallblock, right=7mm of avg] (scale) {$\times\Delta f$};
+  \node[dsp/mult, right=7mm of avg] (scale) {$\times$};
   \node[arch/label, right=6mm of scale] (out) {$\widehat S_X^{\alpha}(t,f)$};
 
-  \draw[line width=0.7pt] (xin) -- (split);
+  \draw[arch/wire] (xin) -- (split);
   \draw[arch/wire] (split) |- (mixp.west);
   \draw[arch/wire] (split) |- (mixm.west);
   \draw[arch/wire] (mixp) -- (lpfp);
@@ -27,4 +27,5 @@
   \node[arch/tinylabel, above=2mm of mixp] {$e^{-j2\pi(f+\alpha/2)t}$};
   \node[arch/tinylabel, below=2mm of mixm] {$e^{-j2\pi(f-\alpha/2)t}$};
   \node[arch/tinylabel, above=2mm of lpfp] {bandwidth $\Delta f$};
+  \node[arch/tinylabel, above=2mm of scale] {$\Delta f$};
 \end{tikzpicture}
